@@ -52,9 +52,31 @@ sequelize.models = Object.fromEntries(capsEntries);
 
 // En sequelize.models están todos los modelos importados como propiedades
 // Para relacionarlos hacemos un destructuring
-const { Contacto, Admin } = sequelize.models;
+const { Admin, Client, Garantor, Property, Lease, PaymentReceipt, ClientProperty } = sequelize.models;
+
+// Property y Lease
+Client.belongsToMany(Property, { through: 'ClientProperty', foreignKey: 'clientId' });
+Property.belongsToMany(Client, { through: 'ClientProperty', foreignKey: 'propertyId' });
 
 
+// Relación uno a uno entre Lease y Property
+Lease.belongsTo(Property, { foreignKey: 'propertyId' });
+Property.hasOne(Lease, { foreignKey: 'propertyId' });
+
+// Relación muchos a uno entre Lease y Client (inquilino)
+Lease.belongsTo(Client, { foreignKey: 'idClient' });
+Client.hasMany(Lease, { foreignKey: 'idClient' });
+
+Lease.hasMany(Garantor, { foreignKey : 'leaseId' });
+Garantor.belongsTo(Lease, { foreignKey : 'leaseId' });
+
+// Relación muchos a uno entre PaymentReceipt y Lease
+PaymentReceipt.belongsTo(Lease, { foreignKey: 'leaseId' });
+Lease.hasMany(PaymentReceipt, { foreignKey: 'leaseId' });
+
+// Relación muchos a uno entre PaymentReceipt y Client
+PaymentReceipt.belongsTo(Client, { foreignKey: 'idClient' });
+Client.hasMany(PaymentReceipt, { foreignKey: 'idClient' });
 
 
 //---------------------------------------------------------------------------------//

@@ -5,10 +5,9 @@ const router = express.Router();
 
 router.post('/register', register);
 
-
 router.post('/login', login);
 
-router.get('/admins', getAllAdmins);
+router.get('/admin', getAllAdmins);
 
 router.put('/:adminId', editAdmin);
 

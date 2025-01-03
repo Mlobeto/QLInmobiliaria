@@ -2,6 +2,8 @@
 import { Routes, Route } from "react-router-dom";
 import Landing from "./Components/Landing";
 import Panel from "./Components/Admin/Panel";
+import Clientes from "./Components/Clientes/Clientes"
+import Propiedades from "./Components/Propiedades/Propiedades"
 
 import LoginAdmin from "./Components/Admin/Login/Login";
 
@@ -16,17 +18,34 @@ function App() {
       <Route
         path="/panel"
         element={
-          // <ProtectedRoutes>
+          //  <ProtectedRoutes>
           <Panel />
-          // </ProtectedRoutes>
+          //  </ProtectedRoutes>
+        }
+      />
+      <Route
+        path="/cliente"
+        element={
+          //  <ProtectedRoutes>
+          <Clientes />
+          //  </ProtectedRoutes>
+        }
+      />
+
+<Route
+        path="/cargarPropiedad"
+        element={
+          //  <ProtectedRoutes>
+          <Propiedades />
+          //  </ProtectedRoutes>
         }
       />
          <Route
         path="/login"
         element={
-          // <ProtectedRoutes>
+          
           <LoginAdmin />
-          // </ProtectedRoutes>
+          
         }
       />
 
