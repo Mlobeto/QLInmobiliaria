@@ -52,31 +52,53 @@ sequelize.models = Object.fromEntries(capsEntries);
 
 // En sequelize.models están todos los modelos importados como propiedades
 // Para relacionarlos hacemos un destructuring
-const { Admin, Client, Garantor, Property, Lease, PaymentReceipt, ClientProperty } = sequelize.models;
+const { 
+  Admin, 
+  Client, 
+  Garantor, 
+  Property, 
+  Lease, 
+  PaymentReceipt, 
+  ClientProperty, 
+  SaleContract 
+} = sequelize.models;
 
-// Property y Lease
+// Relaciones entre Client y Property a través de ClientProperty
 Client.belongsToMany(Property, { through: 'ClientProperty', foreignKey: 'clientId' });
 Property.belongsToMany(Client, { through: 'ClientProperty', foreignKey: 'propertyId' });
 
-
-// Relación uno a uno entre Lease y Property
+// Lease y Property (uno a uno)
 Lease.belongsTo(Property, { foreignKey: 'propertyId' });
 Property.hasOne(Lease, { foreignKey: 'propertyId' });
 
-// Relación muchos a uno entre Lease y Client (inquilino)
-Lease.belongsTo(Client, { foreignKey: 'idClient' });
-Client.hasMany(Lease, { foreignKey: 'idClient' });
+// Lease y Client (inquilino)
+Lease.belongsTo(Client, { foreignKey: 'tenantId' });
+Client.hasMany(Lease, { foreignKey: 'tenantId' });
 
-Lease.hasMany(Garantor, { foreignKey : 'leaseId' });
-Garantor.belongsTo(Lease, { foreignKey : 'leaseId' });
+// SaleContract y Property (uno a uno)
+SaleContract.belongsTo(Property, { foreignKey: 'propertyId' });
+Property.hasOne(SaleContract, { foreignKey: 'propertyId' });
 
-// Relación muchos a uno entre PaymentReceipt y Lease
+// SaleContract y Client (vendedor y comprador)
+SaleContract.belongsTo(Client, { as: 'Seller', foreignKey: 'sellerId' });
+SaleContract.belongsTo(Client, { as: 'Buyer', foreignKey: 'buyerId' });
+Client.hasMany(SaleContract, { as: 'Sales', foreignKey: 'sellerId' });
+Client.hasMany(SaleContract, { as: 'Purchases', foreignKey: 'buyerId' });
+
+// Garantor y Lease (uno a muchos)
+Lease.hasMany(Garantor, { foreignKey: 'leaseId' });
+Garantor.belongsTo(Lease, { foreignKey: 'leaseId' });
+
+// PaymentReceipt y Lease (uno a muchos)
 PaymentReceipt.belongsTo(Lease, { foreignKey: 'leaseId' });
 Lease.hasMany(PaymentReceipt, { foreignKey: 'leaseId' });
 
-// Relación muchos a uno entre PaymentReceipt y Client
+// PaymentReceipt y Client (uno a muchos)
 PaymentReceipt.belongsTo(Client, { foreignKey: 'idClient' });
 Client.hasMany(PaymentReceipt, { foreignKey: 'idClient' });
+
+
+
 
 
 //---------------------------------------------------------------------------------//

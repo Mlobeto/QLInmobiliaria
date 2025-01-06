@@ -9,10 +9,16 @@ CREATE_CLIENT_REQUEST, CREATE_CLIENT_SUCCESS, CREATE_CLIENT_FAILURE, GET_CLIENT_
 GET_CLIENT_SUCCESS,  GET_CLIENT_FAILURE,  UPDATE_CLIENT_REQUEST,   UPDATE_CLIENT_SUCCESS,
 UPDATE_CLIENT_FAILURE, DELETE_CLIENT_REQUEST, DELETE_CLIENT_SUCCESS, DELETE_CLIENT_FAILURE,
 GET_ALL_CLIENT_REQUEST,   GET_ALL_CLIENT_SUCCESS,  GET_ALL_CLIENT_FAIL,
-CREATE_PROPERTY_REQUEST, CREATE_PROPERTY_SUCCESS, CREATE_PROPERTY_FAILURE, RESET_CREATE_PROPERTY_STATE,
+CREATE_PROPERTY_REQUEST, CREATE_PROPERTY_SUCCESS, CREATE_PROPERTY_FAILURE, 
+
 ADD_PROPERTY_TO_CLIENT_REQUEST,
 ADD_PROPERTY_TO_CLIENT_SUCCESS,
-ADD_PROPERTY_TO_CLIENT_FAILURE
+ADD_PROPERTY_TO_CLIENT_FAILURE, CREATE_LEASE_REQUEST, CREATE_LEASE_SUCCESS, CREATE_LEASE_FAILURE,
+GET_PROPERTIES_BY_CLIENT_REQUEST,  GET_PROPERTIES_BY_CLIENT_SUCCESS,  GET_PROPERTIES_BY_CLIENT_FAILURE ,
+GET_PROPERTIES_BY_TYPE_REQUEST, GET_PROPERTIES_BY_TYPE_SUCCESS , GET_PROPERTIES_BY_TYPE_FAILURE, 
+UPDATE_PROPERTY_REQUEST,  UPDATE_PROPERTY_SUCCESS,  UPDATE_PROPERTY_FAILURE , DELETE_PROPERTY_REQUEST , DELETE_PROPERTY_SUCCESS,
+DELETE_PROPERTY_FAILURE, 
+GET_FILTERED_PROPERTIES_REQUEST,  GET_FILTERED_PROPERTIES_SUCCESS,  GET_FILTERED_PROPERTIES_FAILURE
 
 } from './actions-types'
 
@@ -167,17 +173,23 @@ export const createClient = (clientData) => async (dispatch) => {
     dispatch({ type: CREATE_PROPERTY_REQUEST });
   
     try {
-      console.log("Enviando datos de la propiedad:", propertyData); // Agregar log aquí para ver los datos antes de enviarlos
+      console.log("Enviando datos de la propiedad:", propertyData); // Ver los datos enviados
   
+      // Hacer la solicitud POST al backend
       const response = await axios.post(`/property`, propertyData, {
         headers: {
           "Content-Type": "application/json",
         },
       });
   
-      console.log("Respuesta del backend:", response); // Agregar log para ver la respuesta del backend
+      console.log("Respuesta del backend:", response.data); // Verifica que response.data tenga propertyId
   
-      dispatch({ type: CREATE_PROPERTY_SUCCESS, payload: response.data });
+      // Asegúrate de que response.data contenga propertyId
+      if (response.data && response.data.propertyId) {
+        dispatch({ type: CREATE_PROPERTY_SUCCESS, payload: response.data }); // Devuelve la respuesta al reducer
+      } else {
+        throw new Error("No se obtuvo el propertyId en la respuesta");
+      }
   
       // Mostrar alerta de éxito
       Swal.fire({
@@ -185,8 +197,11 @@ export const createClient = (clientData) => async (dispatch) => {
         text: "Propiedad creada correctamente",
         icon: "success",
       });
+  
+      // Devolver la respuesta para poder usarla en el siguiente paso
+      return response.data;
     } catch (error) {
-      console.log("Error al crear propiedad:", error); // Ver qué tipo de error se recibe
+      console.log("Error al crear propiedad:", error); // Maneja el error
   
       dispatch({ type: CREATE_PROPERTY_FAILURE, payload: error.message });
   
@@ -198,28 +213,134 @@ export const createClient = (clientData) => async (dispatch) => {
         text: errorMessage,
         icon: "error",
       });
+  
+      // Rechazar con el error para poder manejarlo en el componente
+      throw error;
     }
   };
   
-  export const addPropertyToClientWithRole = (idClient, propertyId, role) => async (dispatch) => {
+  
+  export const addPropertyToClientWithRole = ( propertyId,idClient, role) => async (dispatch) => {
     dispatch({ type: ADD_PROPERTY_TO_CLIENT_REQUEST });
+    console.log('Inicio de la acción addPropertyToClientWithRole');
+    console.log('Datos enviados:', {  propertyId,idClient, role });
 
     try {
-        const response = await axios.post('/api/properties/add-client-role', {
+        const response = await axios.post('/clientRole/addRole', {
             idClient,
             propertyId,
             role,
         });
+        console.log('Respuesta del backend:', response.data);
 
         dispatch({
             type: ADD_PROPERTY_TO_CLIENT_SUCCESS,
             payload: response.data, // La respuesta que regresa del backend
         });
     } catch (error) {
+        console.error('Error al hacer la solicitud:', error);
+        console.error('Error response payload:', error.response ? error.response.data : 'Sin respuesta del servidor');
+
         dispatch({
             type: ADD_PROPERTY_TO_CLIENT_FAILURE,
             payload: error.response ? error.response.data : { error: 'Error desconocido' },
         });
     }
 };
-  
+
+
+
+export const getPropertiesByClient = (idClient) => async (dispatch) => {
+  dispatch({ type: GET_PROPERTIES_BY_CLIENT_REQUEST });
+  try {
+    const response = await axios.get(`/property/${idClient}`);
+    dispatch({ type: GET_PROPERTIES_BY_CLIENT_SUCCESS, payload: response.data });
+  } catch (error) {
+    dispatch({ type: GET_PROPERTIES_BY_CLIENT_FAILURE, payload: error.message });
+    Swal.fire("Error", "No se pudieron obtener las propiedades del cliente", "error");
+  }
+};
+
+export const getPropertiesByType = (type) => async (dispatch) => {
+  dispatch({ type: GET_PROPERTIES_BY_TYPE_REQUEST });
+  try {
+    const response = await axios.get(`/property/type/${type}`);
+    dispatch({ type: GET_PROPERTIES_BY_TYPE_SUCCESS, payload: response.data });
+  } catch (error) {
+    dispatch({ type: GET_PROPERTIES_BY_TYPE_FAILURE, payload: error.message });
+    Swal.fire("Error", "No se pudieron obtener las propiedades por tipo", "error");
+  }
+};
+
+export const updateProperty = (propertyId, propertyData) => async (dispatch) => {
+  dispatch({ type: UPDATE_PROPERTY_REQUEST });
+  try {
+    const response = await axios.put(`/property/${propertyId}`, propertyData);
+    dispatch({ type: UPDATE_PROPERTY_SUCCESS, payload: response.data });
+    Swal.fire("Éxito", "Propiedad actualizada correctamente", "success");
+  } catch (error) {
+    dispatch({ type: UPDATE_PROPERTY_FAILURE, payload: error.message });
+    Swal.fire("Error", "No se pudo actualizar la propiedad", "error");
+  }
+};
+
+export const deleteProperty = (propertyId) => async (dispatch) => {
+  dispatch({ type: DELETE_PROPERTY_REQUEST });
+  try {
+    const response = await axios.delete(`/property/${propertyId}`);
+    dispatch({ type: DELETE_PROPERTY_SUCCESS, payload: response.data });
+    Swal.fire("Éxito", "Propiedad eliminada correctamente", "success");
+  } catch (error) {
+    dispatch({ type: DELETE_PROPERTY_FAILURE, payload: error.message });
+    Swal.fire("Error", "No se pudo eliminar la propiedad", "error");
+  }
+};
+
+export const getFilteredProperties = (filters) => async (dispatch) => {
+  dispatch({ type: GET_FILTERED_PROPERTIES_REQUEST });
+  try {
+    const response = await axios.get(`/property/filter`, { params: filters });
+    dispatch({ type: GET_FILTERED_PROPERTIES_SUCCESS, payload: response.data });
+  } catch (error) {
+    dispatch({ type: GET_FILTERED_PROPERTIES_FAILURE, payload: error.message });
+    Swal.fire("Error", "No se pudieron filtrar las propiedades", "error");
+  }
+};
+
+export const createLease  = (leaseData) => async (dispatch) => {
+  dispatch({ type: CREATE_LEASE_REQUEST });
+
+  try {
+    console.log("Enviando datos del contrato:", leaseData); // Agregar log aquí para ver los datos antes de enviarlos
+
+    const response = await axios.post(`/lease`, leaseData, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    console.log("Respuesta del backend:", response); // Agregar log para ver la respuesta del backend
+
+    dispatch({ type: CREATE_LEASE_SUCCESS, payload: response.data });
+
+    // Mostrar alerta de éxito
+    Swal.fire({
+      title: "¡Éxito!",
+      text: "Contrato creado correctamente",
+      icon: "success",
+    });
+  } catch (error) {
+    console.log("Error al crear el contrato:", error); // Ver qué tipo de error se recibe
+
+    dispatch({ type: CREATE_LEASE_FAILURE, payload: error.message });
+
+    // Mostrar alerta de error
+    const errorMessage =
+      error.response?.data?.message || "Ocurrió un error al crear la propiedad.";
+    Swal.fire({
+      title: "Error",
+      text: errorMessage,
+      icon: "error",
+    });
+  }
+};

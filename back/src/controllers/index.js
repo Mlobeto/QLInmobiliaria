@@ -15,7 +15,7 @@ module.exports = {
   deleteAdmin: catchedAsync(authController.deleteAdmin),
   createClient:catchedAsync(ClientController.createClient),
   getAllClients:catchedAsync(ClientController.getAllClients),
-  getClientById:catchedAsync(ClientController.register),
+  getClientById:catchedAsync(ClientController.getClientById),
   updateClient:catchedAsync(ClientController.updateClient),
   deleteClient: catchedAsync(ClientController.deleteClient),
   createLease: catchedAsync(LeaseController.createLease),

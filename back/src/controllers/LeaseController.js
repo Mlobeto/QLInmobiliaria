@@ -47,6 +47,7 @@ exports.getLeasesByIdClient = async (req, res) => {
         res.status(500).json({ error: 'Error al obtener contratos', details: error.message });
     }
 };
+
 exports.terminateLease = async (req, res) => {
     try {
         const { leaseId } = req.params;

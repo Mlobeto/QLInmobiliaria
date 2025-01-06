@@ -33,6 +33,24 @@ module.exports = (sequelize) => {
         type: DataTypes.TEXT,
         allowNull: false,
       },
+      landlordId: {
+        // Propietario de la propiedad
+        type: DataTypes.INTEGER,
+        references: {
+          model: 'Clients',
+          key: 'idClient',
+        },
+        allowNull: false,
+      },
+      tenantId: {
+        // Inquilino
+        type: DataTypes.INTEGER,
+        references: {
+          model: 'Client',
+          key: 'idClient',
+        },
+        allowNull: false,
+      },
     },
     {
       paranoid: true,

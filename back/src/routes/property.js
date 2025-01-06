@@ -4,7 +4,7 @@ const { getAllProperties, getPropertiesByIdClient, createProperty, updatePropert
 const router = Router();
 
 router.get('/', getAllProperties);
-router.get('/:idClient', getPropertiesByIdClient);
+router.get('/client/:idClient', getPropertiesByIdClient);
 router.post('/', createProperty);
 router.put('/:propertyId', updateProperty);
 router.get('/type/:type', getPropertiesByType);
