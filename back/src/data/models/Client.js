@@ -69,7 +69,7 @@ module.exports = (sequelize) => {
     {
       paranoid: true,
 
-      tableName: "Client",
+      
     }
   );
 };
