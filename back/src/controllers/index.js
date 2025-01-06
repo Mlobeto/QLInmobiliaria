@@ -34,6 +34,6 @@ module.exports = {
   createGarantorsForLease: catchedAsync(garantorController.createGarantorsForLease),
   updateGarantor:catchedAsync(garantorController.updateGarantor),
   getGarantorsByLeaseId: catchedAsync(garantorController.getGarantorsByLeaseId),
-  addPropertyToClientWithRole : catchedAsync(addPropertyToClientWithRole.addPropertyToClientWithRole),
+  addPropertyToClientWithRole : catchedAsync(addPropertyToClientWithRole),
   getAllProperties: catchedAsync(PropertyController.getAllProperties),
 };

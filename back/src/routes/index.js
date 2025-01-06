@@ -2,12 +2,23 @@ const { Router } = require("express");
 
 const router = Router();
 
+try {
+    // Intentamos resolver la ruta del archivo
+    console.log(require.resolve("./clientWithRole"));
+    
+    // Si no hay errores, procedemos con la carga de la ruta
+    router.use("/clientRole", require("./clientWithRole"));
+  } catch (error) {
+    // Si ocurre un error, lo mostramos en la consola
+    console.error("No se pudo encontrar clientWithRole:", error);
+  }
+
 router.use("/admin", require("./admin"));
 router.use("/auth", require("./auth"));
 router.use("/client", require("./client"));
 router.use("/lease", require("./lease"));
 router.use("/payment", require("./payment"));
-router.use("/clientRole", require("./clientWithRole"))
+
 router.use("/property", require("./property"));
 router.use("/garantor", require("./garantor"));
 
