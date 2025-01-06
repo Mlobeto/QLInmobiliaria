@@ -18,7 +18,8 @@ GET_PROPERTIES_BY_CLIENT_REQUEST,  GET_PROPERTIES_BY_CLIENT_SUCCESS,  GET_PROPER
 GET_PROPERTIES_BY_TYPE_REQUEST, GET_PROPERTIES_BY_TYPE_SUCCESS , GET_PROPERTIES_BY_TYPE_FAILURE, 
 UPDATE_PROPERTY_REQUEST,  UPDATE_PROPERTY_SUCCESS,  UPDATE_PROPERTY_FAILURE , DELETE_PROPERTY_REQUEST , DELETE_PROPERTY_SUCCESS,
 DELETE_PROPERTY_FAILURE, 
-GET_FILTERED_PROPERTIES_REQUEST,  GET_FILTERED_PROPERTIES_SUCCESS,  GET_FILTERED_PROPERTIES_FAILURE
+GET_FILTERED_PROPERTIES_REQUEST,  GET_FILTERED_PROPERTIES_SUCCESS,  GET_FILTERED_PROPERTIES_FAILURE,
+GET_ALL_PROPERTIES_REQUEST, GET_ALL_PROPERTIES_SUCCESS, GET_ALL_PROPERTIES_FAILURE
 
 } from './actions-types'
 
@@ -219,6 +220,17 @@ export const createClient = (clientData) => async (dispatch) => {
     }
   };
   
+
+  export const getAllProperties = () => async (dispatch) => {
+    dispatch({ type: GET_ALL_PROPERTIES_REQUEST });
+    try {
+      const response = await axios.get('/property/all');
+      dispatch({ type: GET_ALL_PROPERTIES_SUCCESS, payload: response.data });
+    } catch (error) {
+      dispatch({ type: GET_ALL_PROPERTIES_FAILURE, payload: error.message });
+      Swal.fire("Error", "No se pudieron obtener las propiedades", "error");
+    }
+  };
   
   export const addPropertyToClientWithRole = ( propertyId,idClient, role) => async (dispatch) => {
     dispatch({ type: ADD_PROPERTY_TO_CLIENT_REQUEST });

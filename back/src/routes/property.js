@@ -10,5 +10,6 @@ router.put('/:propertyId', updateProperty);
 router.get('/type/:type', getPropertiesByType);
 router.delete('/:propertyId', deleteProperty);
 router.get('/filter', getFilteredProperties);
+router.get('/all', getAllProperties);
 
 module.exports = router;

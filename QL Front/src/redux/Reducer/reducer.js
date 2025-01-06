@@ -42,7 +42,10 @@ import {
   DELETE_PROPERTY_FAILURE,
   GET_FILTERED_PROPERTIES_REQUEST,
   GET_FILTERED_PROPERTIES_SUCCESS,
-  GET_FILTERED_PROPERTIES_FAILURE
+  GET_FILTERED_PROPERTIES_FAILURE,
+  GET_ALL_PROPERTIES_REQUEST, 
+  GET_ALL_PROPERTIES_SUCCESS, 
+  GET_ALL_PROPERTIES_FAILURE
 
 
 } from "../Actions/actions-types";
@@ -55,6 +58,7 @@ const initialState = {
   client: null,
   property: null,
   properties: [],
+  allProperties:[],
   lease: null,
   leases: [],
   filteredProperties: [],
@@ -317,6 +321,28 @@ const rootReducer = (state = initialState, action) => {
     case DELETE_PROPERTY_FAILURE:
     case GET_FILTERED_PROPERTIES_FAILURE:
       return { ...state, loading: false, error: action.payload };
+
+      case GET_ALL_PROPERTIES_REQUEST:
+  return {
+    ...state,
+    loading: true,
+    error: null,
+  };
+
+case GET_ALL_PROPERTIES_SUCCESS:
+  return {
+    ...state,
+    loading: false,
+    allProperties: action.payload, // Asigna todas las propiedades al estado
+    error: null,
+  };
+
+case GET_ALL_PROPERTIES_FAILURE:
+  return {
+    ...state,
+    loading: false,
+    error: action.payload,
+  };
 
     default:
       return state;

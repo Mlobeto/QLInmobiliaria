@@ -111,21 +111,28 @@ exports.deleteProperty = async (req, res) => {
 
 exports.getFilteredProperties = async (req, res) => {
     try {
-        const { 
+        const {
             type, 
             city, 
             neighborhood, 
             priceMin, 
             priceMax, 
             rooms, 
-            typeProperty 
+            typeProperty, 
+            page = 1, // Página por defecto
+            limit = 10 // Número de resultados por página
         } = req.query;
 
+        // Validar precios (si priceMin existe, no debe ser mayor que priceMax)
+        if (priceMin && priceMax && parseFloat(priceMin) > parseFloat(priceMax)) {
+            return res.status(400).json({ error: 'El precio mínimo no puede ser mayor que el precio máximo.' });
+        }
 
+        // Construir el objeto 'where' para la consulta
         const where = {};
 
-        if (type) where.type = type; // Venta o alquiler
-        if (typeProperty) where.typeProperty = typeProperty; // Casa, departamento, etc.
+        if (type) where.type = type; // Tipo de propiedad (venta, alquiler)
+        if (typeProperty) where.typeProperty = typeProperty; // Tipo específico (casa, departamento, etc.)
         if (city) where.city = city;
         if (neighborhood) where.neighborhood = neighborhood;
         if (priceMin || priceMax) {
@@ -135,10 +142,29 @@ exports.getFilteredProperties = async (req, res) => {
         }
         if (rooms) where.rooms = rooms;
 
-        const properties = await Property.findAll({ where });
+        // Paginación
+        const offset = (page - 1) * limit; // Calcular el offset de la página actual
+        const properties = await Property.findAll({
+            where,
+            limit, // Limitar la cantidad de resultados por página
+            offset, // Desplazamiento para la paginación
+        });
 
         res.status(200).json(properties);
     } catch (error) {
         res.status(500).json({ error: 'Error al filtrar las propiedades', details: error.message });
+    }
+};
+
+
+exports.getAllProperties = async (req, res) => {
+    try {
+        const properties = await Property.findAll(); // Obtener todas las propiedades
+        res.status(200).json(properties); // Responder con las propiedades obtenidas
+    } catch (error) {
+        res.status(500).json({
+            error: 'Error al obtener las propiedades',
+            details: error.message
+        });
     }
 };
