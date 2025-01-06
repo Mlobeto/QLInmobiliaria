@@ -8,7 +8,8 @@ import PanelClientes from "./Components/Admin/PanelClientes";
 import PanelContratos from "./Components/Admin/PanelContratos";
 import PanelPropiedades from "./Components/Admin/PanelPropiedades";
 import ListadoDeClientes from "./Components/Clientes/ListadoDeClientes";
-import ListadoPropiedades from "./Components/Propiedades/ListadoPropiedades";
+import Listado from "./Components/Propiedades/Listado";
+import FiltroPropiedades from "./Components/Propiedades/FiltroPropiedades"
 import LoginAdmin from "./Components/Admin/Login/Login";
 
 // eslint-disable-next-line no-unused-vars
@@ -66,10 +67,20 @@ function App() {
         path="/listadoDePropiedades"
         element={
           //  <ProtectedRoutes>
-          <ListadoPropiedades />
+          <Listado />
           //  </ProtectedRoutes>
         }
       />
+
+<Route
+        path="/filtro"
+        element={
+          //  <ProtectedRoutes>
+          <FiltroPropiedades />
+          //  </ProtectedRoutes>
+        }
+      />
+
 
       <Route
         path="/cliente"

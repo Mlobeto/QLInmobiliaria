@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { getAllProperties } from "../../redux/Actions/actions";
 
-const ListadoPropiedades = () => {
+const Filtro = () => {
   const dispatch = useDispatch();
   const { allProperties, loading, error } = useSelector((state) => state);
 
@@ -114,7 +114,4 @@ const ListadoPropiedades = () => {
   );
 };
 
-export default ListadoPropiedades;
-
-
-
+export default Filtro;

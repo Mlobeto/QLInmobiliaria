@@ -37,8 +37,14 @@ const PanelPropiedades = () => {
           </Link>
        
           <Link
-            to="/listadoDePropiedades"
+            to="/filtro"
             className="w-64 h-64 bg-yellow-500 text-white flex justify-center items-center rounded-lg shadow-lg text-2xl font-semibold hover:bg-yellow-600 transition duration-300 uppercase"
+          >
+            Filtro
+          </Link>
+          <Link
+            to="/listadoDePropiedades"
+            className="w-64 h-64 bg-lime-500 hover:bg-lime-600 text-black flex justify-center items-center rounded-lg shadow-lg text-2xl font-semibold transition duration-300 uppercase"
           >
             Listado
           </Link>
