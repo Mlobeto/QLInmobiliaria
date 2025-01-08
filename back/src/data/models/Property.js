@@ -17,6 +17,10 @@ module.exports = (sequelize) => {
       neighborhood: {
         type: DataTypes.STRING,
       },
+      socio:{
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
       
       city: {
         type: DataTypes.STRING,
@@ -101,7 +105,11 @@ module.exports = (sequelize) => {
       highlights: {
         type: DataTypes.TEXT,
       },
-
+      inventory:{
+        type: DataTypes.TEXT,
+        allowNull: true,
+      }
+      
       
     },
     {

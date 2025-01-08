@@ -1,6 +1,6 @@
 const { catchedAsync } = require("../utils");
 const authController = require("./authController"); // Importamos el archivo de controladores de auth
-const ClientController = require("./ClientController")
+const ClientController = require("./clientController")
 const LeaseController = require("./LeaseController")
 const PaymentController = require ("./PaymentController")
 const PropertyController = require ("./PropertyController")

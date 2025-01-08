@@ -32,6 +32,7 @@ module.exports = (sequelize) => {
         primaryKey: true,
         autoIncrement: true,
       },
+      
       cuil: {
         type: DataTypes.STRING,
         allowNull: false,

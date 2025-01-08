@@ -10,6 +10,8 @@ import {
   openCloudinaryWidget,
 } from "../../cloudinaryConfig";
 
+import AutorizacionVentaPdf from "../PdfTemplates/AutorizacionVentaPdf";
+
 const CreateProperty = () => {
   const dispatch = useDispatch();
   const [images, setImages] = useState([]);
@@ -34,6 +36,7 @@ const CreateProperty = () => {
     idClient: "", // Nuevo campo para id del cliente
     role: "", // Nuevo campo para rol del cliente
   });
+  const [showPdfButton, setShowPdfButton] = useState(false); 
 
   const {
     loading,
@@ -74,6 +77,7 @@ const CreateProperty = () => {
       [name]: processedValue,
     });
   };
+
 
   const handleClientSelect = (e) => {
     const selectedClient = clients?.find(
@@ -148,6 +152,14 @@ const CreateProperty = () => {
       setImages([]);
     }
   }, [success]);
+
+  useEffect(() => {
+    if (formData.type === "venta") {
+      setShowPdfButton(true); // Muestra el botón si es una propiedad de venta
+    } else {
+      setShowPdfButton(false); // No muestra el botón si no es de venta
+    }
+  }, [formData.type]);
 
   if (clientsLoading) {
     return <div>Cargando clientes...</div>;
@@ -463,7 +475,7 @@ const CreateProperty = () => {
         </div>
 
         {/* Botón para abrir el widget */}
-        <div className="ccol-span-full text-center mt-4">
+        <div className="col-span-full text-center mt-4">
           <button
             type="button"
             onClick={handleWidget}
@@ -484,7 +496,12 @@ const CreateProperty = () => {
             </div>
           )}
         </div>
-
+        {showPdfButton && (
+          <AutorizacionVentaPdf
+            property={formData}
+            client={clients.find((client) => client.idClient === formData.idClient)}
+          />
+        )}
         <div className="col-span-full text-center mt-4">
           <button
             type="submit"

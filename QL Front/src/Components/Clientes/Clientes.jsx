@@ -9,6 +9,7 @@ const CreateClientForm = () => {
     name: "",
     email: "",
     mobilePhone: "",
+    direccion:""
   });
 
   const { loading, error, success } = useSelector((state) => state.clientCreate); // Ajusta el estado si es diferente
@@ -76,6 +77,24 @@ const CreateClientForm = () => {
             required
           />
         </div>
+        <div>
+        <label
+            htmlFor="direccion"
+            className="block text-gray-700 font-medium mb-2"
+          >
+            Dirección
+          </label>
+          <input
+            type="text"
+            id="direccion"
+            name="direccion"
+            value={formData.direccion}
+            onChange={handleChange}
+            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+             placeholder="Direccion - Ciudad - Provincia"
+            required
+          />
+        </div>
 
         {/* Campo Email */}
         <div className="mb-4">
@@ -111,7 +130,7 @@ const CreateClientForm = () => {
             value={formData.mobilePhone}
             onChange={handleChange}
             className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="10 dígitos (sin espacios ni guiones)"
+            placeholder="10 dígitos (sin 0 ni 15)"
             required
           />
         </div>
