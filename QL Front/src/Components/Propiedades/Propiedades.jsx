@@ -35,8 +35,10 @@ const CreateProperty = () => {
     highlights: "",
     idClient: "", // Nuevo campo para id del cliente
     role: "", // Nuevo campo para rol del cliente
+    socio: "",
+    Inventory: "",
   });
-  const [showPdfButton, setShowPdfButton] = useState(false); 
+  const [showPdfButton, setShowPdfButton] = useState(false);
 
   const {
     loading,
@@ -78,7 +80,6 @@ const CreateProperty = () => {
     });
   };
 
-
   const handleClientSelect = (e) => {
     const selectedClient = clients?.find(
       (client) => client.idClient === Number(e.target.value)
@@ -94,41 +95,42 @@ const CreateProperty = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     console.log("Datos enviados:", formData);
-  
+
     // 1. Crear la propiedad con la acción createProperty
- dispatch(createProperty(formData))
-  .then((propertyCreated) => {
-    console.log("propertyCreated:", propertyCreated);  // Verifica la respuesta de createProperty
+    dispatch(createProperty(formData))
+      .then((propertyCreated) => {
+        console.log("propertyCreated:", propertyCreated); // Verifica la respuesta de createProperty
 
-    // Asegúrate de que la propiedad propertyId existe
-    if (!propertyCreated || !propertyCreated.propertyId) {
-      throw new Error("propertyId no está presente en la respuesta");
-    }
+        // Asegúrate de que la propiedad propertyId existe
+        if (!propertyCreated || !propertyCreated.propertyId) {
+          throw new Error("propertyId no está presente en la respuesta");
+        }
 
-    const propertyId = propertyCreated.propertyId;
-   console.log("Respuesta de createProperty:", propertyCreated);
-    console.log("Despachando addPropertyToClientWithRole con:", {
-      propertyId,
-      idClient: formData.idClient,
-      role: formData.role,
-    });
-    console.log("Parámetros enviados:", { propertyId, idClient: formData.idClient, role: formData.role });
+        const propertyId = propertyCreated.propertyId;
+        console.log("Respuesta de createProperty:", propertyCreated);
+        console.log("Despachando addPropertyToClientWithRole con:", {
+          propertyId,
+          idClient: formData.idClient,
+          role: formData.role,
+        });
+        console.log("Parámetros enviados:", {
+          propertyId,
+          idClient: formData.idClient,
+          role: formData.role,
+        });
 
-    dispatch(
-      
-      addPropertyToClientWithRole(
-        propertyId,
-        formData.idClient,
-        formData.role
-      )
-    );
-  })
-  .catch((error) => {
-    console.error("Error al crear la propiedad:", error);
-  });
-
+        dispatch(
+          addPropertyToClientWithRole(
+            propertyId,
+            formData.idClient,
+            formData.role
+          )
+        );
+      })
+      .catch((error) => {
+        console.error("Error al crear la propiedad:", error);
+      });
   };
- 
 
   useEffect(() => {
     if (success) {
@@ -148,6 +150,8 @@ const CreateProperty = () => {
         images: [],
         plantQuantity: "",
         highlights: "",
+        socio: "",
+        Inventory: "",
       });
       setImages([]);
     }
@@ -207,24 +211,20 @@ const CreateProperty = () => {
             ))}
           </select>
         </div>
-
         <div>
-          <label htmlFor="role" className="block text-white font-medium mb-2">
-            Seleccionar Rol
+          <label htmlFor="socio" className="block text-white font-medium mb-2">
+            Socio
           </label>
-          <select
-            name="role"
-            id="role"
-            value={formData.role}
+          <input
+            type="text"
+            id="socio"
+            name="socio"
+            value={formData.socio}
             onChange={handleChange}
-            className="w-full border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200"
-          >
-            <option value="">Seleccione un rol</option>
-            <option value="propietario">Propietario (Para Alquiler )</option>
-            <option value="vendedor">Vendedor (Para venta)</option>
-          </select>
+            className="w-full border-gray-300  shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200"
+            placeholder="Name - CUIL - Domicilio"
+          />
         </div>
-
         <div>
           <label
             htmlFor="address"
@@ -242,6 +242,23 @@ const CreateProperty = () => {
             required
           />
         </div>
+        <div>
+          <label htmlFor="role" className="block text-white font-medium mb-2">
+            Seleccionar Rol
+          </label>
+          <select
+            name="role"
+            id="role"
+            value={formData.role}
+            onChange={handleChange}
+            className="w-full border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200"
+          >
+            <option value="">Seleccione un rol</option>
+            <option value="propietario">Propietario (Para Alquiler )</option>
+            <option value="vendedor">Vendedor (Para venta)</option>
+          </select>
+        </div>
+
         <div className="mb-4">
           <label
             htmlFor="neighborhood"
@@ -456,6 +473,24 @@ const CreateProperty = () => {
             required
           />
         </div>
+
+        <div className="mb-4">
+          <label
+            htmlFor="inventory"
+            className="block text-white font-medium mb-2"
+          >
+            Inventario
+          </label>
+          <input
+            type="text"
+            id="inventory"
+            name="inventory"
+            value={formData.inventory}
+            onChange={handleChange}
+            className="w-full border-gray-300  shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200"
+            required
+          />
+        </div>
         <div className="mb-4">
           <label
             htmlFor="highlights"
@@ -499,7 +534,9 @@ const CreateProperty = () => {
         {showPdfButton && (
           <AutorizacionVentaPdf
             property={formData}
-            client={clients.find((client) => client.idClient === formData.idClient)}
+            client={clients.find(
+              (client) => client.idClient === formData.idClient
+            )}
           />
         )}
         <div className="col-span-full text-center mt-4">
