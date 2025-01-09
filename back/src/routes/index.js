@@ -4,10 +4,10 @@ const router = Router();
 
 try {
     // Intentamos resolver la ruta del archivo
-    console.log(require.resolve("./clientWithRole"));
+    console.log(require.resolve("./ClientWithRole"));
     
     // Si no hay errores, procedemos con la carga de la ruta
-    router.use("/clientRole", require("./clientWithRole"));
+    router.use("/clientRole", require("./ClientWithRole"));
   } catch (error) {
     // Si ocurre un error, lo mostramos en la consola
     console.error("No se pudo encontrar clientWithRole:", error);
