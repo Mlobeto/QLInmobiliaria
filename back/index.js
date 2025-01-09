@@ -7,6 +7,7 @@ require('dotenv').config();
 conn.sync({ force : true }).then(async () => {
   app.listen(PORT, () => {
     console.log(`🚀 listening on port: ${PORT} 🚀`);
+    console.log('Ruta base del proyecto:', __dirname);
   });
  
 });

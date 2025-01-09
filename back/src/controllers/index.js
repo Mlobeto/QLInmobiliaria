@@ -1,12 +1,13 @@
 const { catchedAsync } = require("../utils");
 const authController = require("./authController"); // Importamos el archivo de controladores de auth
-const clientController = require("./clientController")
+const clientController = require('./clientController');
 const LeaseController = require("./LeaseController")
 const PaymentController = require ("./PaymentController")
 const PropertyController = require ("./PropertyController")
 const garantorController = require ("./garantorController")
-const addPropertyToClientWithRole = require("./addPropertyToClientWithRole")
-
+const addPropertyToClientWithRole = require('./addPropertyToClientWithRole');
+console.log('Ruta actual:', __dirname);
+console.log('Contenido de la carpeta controllers:', require('fs').readdirSync('./src/controllers'));
 
 module.exports = {
   register: catchedAsync(authController.register),  
