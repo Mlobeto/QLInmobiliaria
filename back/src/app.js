@@ -11,10 +11,24 @@ const allowedOrigins = [
 const app = express()
 
 app.use(express.json())
-app.use(cors());
+const corsOptions = {
+  origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+          callback(null, true);
+      } else {
+          callback(new Error("Not allowed by CORS"));
+      }
+  },
+};
+
+app.use(cors(corsOptions));
 app.use(morgan("dev"))
 app.use("/", routes)
 
+app.use((err, req, res, next) => {
+  console.error(err.stack); // Log del error
+  res.status(err.status || 500).json({ error: err.message || "Internal Server Error" });
+});
   
   
 module.exports = app
