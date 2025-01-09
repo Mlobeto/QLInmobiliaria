@@ -1,9 +1,9 @@
 const express = require('express');
-const clientController = require('../controllers');
+const addPropertyToClientController = require('../controllers');
 const router = express.Router();
 
 
-router.post('/addRole',clientController.addPropertyToClientWithRole);
+router.post('/addRole',addPropertyToClientController.addPropertyToClientWithRole);
 
 
 module.exports = router;
