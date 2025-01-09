@@ -20,7 +20,7 @@ const AutorizacionVentaPdf = ({ client, property }) => {
     currentY += firstTextLines.length * 8; // Incremento dinámico según el texto
 
     // Descripción de la propiedad
-    const propertyDescription = `${property.description}, sito en la localidad de ${property.city}, prov. Catamarca.`;
+    const propertyDescription = `${property.description},${property.superficieCubierta}, ${property.superficieTotal} sito en la localidad de ${property.city}, prov. Catamarca.`;
     const propertyLines = doc.splitTextToSize(propertyDescription, maxWidth);
     doc.text(propertyLines, 20, currentY);
     currentY += propertyLines.length * 8 + 10; // Incremento dinámico + espacio adicional
@@ -60,8 +60,8 @@ const AutorizacionVentaPdf = ({ client, property }) => {
   };
 
   return (
-    <div>
-      <button onClick={generatePdf} className="btn btn-primary">
+    <div className="col-span-full text-center mt-4">
+      <button onClick={generatePdf} className="bg-yellow-500 text-white px-3 py-2  rounded">
         Generar Autorización de Venta
       </button>
     </div>

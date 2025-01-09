@@ -28,12 +28,7 @@ const Panel = () => {
 
       {/* Centro de la pantalla */}
       <div className="flex-grow flex flex-row justify-center items-center space-x-2">
-        <Link
-          to="/cargar-curso"
-          className="w-64 h-64 bg-lime-500 hover:bg-lime-600 text-black flex justify-center items-center rounded-lg shadow-lg text-2xl font-semibold  transition duration-300 uppercase"
-        >
-          Cargar Curso
-        </Link>
+        
         <Link
           to="/profesores"
           className="w-64 h-64 bg-green-500 text-white flex justify-center items-center rounded-lg shadow-lg text-2xl font-semibold hover:bg-green-600 transition duration-300 uppercase"

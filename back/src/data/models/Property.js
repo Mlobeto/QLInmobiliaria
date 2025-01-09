@@ -108,7 +108,16 @@ module.exports = (sequelize) => {
       inventory:{
         type: DataTypes.TEXT,
         allowNull: true,
-      }
+      },
+      superficieCubierta:{
+        type: DataTypes.STRING,
+        allowNull: true,
+      },
+      
+      superficieTotal:{
+        type: DataTypes.STRING,
+        allowNull: true,
+      },
       
       
     },

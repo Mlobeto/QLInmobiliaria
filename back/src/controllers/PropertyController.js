@@ -16,6 +16,9 @@ exports.createProperty = async (req, res) => {
         rooms, // Asegúrate de que rooms está incluido
         socio,
         inventory,
+        superficieCubierta,
+        superficieTotal,
+
       } = req.body;
   
       // Validación básica
@@ -73,6 +76,8 @@ exports.createProperty = async (req, res) => {
         highlights: req.body.highlights || "", // Valor por defecto para highlights
         socio,
         inventory,
+        superficieCubierta,
+        superficieTotal
       });
   
       // Responder con la propiedad creada
@@ -233,11 +238,25 @@ exports.getFilteredProperties = async (req, res) => {
 
 exports.getAllProperties = async (req, res) => {
   try {
-    const properties = await Property.findAll(); // Obtener todas las propiedades
-    res.status(200).json(properties); // Responder con las propiedades obtenidas
+    // Obtener todas las propiedades con los clientes relacionados y sus roles
+    const properties = await Property.findAll({
+      include: [
+        {
+          model: Client,
+          through: {
+            attributes: ['role'], // Incluir solo el campo de rol desde la tabla intermedia
+          },
+          attributes: ['idClient', 'name', 'email', 'mobilePhone'], // Campos del cliente
+        },
+      ],
+    });
+
+    // Responder con las propiedades obtenidas
+    res.status(200).json(properties);
   } catch (error) {
+    console.error("Error al obtener propiedades con clientes:", error);
     res.status(500).json({
-      error: "Error al obtener las propiedades",
+      error: "Error al obtener propiedades con clientes",
       details: error.message,
     });
   }

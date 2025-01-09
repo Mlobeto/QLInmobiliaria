@@ -1,8 +1,12 @@
 import  { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { createClient } from "../../redux/Actions/actions"; // Ajusta la ruta según tu estructura
+import { useNavigate } from 'react-router-dom';
+
+
 
 const CreateClientForm = () => {
+  const navigate = useNavigate();
   const dispatch = useDispatch();
   const [formData, setFormData] = useState({
     cuil: "",
@@ -24,9 +28,17 @@ const CreateClientForm = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log("Datos del formulario antes de enviar:", formData); // Debug
-    dispatch(createClient(formData));
+    
+    dispatch(createClient(formData))
+      .then(() => {
+        // Redirigir a /panelClientes después de la creación
+        navigate('/panelClientes');
+      })
+      .catch((error) => {
+        console.error("Error al crear el cliente:", error);
+      });
   };
+  
 
   return (
     <div className="max-w-md mx-auto  p-6 bg-white rounded-lg shadow-md mt-40">

@@ -37,6 +37,8 @@ const CreateProperty = () => {
     role: "", // Nuevo campo para rol del cliente
     socio: "",
     Inventory: "",
+    superficieTotal: "",
+    superficieCubierta: "",
   });
   const [showPdfButton, setShowPdfButton] = useState(false);
 
@@ -152,6 +154,8 @@ const CreateProperty = () => {
         highlights: "",
         socio: "",
         Inventory: "",
+        superficieTotal: "",
+        superficieCubierta: "",
       });
       setImages([]);
     }
@@ -455,7 +459,6 @@ const CreateProperty = () => {
             <option value="posesion">Posesión</option>
           </select>
         </div>
-
         <div className="mb-4">
           <label
             htmlFor="description"
@@ -468,6 +471,41 @@ const CreateProperty = () => {
             id="description"
             name="description"
             value={formData.description}
+            onChange={handleChange}
+            className="w-full border-gray-300  shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200"
+            required
+          />
+        </div>
+        <div className="mb-4">
+          <label
+            htmlFor="superficieCubierta"
+            className="block text-white font-medium mb-2"
+          >
+            Superdicie Cubierta
+          </label>
+          <input
+            type="text"
+            id="superficieCubierta"
+            name="superficieCubierta"
+            value={formData.superficieCubierta}
+            onChange={handleChange}
+            className="w-full border-gray-300  shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200"
+            required
+          />
+        </div>
+
+        <div className="mb-4">
+          <label
+            htmlFor="superficieTotal"
+            className="block text-white font-medium mb-2"
+          >
+            Superficie Total
+          </label>
+          <input
+            type="text"
+            id="superficieTotal"
+            name="superficieTotal"
+            value={formData.superficieTotal}
             onChange={handleChange}
             className="w-full border-gray-300  shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200"
             required
