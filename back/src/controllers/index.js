@@ -1,11 +1,13 @@
 const { catchedAsync } = require("../utils");
 const authController = require("./authController"); // Importamos el archivo de controladores de auth
-const ClientController = require("./clientController")
+const clientController = require('./ClientController');
 const LeaseController = require("./LeaseController")
 const PaymentController = require ("./PaymentController")
 const PropertyController = require ("./PropertyController")
 const garantorController = require ("./garantorController")
-const addPropertyToClientWithRole = require ("./addPropertyToClientWithRole")
+const addPropertyToClientController = require('./addPropertyToClientController');
+console.log('Ruta actual:', __dirname);
+console.log('Contenido de la carpeta controllers:', require('fs').readdirSync('./src/controllers'));
 
 module.exports = {
   register: catchedAsync(authController.register),  
@@ -13,11 +15,11 @@ module.exports = {
   getAllAdmins: catchedAsync(authController.getAllAdmins),
   editAdmin: catchedAsync(authController.editAdmin),
   deleteAdmin: catchedAsync(authController.deleteAdmin),
-  createClient:catchedAsync(ClientController.createClient),
-  getAllClients:catchedAsync(ClientController.getAllClients),
-  getClientById:catchedAsync(ClientController.getClientById),
-  updateClient:catchedAsync(ClientController.updateClient),
-  deleteClient: catchedAsync(ClientController.deleteClient),
+  createClient:catchedAsync(clientController.createClient),
+  getAllClients:catchedAsync(clientController.getAllClients),
+  getClientById:catchedAsync(clientController.getClientById),
+  updateClient:catchedAsync(clientController.updateClient),
+  deleteClient: catchedAsync(clientController.deleteClient),
   createLease: catchedAsync(LeaseController.createLease),
   getLeasesByIdClient: catchedAsync(LeaseController.getLeasesByIdClient),
   terminateLease: catchedAsync(LeaseController.terminateLease),
@@ -34,6 +36,6 @@ module.exports = {
   createGarantorsForLease: catchedAsync(garantorController.createGarantorsForLease),
   updateGarantor:catchedAsync(garantorController.updateGarantor),
   getGarantorsByLeaseId: catchedAsync(garantorController.getGarantorsByLeaseId),
-  addPropertyToClientWithRole : catchedAsync(addPropertyToClientWithRole.addPropertyToClientWithRole),
+  addPropertyToClientWithRole : catchedAsync(addPropertyToClientController.addPropertyToClientWithRole),
   getAllProperties: catchedAsync(PropertyController.getAllProperties),
 };
