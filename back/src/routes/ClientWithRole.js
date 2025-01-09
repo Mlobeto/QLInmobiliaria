@@ -1,5 +1,5 @@
 const express = require('express');
-const { addPropertyToClientWithRole } = require('../controllers/addPropertyToClientWithRole');
+const { addPropertyToClientWithRole } = require('../controllers/addPropertyToClientController');
 const router = express.Router();
 
 
