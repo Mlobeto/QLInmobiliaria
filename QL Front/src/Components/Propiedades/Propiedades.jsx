@@ -10,6 +10,8 @@ import {
   openCloudinaryWidget,
 } from "../../cloudinaryConfig";
 
+import AutorizacionVentaPdf from "../PdfTemplates/AutorizacionVentaPdf";
+
 const CreateProperty = () => {
   const dispatch = useDispatch();
   const [images, setImages] = useState([]);
@@ -33,7 +35,12 @@ const CreateProperty = () => {
     highlights: "",
     idClient: "", // Nuevo campo para id del cliente
     role: "", // Nuevo campo para rol del cliente
+    socio: "",
+    Inventory: "",
+    superficieTotal: "",
+    superficieCubierta: "",
   });
+  const [showPdfButton, setShowPdfButton] = useState(false);
 
   const {
     loading,
@@ -90,41 +97,42 @@ const CreateProperty = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     console.log("Datos enviados:", formData);
-  
+
     // 1. Crear la propiedad con la acción createProperty
- dispatch(createProperty(formData))
-  .then((propertyCreated) => {
-    console.log("propertyCreated:", propertyCreated);  // Verifica la respuesta de createProperty
+    dispatch(createProperty(formData))
+      .then((propertyCreated) => {
+        console.log("propertyCreated:", propertyCreated); // Verifica la respuesta de createProperty
 
-    // Asegúrate de que la propiedad propertyId existe
-    if (!propertyCreated || !propertyCreated.propertyId) {
-      throw new Error("propertyId no está presente en la respuesta");
-    }
+        // Asegúrate de que la propiedad propertyId existe
+        if (!propertyCreated || !propertyCreated.propertyId) {
+          throw new Error("propertyId no está presente en la respuesta");
+        }
 
-    const propertyId = propertyCreated.propertyId;
-   console.log("Respuesta de createProperty:", propertyCreated);
-    console.log("Despachando addPropertyToClientWithRole con:", {
-      propertyId,
-      idClient: formData.idClient,
-      role: formData.role,
-    });
-    console.log("Parámetros enviados:", { propertyId, idClient: formData.idClient, role: formData.role });
+        const propertyId = propertyCreated.propertyId;
+        console.log("Respuesta de createProperty:", propertyCreated);
+        console.log("Despachando addPropertyToClientWithRole con:", {
+          propertyId,
+          idClient: formData.idClient,
+          role: formData.role,
+        });
+        console.log("Parámetros enviados:", {
+          propertyId,
+          idClient: formData.idClient,
+          role: formData.role,
+        });
 
-    dispatch(
-      
-      addPropertyToClientWithRole(
-        propertyId,
-        formData.idClient,
-        formData.role
-      )
-    );
-  })
-  .catch((error) => {
-    console.error("Error al crear la propiedad:", error);
-  });
-
+        dispatch(
+          addPropertyToClientWithRole(
+            propertyId,
+            formData.idClient,
+            formData.role
+          )
+        );
+      })
+      .catch((error) => {
+        console.error("Error al crear la propiedad:", error);
+      });
   };
- 
 
   useEffect(() => {
     if (success) {
@@ -144,10 +152,22 @@ const CreateProperty = () => {
         images: [],
         plantQuantity: "",
         highlights: "",
+        socio: "",
+        Inventory: "",
+        superficieTotal: "",
+        superficieCubierta: "",
       });
       setImages([]);
     }
   }, [success]);
+
+  useEffect(() => {
+    if (formData.type === "venta") {
+      setShowPdfButton(true); // Muestra el botón si es una propiedad de venta
+    } else {
+      setShowPdfButton(false); // No muestra el botón si no es de venta
+    }
+  }, [formData.type]);
 
   if (clientsLoading) {
     return <div>Cargando clientes...</div>;
@@ -195,24 +215,20 @@ const CreateProperty = () => {
             ))}
           </select>
         </div>
-
         <div>
-          <label htmlFor="role" className="block text-white font-medium mb-2">
-            Seleccionar Rol
+          <label htmlFor="socio" className="block text-white font-medium mb-2">
+            Socio
           </label>
-          <select
-            name="role"
-            id="role"
-            value={formData.role}
+          <input
+            type="text"
+            id="socio"
+            name="socio"
+            value={formData.socio}
             onChange={handleChange}
-            className="w-full border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200"
-          >
-            <option value="">Seleccione un rol</option>
-            <option value="propietario">Propietario (Para Alquiler )</option>
-            <option value="vendedor">Vendedor (Para venta)</option>
-          </select>
+            className="w-full border-gray-300  shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200"
+            placeholder="Name - CUIL - Domicilio"
+          />
         </div>
-
         <div>
           <label
             htmlFor="address"
@@ -230,6 +246,23 @@ const CreateProperty = () => {
             required
           />
         </div>
+        <div>
+          <label htmlFor="role" className="block text-white font-medium mb-2">
+            Seleccionar Rol
+          </label>
+          <select
+            name="role"
+            id="role"
+            value={formData.role}
+            onChange={handleChange}
+            className="w-full border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200"
+          >
+            <option value="">Seleccione un rol</option>
+            <option value="propietario">Propietario (Para Alquiler )</option>
+            <option value="vendedor">Vendedor (Para venta)</option>
+          </select>
+        </div>
+
         <div className="mb-4">
           <label
             htmlFor="neighborhood"
@@ -426,7 +459,6 @@ const CreateProperty = () => {
             <option value="posesion">Posesión</option>
           </select>
         </div>
-
         <div className="mb-4">
           <label
             htmlFor="description"
@@ -439,6 +471,59 @@ const CreateProperty = () => {
             id="description"
             name="description"
             value={formData.description}
+            onChange={handleChange}
+            className="w-full border-gray-300  shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200"
+            required
+          />
+        </div>
+        <div className="mb-4">
+          <label
+            htmlFor="superficieCubierta"
+            className="block text-white font-medium mb-2"
+          >
+            Superdicie Cubierta
+          </label>
+          <input
+            type="text"
+            id="superficieCubierta"
+            name="superficieCubierta"
+            value={formData.superficieCubierta}
+            onChange={handleChange}
+            className="w-full border-gray-300  shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200"
+            required
+          />
+        </div>
+
+        <div className="mb-4">
+          <label
+            htmlFor="superficieTotal"
+            className="block text-white font-medium mb-2"
+          >
+            Superficie Total
+          </label>
+          <input
+            type="text"
+            id="superficieTotal"
+            name="superficieTotal"
+            value={formData.superficieTotal}
+            onChange={handleChange}
+            className="w-full border-gray-300  shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200"
+            required
+          />
+        </div>
+
+        <div className="mb-4">
+          <label
+            htmlFor="inventory"
+            className="block text-white font-medium mb-2"
+          >
+            Inventario
+          </label>
+          <input
+            type="text"
+            id="inventory"
+            name="inventory"
+            value={formData.inventory}
             onChange={handleChange}
             className="w-full border-gray-300  shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200"
             required
@@ -463,7 +548,7 @@ const CreateProperty = () => {
         </div>
 
         {/* Botón para abrir el widget */}
-        <div className="ccol-span-full text-center mt-4">
+        <div className="col-span-full text-center mt-4">
           <button
             type="button"
             onClick={handleWidget}
@@ -484,7 +569,14 @@ const CreateProperty = () => {
             </div>
           )}
         </div>
-
+        {showPdfButton && (
+          <AutorizacionVentaPdf
+            property={formData}
+            client={clients.find(
+              (client) => client.idClient === formData.idClient
+            )}
+          />
+        )}
         <div className="col-span-full text-center mt-4">
           <button
             type="submit"

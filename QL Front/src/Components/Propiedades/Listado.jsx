@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { getAllProperties, updateProperty, deleteProperty } from "../../redux/Actions/actions";
+import PropiedadesPDF from "../PdfTemplates/PropiedadesPdf";
+
 
 const Listado = () => {
   const dispatch = useDispatch();
@@ -112,6 +114,7 @@ const Listado = () => {
             <th className="border px-4 py-2">Dirección</th>
             <th className="border px-4 py-2">Barrio</th>
             <th className="border px-4 py-2">Precio</th>
+            <th className="border px-4 py-2">Clientes</th> 
             <th className="border px-4 py-2">Acciones</th>
           </tr>
         </thead>
@@ -161,6 +164,18 @@ const Listado = () => {
                   `$${property.price}`
                 )}
               </td>
+              <td className="border px-4 py-2">
+          {property.Clients.length > 0 ? (
+            property.Clients.map((client) => (
+              <div key={client.idClient}>
+                {client.name} ({client.ClientProperty.role})
+              </div>
+            ))
+          ) : (
+            <span>No asignado</span>
+          )}
+        </td>
+
               <td className="border px-4 py-2 flex gap-2">
                 {editingId === property.propertyId ? (
                   <>
@@ -188,6 +203,7 @@ const Listado = () => {
                     >
                       Eliminar
                     </button>
+                    <PropiedadesPDF property={property} />
                   </>
                 )}
               </td>

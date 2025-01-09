@@ -1,8 +1,8 @@
-const { Lease, Property, Client } = require('../data');
+const { Lease, Property, Client, ClientProperty, PaymentReceipt, Garantor } = require('../data');
 
 exports.createLease = async (req, res) => {
     try {
-        const { idClient, propertyId, ...leaseData } = req.body;
+        const { propertyId, ownerId, tenantId, ...leaseData } = req.body;
 
         // Verificar que la propiedad existe y está disponible
         const property = await Property.findByPk(propertyId);
@@ -13,14 +13,32 @@ exports.createLease = async (req, res) => {
             return res.status(400).json({ error: 'La propiedad ya no está disponible' });
         }
 
-        // Verificar que el cliente existe
-        const client = await Client.findByPk(idClient);
-        if (!client) {
-            return res.status(404).json({ error: 'Cliente no encontrado' });
+        // Verificar que el propietario existe y tiene rol propietario para esta propiedad
+        const owner = await Client.findByPk(ownerId);
+        if (!owner) {
+            return res.status(404).json({ error: 'Propietario no encontrado' });
+        }
+        const ownerRole = await ClientProperty.findOne({
+            where: { clientId: ownerId, propertyId, role: 'propietario' },
+        });
+        if (!ownerRole) {
+            return res.status(400).json({ error: 'El cliente no tiene el rol de propietario para esta propiedad' });
         }
 
-        // Crear el contrato de alquiler
-        const newLease = await Lease.create({ idClient, propertyId, ...leaseData });
+        // Verificar que el inquilino existe
+        const tenant = await Client.findByPk(tenantId);
+        if (!tenant) {
+            return res.status(404).json({ error: 'Inquilino no encontrado' });
+        }
+        const tenantRole = await ClientProperty.findOne({
+            where: { clientId: tenantId, propertyId, role: 'inquilino' },
+        });
+        if (!tenantRole) {
+            return res.status(400).json({ error: 'El cliente no tiene el rol de inquilino para esta propiedad' });
+        }
+
+        // Crear el contrato de alquiler con ambos clientes
+        const newLease = await Lease.create({ propertyId, ownerId, tenantId, ...leaseData });
 
         // Marcar la propiedad como no disponible
         await property.update({ isAvailable: false });
@@ -32,21 +50,30 @@ exports.createLease = async (req, res) => {
 };
 
 
+
 exports.getLeasesByIdClient = async (req, res) => {
     try {
         const { idClient } = req.params;
+
         const leases = await Lease.findAll({
-            where: { idClient },
-            include: [Property],
+            where: { tenantId: idClient }, // Cambia tenantId si el campo tiene otro nombre.
+            include: [
+                Property,
+                { model: PaymentReceipt, required: false }, // Opcional
+                { model: Garantor, required: false } // Opcional
+            ],
         });
+
         if (!leases.length) {
             return res.status(404).json({ error: 'No se encontraron contratos para este cliente' });
         }
+
         res.status(200).json(leases);
     } catch (error) {
         res.status(500).json({ error: 'Error al obtener contratos', details: error.message });
     }
 };
+
 
 exports.terminateLease = async (req, res) => {
     try {
@@ -67,8 +94,8 @@ exports.terminateLease = async (req, res) => {
         // Actualizar la propiedad para marcarla como disponible
         await property.update({ isAvailable: true });
 
-        // (Opcional) Eliminar el contrato de alquiler o marcarlo como terminado
-        await lease.destroy();
+        // Marcar el contrato como terminado
+        await lease.update({ status: 'terminated' });
 
         res.status(200).json({ message: 'Contrato terminado y propiedad marcada como disponible' });
     } catch (error) {
