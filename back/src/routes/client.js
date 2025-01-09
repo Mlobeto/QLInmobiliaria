@@ -1,5 +1,5 @@
 const express = require('express');
-const { createClient, getAllClients, getClientById, updateClient } = require('../controllers');
+const { createClient, getAllClients, getClientById, updateClient } = require('../controllers/clientController');
 const router = express.Router();
 
 router.post('/', createClient);
