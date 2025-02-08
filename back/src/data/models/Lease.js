@@ -3,7 +3,27 @@ const { DataTypes } = require("sequelize");
 module.exports = (sequelize) => {
   sequelize.define(
     "Lease",
-    {
+    { 
+      
+      locador: {
+        // Propietario de la propiedad
+        type: DataTypes.INTEGER,
+        references: {
+          model: 'Clients',
+          key: 'idClient',
+        },
+        allowNull: false,
+      },
+      locatario: {
+        // Inquilino
+        type: DataTypes.INTEGER,
+        references: {
+          model: 'Client',
+          key: 'idClient',
+        },
+        allowNull: false,
+      },
+
       startDate: {
         type: DataTypes.DATE,
         allowNull: false,

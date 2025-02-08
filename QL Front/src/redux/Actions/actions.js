@@ -5,7 +5,8 @@ import Swal from "sweetalert2";
 
 import {
 REGISTER_SUCCESS, REGISTER_FAIL, LOGIN_SUCCESS, LOGIN_FAIL,
-CREATE_CLIENT_REQUEST, CREATE_CLIENT_SUCCESS, CREATE_CLIENT_FAILURE, GET_CLIENT_REQUEST,
+CREATE_CLIENT_REQUEST, CREATE_CLIENT_SUCCESS, CREATE_CLIENT_FAILURE, 
+GET_CLIENT_REQUEST,
 GET_CLIENT_SUCCESS,  GET_CLIENT_FAILURE,  UPDATE_CLIENT_REQUEST,   UPDATE_CLIENT_SUCCESS,
 UPDATE_CLIENT_FAILURE, DELETE_CLIENT_REQUEST, DELETE_CLIENT_SUCCESS, DELETE_CLIENT_FAILURE,
 GET_ALL_CLIENT_REQUEST,   GET_ALL_CLIENT_SUCCESS,  GET_ALL_CLIENT_FAIL,
@@ -56,42 +57,36 @@ export const loginAdmin = (adminData) => async (dispatch) => {
 
 
 export const createClient = (clientData) => async (dispatch) => {
-    dispatch({ type: CREATE_CLIENT_REQUEST });
+  dispatch({ type: CREATE_CLIENT_REQUEST });
+
+  try {
+    await axios.post(`/client`, clientData, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    dispatch({ type: CREATE_CLIENT_SUCCESS });
+
+    // Mostrar alerta de éxito
+    Swal.fire({
+      title: "¡Éxito!",
+      text: "Cliente creado correctamente",
+      icon: "success",
+    });
+  } catch (error) {
+    const errorMessage = error.response?.data?.details || error.message;
+    dispatch({ type: CREATE_CLIENT_FAILURE, payload: errorMessage });
+
+    // Mostrar alerta de error
+    Swal.fire({
+      title: "Error",
+      text: errorMessage,
+      icon: "error",
+    });
+  }
+};
   
-    try {
-      await axios.post(`/client`, clientData, {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-  
-      dispatch({ type: CREATE_CLIENT_SUCCESS });
-  
-      // Mostrar alerta de éxito
-      Swal.fire({
-        title: "¡Éxito!",
-        text: "Cliente creado correctamente",
-        icon: "success",
-      });
-    } catch (error) {
-      dispatch({ type: CREATE_CLIENT_FAILURE, payload: error.message });
-  
-      // Mostrar alerta de error
-      if (error.response?.data?.message === "CUIL ya registrado") {
-        Swal.fire({
-          title: "Error",
-          text: "El CUIL ya está registrado. Intenta con otro.",
-          icon: "error",
-        });
-      } else {
-        Swal.fire({
-          title: "Error",
-          text: "Ocurrió un error al crear el cliente. Intenta nuevamente.",
-          icon: "error",
-        });
-      }
-    }
-  };
   
 
   export const getAllClients = () => async (dispatch) => {
