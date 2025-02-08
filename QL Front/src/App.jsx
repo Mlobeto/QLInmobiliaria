@@ -3,7 +3,7 @@ import Landing from "./Components/Landing";
 import Panel from "./Components/Admin/Panel";
 import Clientes from "./Components/Clientes/Clientes";
 import Propiedades from "./Components/Propiedades/Propiedades";
-import ContractAlquilerForm from "./Components/Contratos/ContractAlquilerForm";
+
 import PanelClientes from "./Components/Admin/PanelClientes";
 import PanelContratos from "./Components/Admin/PanelContratos";
 import PanelPropiedades from "./Components/Admin/PanelPropiedades";
@@ -11,6 +11,7 @@ import ListadoDeClientes from "./Components/Clientes/ListadoDeClientes";
 import Listado from "./Components/Propiedades/Listado";
 import FiltroPropiedades from "./Components/Propiedades/FiltroPropiedades"
 import LoginAdmin from "./Components/Admin/Login/Login";
+import CreateLeaseForm from "./Components/Contratos/CreateLeaseForm"
 
 // eslint-disable-next-line no-unused-vars
 import ProtectedRoutes from "./utils/ProtectedRoutes";
@@ -94,7 +95,7 @@ function App() {
         path="/contratos"
         element={
           //  <ProtectedRoutes>
-          <ContractAlquilerForm />
+          <CreateLeaseForm />
           //  </ProtectedRoutes>
         }
       />

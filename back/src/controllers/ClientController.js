@@ -1,4 +1,4 @@
-const { Client, Property } = require('../data');
+const { Client } = require('../data');
 
 // POST: Crear un cliente
 exports.createClient = async (req, res) => {
@@ -6,7 +6,12 @@ exports.createClient = async (req, res) => {
         const newClient = await Client.create(req.body);
         res.status(201).json(newClient);
     } catch (error) {
-        res.status(500).json({ error: 'Error al crear el cliente', details: error.message });
+        if (error.name === 'SequelizeValidationError' || error.name === 'SequelizeUniqueConstraintError') {
+            const validationErrors = error.errors.map(err => err.message);
+            res.status(400).json({ error: 'Error de validación', details: validationErrors });
+        } else {
+            res.status(500).json({ error: 'Error al crear el cliente', details: error.message });
+        }
     }
 };
 
@@ -44,9 +49,16 @@ exports.updateClient = async (req, res) => {
         }
         res.status(200).json({ message: 'Cliente actualizado' });
     } catch (error) {
-        res.status(500).json({ error: 'Error al actualizar el cliente', details: error.message });
+        if (error.name === 'SequelizeValidationError' || error.name === 'SequelizeUniqueConstraintError') {
+            const validationErrors = error.errors.map(err => err.message);
+            res.status(400).json({ error: 'Error de validación', details: validationErrors });
+        } else {
+            res.status(500).json({ error: 'Error al actualizar el cliente', details: error.message });
+        }
     }
 };
+
+// DELETE: Eliminar un cliente
 exports.deleteClient = async (req, res) => {
     try {
         const { idClient } = req.params;
