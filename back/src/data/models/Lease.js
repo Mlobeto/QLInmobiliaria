@@ -4,26 +4,32 @@ module.exports = (sequelize) => {
   sequelize.define(
     "Lease",
     { 
-      
-      locador: {
-        // Propietario de la propiedad
+      propertyId: {
         type: DataTypes.INTEGER,
-        references: {
-          model: 'Clients',
-          key: 'idClient',
-        },
         allowNull: false,
+        references: {
+          model: "Property",
+          key: "propertyId",  // O el PK que uses en el modelo Property
+        },
       },
-      locatario: {
-        // Inquilino
+      landlordId: {
+        // Propietario (landlord)
         type: DataTypes.INTEGER,
-        references: {
-          model: 'Client',
-          key: 'idClient',
-        },
         allowNull: false,
+        references: {
+          model: "Client",
+          key: "idClient",
+        },
       },
-
+      tenantId: {
+        // Inquilino (tenant)
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        references: {
+          model: "Client",
+          key: "idClient",
+        },
+      },
       startDate: {
         type: DataTypes.DATE,
         allowNull: false,
@@ -39,36 +45,18 @@ module.exports = (sequelize) => {
         type: DataTypes.DECIMAL,
         validate: {
           min: 0,
-          max: 100, // Comisión como porcentaje
+          max: 100,
         },
       },
       totalMonths: {
         type: DataTypes.INTEGER,
-        allowNull: false, // Por ejemplo, 36 para 3 años
+        allowNull: false,
         validate: {
-          min: 1, // Duración mínima: 1 mes
+          min: 1,
         },
       },
       inventory: {
         type: DataTypes.TEXT,
-        allowNull: false,
-      },
-      landlordId: {
-        // Propietario de la propiedad
-        type: DataTypes.INTEGER,
-        references: {
-          model: 'Clients',
-          key: 'idClient',
-        },
-        allowNull: false,
-      },
-      tenantId: {
-        // Inquilino
-        type: DataTypes.INTEGER,
-        references: {
-          model: 'Client',
-          key: 'idClient',
-        },
         allowNull: false,
       },
       status: {

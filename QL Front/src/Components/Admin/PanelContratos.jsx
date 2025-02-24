@@ -36,7 +36,7 @@ const PanelContratos = () => {
             Listado
           </Link>
           <Link
-            to="/cliente"
+            to="/contratoAlquiler"
             className="w-64 h-64 bg-lime-500 text-white flex justify-center items-center rounded-lg shadow-lg text-2xl font-semibold hover:bg-green-600 transition duration-300 uppercase"
           >
             Alquiler

@@ -2,53 +2,86 @@ const { Lease, Property, Client, ClientProperty, PaymentReceipt, Garantor } = re
 
 exports.createLease = async (req, res) => {
     try {
-        const { propertyId, ownerId, tenantId, ...leaseData } = req.body;
-
-        // Verificar que la propiedad existe y está disponible
-        const property = await Property.findByPk(propertyId);
-        if (!property) {
-            return res.status(404).json({ error: 'Propiedad no encontrada' });
-        }
-        if (!property.isAvailable) {
-            return res.status(400).json({ error: 'La propiedad ya no está disponible' });
-        }
-
-        // Verificar que el propietario existe y tiene rol propietario para esta propiedad
-        const owner = await Client.findByPk(ownerId);
-        if (!owner) {
-            return res.status(404).json({ error: 'Propietario no encontrado' });
-        }
-        const ownerRole = await ClientProperty.findOne({
-            where: { clientId: ownerId, propertyId, role: 'propietario' },
+      console.log('CreateLease - Received data:', req.body);
+      
+      const {
+        propertyId,
+        landlordId, 
+        tenantId,
+        startDate,
+        rentAmount,
+        updateFrequency,
+        commission,
+        totalMonths,
+        inventory
+      } = req.body;
+      
+      // Validación básica de campos obligatorios
+      if (!propertyId || !landlordId || !tenantId || !startDate || !rentAmount || !totalMonths || !inventory) {
+        return res.status(400).json({
+          error: 'Datos incompletos',
+          details: 'Los campos propertyId, landlordId, tenantId, startDate, rentAmount, totalMonths e inventory son obligatorios'
         });
-        if (!ownerRole) {
-            return res.status(400).json({ error: 'El cliente no tiene el rol de propietario para esta propiedad' });
-        }
-
-        // Verificar que el inquilino existe
-        const tenant = await Client.findByPk(tenantId);
-        if (!tenant) {
-            return res.status(404).json({ error: 'Inquilino no encontrado' });
-        }
-        const tenantRole = await ClientProperty.findOne({
-            where: { clientId: tenantId, propertyId, role: 'inquilino' },
-        });
-        if (!tenantRole) {
-            return res.status(400).json({ error: 'El cliente no tiene el rol de inquilino para esta propiedad' });
-        }
-
-        // Crear el contrato de alquiler con ambos clientes
-        const newLease = await Lease.create({ propertyId, ownerId, tenantId, ...leaseData });
-
-        // Marcar la propiedad como no disponible
-        await property.update({ isAvailable: false });
-
-        res.status(201).json(newLease);
+      }
+      
+      // Parsear y validar
+      const parsedData = {
+        propertyId: parseInt(propertyId),
+        landlordId: parseInt(landlordId),
+        tenantId: parseInt(tenantId),
+        startDate: new Date(startDate),
+        rentAmount: parseFloat(rentAmount),
+        updateFrequency,  // ENUM, se asume válido
+        commission: commission ? parseFloat(commission) : null,
+        totalMonths: parseInt(totalMonths),
+        inventory
+      };
+  
+      console.log('CreateLease - Parsed data:', parsedData);
+  
+      // Verificar existencia y disponibilidad de la propiedad
+      const property = await Property.findByPk(parsedData.propertyId);
+      if (!property) {
+        return res.status(404).json({ error: 'Propiedad no encontrada' });
+      }
+      if (!property.isAvailable) {
+        return res.status(400).json({ error: 'La propiedad ya no está disponible' });
+      }
+      
+      // Verificar que el landlord existe y tiene rol de propietario para esa propiedad
+      const landlord = await Client.findByPk(parsedData.landlordId);
+      if (!landlord) {
+        return res.status(404).json({ error: 'Propietario no encontrado' });
+      }
+      const ownerRole = await ClientProperty.findOne({ 
+        where: { clientId: parsedData.landlordId, propertyId: parsedData.propertyId, role: 'propietario' }
+      });
+      if (!ownerRole) {
+        return res.status(400).json({ error: 'El cliente no tiene rol de propietario para esta propiedad' });
+      }
+      
+      // Verificar que el tenant exista (opcional validar rol si fuera necesario)
+      const tenant = await Client.findByPk(parsedData.tenantId);
+      if (!tenant) {
+        return res.status(404).json({ error: 'Inquilino no encontrado' });
+      }
+      
+      // Crear el contrato
+      const newLease = await Lease.create(parsedData);
+      console.log('New Lease created:', newLease);
+  
+      // Actualizar la propiedad (marcarla como no disponible)
+      await property.update({ isAvailable: false });
+  
+      res.status(201).json(newLease);
     } catch (error) {
-        res.status(500).json({ error: 'Error al crear el contrato de alquiler', details: error.message });
+      console.error('CreateLease Error:', error);
+      res.status(500).json({ 
+        error: 'Error al crear el contrato de alquiler', 
+        details: error.message 
+      });
     }
-};
-
+  };
 
 
 exports.getLeasesByIdClient = async (req, res) => {

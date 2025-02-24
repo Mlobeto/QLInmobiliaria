@@ -43,22 +43,23 @@ import {
   GET_FILTERED_PROPERTIES_REQUEST,
   GET_FILTERED_PROPERTIES_SUCCESS,
   GET_FILTERED_PROPERTIES_FAILURE,
-  GET_ALL_PROPERTIES_REQUEST, 
-  GET_ALL_PROPERTIES_SUCCESS, 
-  GET_ALL_PROPERTIES_FAILURE
-
-
+  GET_ALL_PROPERTIES_REQUEST,
+  GET_ALL_PROPERTIES_SUCCESS,
+  GET_ALL_PROPERTIES_FAILURE,
+  GET_PROPERTIES_BY_ID_REQUEST,
+  GET_PROPERTIES_BY_ID_SUCCESS,
+  GET_PROPERTIES_BY_ID_FAILURE,
 } from "../Actions/actions-types";
 
 const initialState = {
   adminInfo: null,
   propertyClientData: null,
   token: null,
-  clients: [],
+  clients: [], // Estado inicial para los clientes
   client: null,
   property: null,
   properties: [],
-  allProperties:[],
+  allProperties: [],
   lease: null,
   leases: [],
   filteredProperties: [],
@@ -237,7 +238,7 @@ const rootReducer = (state = initialState, action) => {
         loading: true,
       };
     case ADD_PROPERTY_TO_CLIENT_SUCCESS:
-      console.log('Propiedad agregada al cliente:', action.payload);
+      console.log("Propiedad agregada al cliente:", action.payload);
       return {
         ...state,
         loading: false,
@@ -322,27 +323,49 @@ const rootReducer = (state = initialState, action) => {
     case GET_FILTERED_PROPERTIES_FAILURE:
       return { ...state, loading: false, error: action.payload };
 
-      case GET_ALL_PROPERTIES_REQUEST:
-  return {
-    ...state,
-    loading: true,
-    error: null,
-  };
+    case GET_ALL_PROPERTIES_REQUEST:
+      return {
+        ...state,
+        loading: true,
+        error: null,
+      };
 
-case GET_ALL_PROPERTIES_SUCCESS:
-  return {
-    ...state,
-    loading: false,
-    allProperties: action.payload, // Asigna todas las propiedades al estado
-    error: null,
-  };
+    case GET_ALL_PROPERTIES_SUCCESS:
+      return {
+        ...state,
+        loading: false,
+        allProperties: action.payload, // Asigna todas las propiedades al estado
+        error: null,
+      };
 
-case GET_ALL_PROPERTIES_FAILURE:
-  return {
-    ...state,
-    loading: false,
-    error: action.payload,
-  };
+    case GET_ALL_PROPERTIES_FAILURE:
+      return {
+        ...state,
+        loading: false,
+        error: action.payload,
+      };
+
+    case GET_PROPERTIES_BY_ID_REQUEST:
+      return {
+        ...state,
+        loading: true,
+        error: null,
+      };
+
+    case GET_PROPERTIES_BY_ID_SUCCESS:
+      return {
+        ...state,
+        loading: false,
+        property: action.payload, // Store the single property in state
+        error: null,
+      };
+
+    case GET_PROPERTIES_BY_ID_FAILURE:
+      return {
+        ...state,
+        loading: false,
+        error: action.payload,
+      };
 
     default:
       return state;

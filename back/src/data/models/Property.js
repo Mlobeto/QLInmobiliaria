@@ -122,6 +122,7 @@ module.exports = (sequelize) => {
       
     },
     {
+      freezeTableName: true,
       paranoid: true,
     }
   );

@@ -261,3 +261,44 @@ exports.getAllProperties = async (req, res) => {
     });
   }
 };
+
+exports.getPropertyById = async (req, res) => {
+  try {
+    const { propertyId } = req.params;
+    console.log('Params received:', req.params);
+    console.log('Buscando propiedad con ID:', propertyId);
+
+    // Convert propertyId to integer
+    const id = parseInt(propertyId);
+    if (isNaN(id)) {
+      return res.status(400).json({ error: 'ID de propiedad inválido' });
+    }
+
+    const property = await Property.findByPk(id, {
+      include: [
+        {
+          model: Client,
+          through: {
+            attributes: ['role'],
+          },
+          attributes: ['idClient', 'name', 'email', 'mobilePhone'],
+        },
+      ],
+    });
+
+    if (!property) {
+      console.log('Propiedad no encontrada con ID:', id);
+      return res.status(404).json({ error: 'Propiedad no encontrada' });
+    }
+
+    console.log('Propiedad encontrada:', JSON.stringify(property, null, 2));
+    res.status(200).json(property);
+  } catch (error) {
+    console.error('Error completo:', error);
+    res.status(500).json({
+      error: 'Error al obtener la propiedad',
+      details: error.message,
+      stack: error.stack
+    });
+  }
+};
