@@ -63,37 +63,47 @@ const {
   SaleContract 
 } = sequelize.models;
 
-// Relaciones entre Client y Property a través de ClientProperty
-Client.belongsToMany(Property, { through: 'ClientProperty', foreignKey: 'clientId' });
-Property.belongsToMany(Client, { through: 'ClientProperty', foreignKey: 'propertyId' });
+// 1. Relaciones entre Client y Property a través de ClientProperty (many-to-many)
+Client.belongsToMany(Property, { through: ClientProperty, foreignKey: 'clientId' });
+Property.belongsToMany(Client, { through: ClientProperty, foreignKey: 'propertyId' });
 
-// Lease y Property (uno a uno)
+// 2. Relaciones para Lease
+// Relación con Property: Cada contrato (Lease) está asociado a una propiedad
 Lease.belongsTo(Property, { foreignKey: 'propertyId' });
 Property.hasOne(Lease, { foreignKey: 'propertyId' });
 
-// Lease y Client (inquilino)
-Lease.belongsTo(Client, { foreignKey: 'tenantId' });
-Client.hasMany(Lease, { foreignKey: 'tenantId' });
+// Relación del contrato con el propietario (landlord)
+// Se usa el alias "Landlord" para identificar al cliente que es propietario
+Lease.belongsTo(Client, { as: 'Landlord', foreignKey: 'landlordId' });
+Client.hasMany(Lease, { as: 'LeasesAsLandlord', foreignKey: 'landlordId' });
 
-// SaleContract y Property (uno a uno)
+// Relación del contrato con el inquilino (tenant)
+// Se usa el alias "Tenant" para identificar al cliente que es inquilino
+Lease.belongsTo(Client, { as: 'Tenant', foreignKey: 'tenantId' });
+Client.hasMany(Lease, { as: 'LeasesAsTenant', foreignKey: 'tenantId' });
+
+// 3. Relaciones para SaleContract
+// Relación SaleContract - Property (uno a uno)
 SaleContract.belongsTo(Property, { foreignKey: 'propertyId' });
 Property.hasOne(SaleContract, { foreignKey: 'propertyId' });
 
-// SaleContract y Client (vendedor y comprador)
+// Relación SaleContract - Client (vendedor y comprador)
 SaleContract.belongsTo(Client, { as: 'Seller', foreignKey: 'sellerId' });
 SaleContract.belongsTo(Client, { as: 'Buyer', foreignKey: 'buyerId' });
 Client.hasMany(SaleContract, { as: 'Sales', foreignKey: 'sellerId' });
 Client.hasMany(SaleContract, { as: 'Purchases', foreignKey: 'buyerId' });
 
-// Garantor y Lease (uno a muchos)
+// 4. Relaciones para Garantor
+// Un contrato (Lease) puede tener varios avalistas (Garantor)
 Lease.hasMany(Garantor, { foreignKey: 'leaseId' });
 Garantor.belongsTo(Lease, { foreignKey: 'leaseId' });
 
-// PaymentReceipt y Lease (uno a muchos)
+// 5. Relaciones para PaymentReceipt
+// Un contrato (Lease) puede tener varios recibos de pago
 PaymentReceipt.belongsTo(Lease, { foreignKey: 'leaseId' });
 Lease.hasMany(PaymentReceipt, { foreignKey: 'leaseId' });
 
-// PaymentReceipt y Client (uno a muchos)
+// Un recibo de pago está asociado a un cliente
 PaymentReceipt.belongsTo(Client, { foreignKey: 'idClient' });
 Client.hasMany(PaymentReceipt, { foreignKey: 'idClient' });
 

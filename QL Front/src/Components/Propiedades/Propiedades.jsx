@@ -101,39 +101,33 @@ const CreateProperty = () => {
     // 1. Crear la propiedad con la acción createProperty
     dispatch(createProperty(formData))
       .then((propertyCreated) => {
-        console.log("propertyCreated:", propertyCreated); // Verifica la respuesta de createProperty
+        console.log("propertyCreated:", propertyCreated);
 
-        // Asegúrate de que la propiedad propertyId existe
         if (!propertyCreated || !propertyCreated.propertyId) {
           throw new Error("propertyId no está presente en la respuesta");
         }
 
-        const propertyId = propertyCreated.propertyId;
-        console.log("Respuesta de createProperty:", propertyCreated);
-        console.log("Despachando addPropertyToClientWithRole con:", {
-          propertyId,
-          idClient: formData.idClient,
-          role: formData.role,
-        });
-        console.log("Parámetros enviados:", {
-          propertyId,
-          idClient: formData.idClient,
-          role: formData.role,
-        });
+        // Crear objeto con la estructura correcta para asignar rol
+        const roleData = {
+          idClient: parseInt(formData.idClient),
+          propertyId: parseInt(propertyCreated.propertyId),
+          role: formData.role
+        };
 
-        dispatch(
-          addPropertyToClientWithRole(
-            propertyId,
-            formData.idClient,
-            formData.role
-          )
-        );
+        console.log("Enviando datos de rol:", roleData);
+
+        // 2. Asignar el rol al cliente
+        return dispatch(addPropertyToClientWithRole(roleData));
+      })
+      .then((roleResponse) => {
+        console.log("Rol asignado exitosamente:", roleResponse);
+        // Aquí puedes agregar un mensaje de éxito
       })
       .catch((error) => {
-        console.error("Error al crear la propiedad:", error);
+        console.error("Error en el proceso:", error);
+        // Aquí puedes mostrar un mensaje de error
       });
-  };
-
+};
   useEffect(() => {
     if (success) {
       setFormData({

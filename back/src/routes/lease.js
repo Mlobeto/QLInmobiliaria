@@ -1,10 +1,22 @@
 const express = require('express');
-const { createLease, getLeasesByIdClient, terminateLease} = require('../controllers');
+const { createLease, getLeasesByIdClient, terminateLease } = require('../controllers');
 const router = express.Router();
 
-router.post('/', createLease);
-router.get('/:idClient', getLeasesByIdClient);
-router.get('/:leaseId', terminateLease);
+// Add logging middleware
+router.use((req, res, next) => {
+    console.log('Lease Route:', {
+        method: req.method,
+        path: req.path,
+        body: req.body
+    });
+    next();
+});
 
+// POST route for creating a new lease
+router.post('/', createLease);
+
+// GET routes
+router.get('/client/:idClient', getLeasesByIdClient);
+router.put('/:leaseId/terminate', terminateLease); // Changed to PUT for terminating
 
 module.exports = router;

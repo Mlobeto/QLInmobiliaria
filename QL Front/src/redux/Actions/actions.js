@@ -20,7 +20,8 @@ GET_PROPERTIES_BY_TYPE_REQUEST, GET_PROPERTIES_BY_TYPE_SUCCESS , GET_PROPERTIES_
 UPDATE_PROPERTY_REQUEST,  UPDATE_PROPERTY_SUCCESS,  UPDATE_PROPERTY_FAILURE , DELETE_PROPERTY_REQUEST , DELETE_PROPERTY_SUCCESS,
 DELETE_PROPERTY_FAILURE, 
 GET_FILTERED_PROPERTIES_REQUEST,  GET_FILTERED_PROPERTIES_SUCCESS,  GET_FILTERED_PROPERTIES_FAILURE,
-GET_ALL_PROPERTIES_REQUEST, GET_ALL_PROPERTIES_SUCCESS, GET_ALL_PROPERTIES_FAILURE
+GET_ALL_PROPERTIES_REQUEST, GET_ALL_PROPERTIES_SUCCESS, GET_ALL_PROPERTIES_FAILURE,
+GET_PROPERTIES_BY_ID_REQUEST, GET_PROPERTIES_BY_ID_SUCCESS, GET_PROPERTIES_BY_ID_FAILURE
 
 } from './actions-types'
 
@@ -219,7 +220,7 @@ export const createClient = (clientData) => async (dispatch) => {
   export const getAllProperties = () => async (dispatch) => {
     dispatch({ type: GET_ALL_PROPERTIES_REQUEST });
     try {
-      const response = await axios.get('/property/all');
+      const response = await axios.get('/property');
       dispatch({ type: GET_ALL_PROPERTIES_SUCCESS, payload: response.data });
     } catch (error) {
       dispatch({ type: GET_ALL_PROPERTIES_FAILURE, payload: error.message });
@@ -227,13 +228,13 @@ export const createClient = (clientData) => async (dispatch) => {
     }
   };
   
-  export const addPropertyToClientWithRole = ( propertyId,idClient, role) => async (dispatch) => {
+  export const addPropertyToClientWithRole = ({ propertyId, idClient, role }) => async (dispatch) => {
     dispatch({ type: ADD_PROPERTY_TO_CLIENT_REQUEST });
     console.log('Inicio de la acción addPropertyToClientWithRole');
-    console.log('Datos enviados:', {  propertyId,idClient, role });
+    console.log('Datos enviados:', { propertyId, idClient, role });
 
     try {
-        const response = await axios.post('/clientRole/addRole', {
+        const response = await axios.post(`/clientRole/addRole`, {
             idClient,
             propertyId,
             role,
@@ -242,7 +243,7 @@ export const createClient = (clientData) => async (dispatch) => {
 
         dispatch({
             type: ADD_PROPERTY_TO_CLIENT_SUCCESS,
-            payload: response.data, // La respuesta que regresa del backend
+            payload: response.data,
         });
     } catch (error) {
         console.error('Error al hacer la solicitud:', error);
@@ -275,6 +276,17 @@ export const getPropertiesByType = (type) => async (dispatch) => {
     dispatch({ type: GET_PROPERTIES_BY_TYPE_SUCCESS, payload: response.data });
   } catch (error) {
     dispatch({ type: GET_PROPERTIES_BY_TYPE_FAILURE, payload: error.message });
+    Swal.fire("Error", "No se pudieron obtener las propiedades por tipo", "error");
+  }
+};
+
+export const getPropertiesById = (propertyId) => async (dispatch) => {
+  dispatch({ type: GET_PROPERTIES_BY_ID_REQUEST });
+  try {
+    const response = await axios.get(`/property/${propertyId}`);
+    dispatch({ type: GET_PROPERTIES_BY_ID_SUCCESS, payload: response.data });
+  } catch (error) {
+    dispatch({ type: GET_PROPERTIES_BY_ID_FAILURE, payload: error.message });
     Swal.fire("Error", "No se pudieron obtener las propiedades por tipo", "error");
   }
 };
@@ -314,19 +326,18 @@ export const getFilteredProperties = (filters) => async (dispatch) => {
   }
 };
 
-export const createLease  = (leaseData) => async (dispatch) => {
+export const createLease = (leaseData) => async (dispatch) => {
   dispatch({ type: CREATE_LEASE_REQUEST });
 
   try {
-    console.log("Enviando datos del contrato:", leaseData); // Agregar log aquí para ver los datos antes de enviarlos
+    console.log("Enviando datos del contrato:", leaseData);
 
+    // Se realiza la solicitud POST al endpoint /lease
     const response = await axios.post(`/lease`, leaseData, {
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
     });
 
-    console.log("Respuesta del backend:", response); // Agregar log para ver la respuesta del backend
+    console.log("Respuesta del backend:", response.data);
 
     dispatch({ type: CREATE_LEASE_SUCCESS, payload: response.data });
 
@@ -337,13 +348,14 @@ export const createLease  = (leaseData) => async (dispatch) => {
       icon: "success",
     });
   } catch (error) {
-    console.log("Error al crear el contrato:", error); // Ver qué tipo de error se recibe
+    console.log("Error al crear el contrato:", error);
 
     dispatch({ type: CREATE_LEASE_FAILURE, payload: error.message });
 
-    // Mostrar alerta de error
     const errorMessage =
-      error.response?.data?.message || "Ocurrió un error al crear la propiedad.";
+      error.response?.data?.message ||
+      error.response?.data?.error ||
+      "Ocurrió un error al crear el contrato.";
     Swal.fire({
       title: "Error",
       text: errorMessage,
