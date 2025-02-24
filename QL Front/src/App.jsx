@@ -12,9 +12,11 @@ import Listado from "./Components/Propiedades/Listado";
 import FiltroPropiedades from "./Components/Propiedades/FiltroPropiedades"
 import LoginAdmin from "./Components/Admin/Login/Login";
 import CreateLeaseForm from "./Components/Contratos/CreateLeaseForm"
-import EstadoContratos from "./Components/Contratos/EstadoContratos"
+import CompraVenta from "./Components/Contratos/CompraVenta"
+//import EstadoContratos from "./Components/Contratos/EstadoContratos"
 // eslint-disable-next-line no-unused-vars
 import ProtectedRoutes from "./utils/ProtectedRoutes";
+
 
 function App() {
   return (
@@ -100,10 +102,18 @@ function App() {
         }
       />
       <Route
-        path="/listadoContratos"
+        path="/contratoAlquiler"
         element={
           //  <ProtectedRoutes>
-          <EstadoContratos />
+          <CreateLeaseForm />
+          //  </ProtectedRoutes>
+        }
+      />
+      <Route
+        path="/sale"
+        element={
+          //  <ProtectedRoutes>
+          <CompraVenta />
           //  </ProtectedRoutes>
         }
       />
