@@ -81,7 +81,6 @@ Client.hasMany(Lease, { as: 'LeasesAsLandlord', foreignKey: 'landlordId' });
 // Se usa el alias "Tenant" para identificar al cliente que es inquilino
 Lease.belongsTo(Client, { as: 'Tenant', foreignKey: 'tenantId' });
 Client.hasMany(Lease, { as: 'LeasesAsTenant', foreignKey: 'tenantId' });
-
 // 3. Relaciones para SaleContract
 // Relación SaleContract - Property (uno a uno)
 SaleContract.belongsTo(Property, { foreignKey: 'propertyId' });

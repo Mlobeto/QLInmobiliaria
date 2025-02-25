@@ -96,7 +96,7 @@ const ListadoDeClientes = () => {
                 <th className="py-3 px-6 text-left">CUIT-CUIL</th>
                 <th className="py-3 px-6 text-left">Nombre</th>
                 <th className="py-3 px-6 text-left">Email</th>
-                <th className="py-3 px-6 text-left">Domicilio</th>
+              
                 <th className="py-3 px-6 text-left">Teléfono</th>
                 <th className="py-3 px-6 text-left">Acciones</th>
               </tr>
@@ -111,13 +111,13 @@ const ListadoDeClientes = () => {
                   <td className="py-3 px-6">
                     {editingClientId === client.idClient ? (
                       <input
-                        name="cuil"
-                        value={editedClient.cuil || ""}
+                        name="email"
+                        value={editedClient.email || ""}
                         onChange={handleInputChange}
                         className="border p-1 rounded"
                       />
                     ) : (
-                      client.cuil
+                      client.email
                     )}
                   </td>
                   <td className="py-3 px-6">
@@ -132,9 +132,31 @@ const ListadoDeClientes = () => {
                       client.name
                     )}
                   </td>
-                  <td className="py-3 px-6">{client.email}</td>
-                  <td className="py-3 px-6">{client.dirección}</td>
-                  <td className="py-3 px-6">{client.mobilePhone}</td>
+                  <td className="py-3 px-6">
+  {editingClientId === client.idClient ? (
+    <input
+      name="email"
+      value={editedClient.email || ""}
+      onChange={handleInputChange}
+      className="border p-1 rounded"
+    />
+  ) : (
+    client.email
+  )}
+</td>
+                  
+                  <td className="py-3 px-6">
+  {editingClientId === client.idClient ? (
+    <input
+      name="mobilePhone"
+      value={editedClient.mobilePhone || ""}
+      onChange={handleInputChange}
+      className="border p-1 rounded"
+    />
+  ) : (
+    client.mobilePhone
+  )}
+</td>
                   <td className="py-3 px-6 flex items-center gap-2">
                     {editingClientId === client.idClient ? (
                       <button
@@ -191,4 +213,3 @@ const ListadoDeClientes = () => {
 };
 
 export default ListadoDeClientes;
-

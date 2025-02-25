@@ -1,4 +1,4 @@
-const { Client } = require('../data');
+const { Client, Lease, Property } = require('../data');
 
 // POST: Crear un cliente
 exports.createClient = async (req, res) => {
@@ -29,7 +29,20 @@ exports.getAllClients = async (req, res) => {
 exports.getClientById = async (req, res) => {
     try {
         const { idClient } = req.params;
-        const client = await Client.findByPk(idClient);
+        const client = await Client.findByPk(idClient, {
+            include: [
+                {
+                    model: Lease,
+                    as: 'LeasesAsTenant',
+                    include: [{ model: Property }] 
+                },
+                {
+                    model: Lease,
+                    as: 'LeasesAsLandlord',
+                    include: [{ model: Property }]
+                }
+            ]
+        });
         if (!client) {
             return res.status(404).json({ error: 'Cliente no encontrado' });
         }
@@ -43,7 +56,17 @@ exports.getClientById = async (req, res) => {
 exports.updateClient = async (req, res) => {
     try {
         const { idClient } = req.params;
-        const updated = await Client.update(req.body, { where: { idClient } });
+        // Solo actualizamos mobilePhone y email
+        const dataToUpdate = {};
+        if (req.body.mobilePhone) dataToUpdate.mobilePhone = req.body.mobilePhone;
+        if (req.body.email) dataToUpdate.email = req.body.email;
+
+        if (Object.keys(dataToUpdate).length === 0) {
+            return res.status(400).json({ error: 'No se envió ningún cambio en teléfono o mail' });
+        }
+
+        const updated = await Client.update(dataToUpdate, { where: { idClient } });
+
         if (!updated[0]) {
             return res.status(404).json({ error: 'Cliente no encontrado' });
         }

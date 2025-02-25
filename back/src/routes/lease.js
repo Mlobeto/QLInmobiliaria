@@ -1,5 +1,5 @@
 const express = require('express');
-const { createLease, getLeasesByIdClient, terminateLease } = require('../controllers');
+const { createLease, getLeasesByIdClient, getAllLeases, terminateLease } = require('../controllers');
 const router = express.Router();
 
 // Add logging middleware
@@ -17,6 +17,7 @@ router.post('/', createLease);
 
 // GET routes
 router.get('/client/:idClient', getLeasesByIdClient);
+router.get('/all', getAllLeases);
 router.put('/:leaseId/terminate', terminateLease); // Changed to PUT for terminating
 
 module.exports = router;

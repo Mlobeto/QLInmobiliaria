@@ -3,18 +3,20 @@ import { useDispatch, useSelector } from "react-redux";
 import { createClient } from "../../redux/Actions/actions"; // Ajusta la ruta según tu estructura
 import { useNavigate } from 'react-router-dom';
 
+const initialState = {
+  cuil: "",
+  name: "",
+  email: "",
+  direccion: "",
+  ciudad: "",
+  provincia: "Catamarca",
+  mobilePhone: "",
+};
+
 const CreateClientForm = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const [formData, setFormData] = useState({
-    cuil: "",
-    name: "",
-    email: "",
-    direccion: "",
-    ciudad: "",
-    provincia: "Catamarca",
-    mobilePhone: "",
-  });
+  const [formData, setFormData] = useState(initialState);
 
   const { loading, error, success } = useSelector((state) => state.clientCreate); // Ajusta el estado si es diferente
 
@@ -31,7 +33,9 @@ const CreateClientForm = () => {
     
     dispatch(createClient(formData))
       .then(() => {
-        // Redirigir a /panelClientes después de la creación
+        // Limpiar el formulario luego de crear el cliente
+        setFormData(initialState);
+        // Redirigir a /panelClientes después de la creación, si es necesario
         if (success) {
           navigate('/panelClientes');
         }

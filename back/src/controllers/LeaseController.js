@@ -84,16 +84,18 @@ exports.createLease = async (req, res) => {
   };
 
 
-exports.getLeasesByIdClient = async (req, res) => {
+  exports.getLeasesByIdClient = async (req, res) => {
     try {
         const { idClient } = req.params;
 
         const leases = await Lease.findAll({
-            where: { tenantId: idClient }, // Cambia tenantId si el campo tiene otro nombre.
+            where: { tenantId: idClient },
             include: [
                 Property,
-                { model: PaymentReceipt, required: false }, // Opcional
-                { model: Garantor, required: false } // Opcional
+                { model: PaymentReceipt, required: false },
+                { model: Garantor, required: false },
+                { model: Client, as: 'Tenant', attributes: ['name'] } ,
+                { model: Client, as: 'Landlord', attributes: ['name'] }
             ],
         });
 
@@ -134,4 +136,22 @@ exports.terminateLease = async (req, res) => {
     } catch (error) {
         res.status(500).json({ error: 'Error al terminar el contrato de alquiler', details: error.message });
     }
+};
+
+exports.getAllLeases = async (req, res) => {
+  try {
+    const leases = await Lease.findAll({
+      include: [
+                Property,
+                { model: PaymentReceipt, required: false },
+                { model: Garantor, required: false },
+                { model: Client, as: 'Tenant', attributes: ['name'] } ,
+                { model: Client, as: 'Landlord', attributes: ['name'] }
+            ],
+    });
+    res.status(200).json(leases);
+  } catch (error) {
+    console.error("Error al obtener contratos:", error);
+    res.status(500).json({ error: "Error al obtener contratos", details: error.message });
+  }
 };

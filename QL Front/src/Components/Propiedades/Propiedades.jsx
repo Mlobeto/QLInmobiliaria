@@ -551,17 +551,30 @@ const CreateProperty = () => {
             Subir Imágenes
           </button>
           {formData.images.length > 0 && (
-            <div className="col-span-full text-center mt-4">
-              {formData.images.map((url, index) => (
-                <img
-                  key={index}
-                  src={url}
-                  alt={`Imagen ${index + 1}`}
-                  className="w-full h-32 object-cover  shadow"
-                />
-              ))}
-            </div>
-          )}
+  <div className="col-span-full text-center mt-4">
+    {formData.images.map((url, index) => (
+      <div key={index} className="relative inline-block m-2">
+        <img
+          src={url}
+          alt={`Imagen ${index + 1}`}
+          className="w-32 h-32 object-cover shadow"
+        />
+        <button
+          type="button"
+          onClick={() => {
+            setFormData((prevData) => ({
+              ...prevData,
+              images: prevData.images.filter((_, idx) => idx !== index),
+            }));
+          }}
+          className="absolute top-0 right-0 bg-red-500 text-white px-2 py-1 text-xs rounded"
+        >
+          Eliminar
+        </button>
+      </div>
+    ))}
+  </div>
+)}
         </div>
         {showPdfButton && (
           <AutorizacionVentaPdf

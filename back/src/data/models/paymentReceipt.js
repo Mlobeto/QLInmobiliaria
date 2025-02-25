@@ -4,6 +4,11 @@ module.exports = (sequelize) => {
     sequelize.define(
         'PaymentReceipt',
         {
+            id: {
+                type: DataTypes.INTEGER,
+                primaryKey: true,
+                autoIncrement: true,
+            },
             paymentDate: {
                 type: DataTypes.DATE,
                 allowNull: false,
@@ -30,6 +35,16 @@ module.exports = (sequelize) => {
                 validate: {
                     min: 1,
                 },
+            },
+            type: {
+                type: DataTypes.ENUM("installment", "commission"),
+                allowNull: false,
+                defaultValue: "installment",
+            },
+            status: {
+                type: DataTypes.ENUM("pending", "paid"),
+                allowNull: false,
+                defaultValue: "pending",
             },
         },
         {
