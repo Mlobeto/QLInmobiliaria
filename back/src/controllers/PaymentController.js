@@ -1,4 +1,4 @@
-const { PaymentReceipt, Lease, Client } = require('../data');
+const { PaymentReceipt, Lease, Client, Property } = require('../data');
 
 exports.createPayment = async (req, res) => {
     try {
@@ -107,3 +107,24 @@ exports.getPaymentsByLeaseId = async (req, res) => {
     }
 };
 
+exports.getAllPayments = async (req, res) => {
+  try {
+    const payments = await PaymentReceipt.findAll({
+      include: [
+        { model: Client }, // Información del cliente
+        { 
+          model: Lease,   // Información del contrato
+          include: [{ model: Property }] // Opcional: Detalles de la propiedad
+        },
+      ],
+    });
+
+    if (!payments.length) {
+      return res.status(404).json({ error: 'No se encontraron pagos' });
+    }
+
+    res.status(200).json(payments);
+  } catch (error) {
+    res.status(500).json({ error: 'Error al obtener los pagos', details: error.message });
+  }
+};

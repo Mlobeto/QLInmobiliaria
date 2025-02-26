@@ -64,6 +64,9 @@ import {
   GET_LEASES_BY_CLIENT_REQUEST,
   GET_LEASES_BY_CLIENT_SUCCESS,
   GET_LEASES_BY_CLIENT_FAILURE,
+  GET_ALL_PAYMENTS_REQUEST,
+  GET_ALL_PAYMENTS_SUCCESS,
+GET_ALL_PAYMENTS_FAILURE
   
 
 
@@ -76,6 +79,7 @@ const initialState = {
   payments: [],
   clients: [], // Estado inicial para los clientes
   client: null,
+  allPayments: [],
   property: null,
   properties: [],
   allProperties: [],
@@ -486,6 +490,29 @@ const rootReducer = (state = initialState, action) => {
                 error: action.payload
               }
             };
+
+            case GET_ALL_PAYMENTS_REQUEST:
+              return {
+                ...state,
+                loading: true,
+                error: null
+              };
+        
+            case GET_ALL_PAYMENTS_SUCCESS:
+              return {
+                ...state,
+                loading: false,
+                allPayments: action.payload,
+                error: null
+              };
+        
+            case GET_ALL_PAYMENTS_FAILURE:
+              return {
+                ...state,
+                loading: false,
+                error: action.payload
+              };
+        
 
     default:
       return state;

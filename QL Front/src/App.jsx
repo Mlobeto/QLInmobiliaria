@@ -17,7 +17,11 @@ import CompraVenta from "./Components/Contratos/CompraVenta"
 // eslint-disable-next-line no-unused-vars
 import ProtectedRoutes from "./utils/ProtectedRoutes";
 import PaymentForm from "./Components/Pagos/PaymentForm";
-import ReceiptGenerator from "./Components/Pagos/ReceiptGenerator ";
+
+import PaymentList from "./Components/Pagos/PaymentList";
+import PaymentReport from "./Components/Pagos/PaymentReport";
+import PanelInformes from "./Components/Admin/PanelInformes";
+import ContractAlerts from "./Components/Contratos/ContractAlerts";
 
 function App() {
   return (
@@ -62,6 +66,15 @@ function App() {
         element={
           //  <ProtectedRoutes>
           <PanelPropiedades />
+          //  </ProtectedRoutes>
+        }
+      />
+
+<Route
+        path="/PanelInformes"
+        element={
+          //  <ProtectedRoutes>
+          <PanelInformes />
           //  </ProtectedRoutes>
         }
       />
@@ -128,15 +141,7 @@ function App() {
           //  </ProtectedRoutes>
         }
       />
-       <Route
-        path="/generate-pdf"
-        element={
-          //  <ProtectedRoutes>
-          <ReceiptGenerator />
-          //  </ProtectedRoutes>
-        }
-      />
-
+      
 <Route
         path="/leaseList"
         element={
@@ -145,6 +150,34 @@ function App() {
           //  </ProtectedRoutes>
         }
       />
+
+<Route
+        path="/paymentList"
+        element={
+          //  <ProtectedRoutes>
+          <PaymentList />
+          //  </ProtectedRoutes>
+        }
+      />
+
+<Route
+        path="/reportes"
+        element={
+          //  <ProtectedRoutes>
+          <PaymentReport />
+          //  </ProtectedRoutes>
+        }
+      />
+
+<Route
+        path="/alertas"
+        element={
+          //  <ProtectedRoutes>
+          <ContractAlerts />
+          //  </ProtectedRoutes>
+        }
+      />
+
 
       <Route path="/login" element={<LoginAdmin />} />
     </Routes>

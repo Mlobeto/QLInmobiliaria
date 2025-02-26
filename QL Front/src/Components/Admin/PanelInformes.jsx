@@ -2,7 +2,7 @@ import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { IoLogOutOutline } from 'react-icons/io5';
 
-const PanelContratos = () => {
+const PanelInformes = () => {
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -15,7 +15,7 @@ const PanelContratos = () => {
       {/* Header */}
       <div className="w-full bg-gray-800 p-2 shadow-md flex justify-between items-center ">
         <Link to="/panel" className="text-white text-xl font-semibold hover:underline">
-          Contrato
+          Pagos por Contrato
         </Link>
         <button
           onClick={handleLogout}
@@ -30,36 +30,24 @@ const PanelContratos = () => {
       <div className="flex-grow flex flex-col justify-center items-center space-y-4 p-6">
         <div className="flex flex-row justify-center items-center space-x-2">
           <Link
-            to="/leaseList"
+            to="/reportes"
             className="w-64 h-64 bg-lime-500 hover:bg-lime-600 text-black flex justify-center items-center rounded-lg shadow-lg text-2xl font-semibold transition duration-300 uppercase"
           >
-            Listado
+            Informes
           </Link>
           <Link
-            to="/contratoAlquiler"
+            to="/paymentList"
             className="w-64 h-64 bg-lime-500 text-white flex justify-center items-center rounded-lg shadow-lg text-2xl font-semibold hover:bg-green-600 transition duration-300 uppercase"
           >
-            Alquiler
+            Pagos x Contrato
           </Link>
-          <Link
-            to="/sale"
-            className="w-64 h-64 bg-lime-500 text-white flex justify-center items-center rounded-lg shadow-lg text-2xl font-semibold hover:bg-green-600 transition duration-300 uppercase"
-          >
-            Compra Venta
-          </Link>
+        
          
         </div>
- <Link
-          to="/alertas"
-          className="w-full h-32 bg-yellow-500 text-white flex justify-center items-center rounded-lg shadow-lg text-2xl font-semibold hover:bg-yellow-600 transition duration-300 uppercase"
-        >
-          Alertas
-        </Link>
-       
-       
+
       </div>
     </div>
   );
 };
 
-export default PanelContratos;
+export default PanelInformes;

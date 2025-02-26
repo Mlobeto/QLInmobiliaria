@@ -14,7 +14,7 @@ const PanelClientes = () => {
     <div className="min-h-screen bg-gray-900 flex flex-col p-80">
       {/* Header */}
       <div className="w-full bg-gray-800 p-2 shadow-md flex justify-between items-center ">
-        <Link to="/panel" className="text-white text-xl font-semibold hover:underline">
+        <Link to="/paymentList" className="text-white text-xl font-semibold hover:underline">
           Alta Cliente
         </Link>
         <button
