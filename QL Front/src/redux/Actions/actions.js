@@ -21,7 +21,23 @@ UPDATE_PROPERTY_REQUEST,  UPDATE_PROPERTY_SUCCESS,  UPDATE_PROPERTY_FAILURE , DE
 DELETE_PROPERTY_FAILURE, 
 GET_FILTERED_PROPERTIES_REQUEST,  GET_FILTERED_PROPERTIES_SUCCESS,  GET_FILTERED_PROPERTIES_FAILURE,
 GET_ALL_PROPERTIES_REQUEST, GET_ALL_PROPERTIES_SUCCESS, GET_ALL_PROPERTIES_FAILURE,
-GET_PROPERTIES_BY_ID_REQUEST, GET_PROPERTIES_BY_ID_SUCCESS, GET_PROPERTIES_BY_ID_FAILURE
+GET_PROPERTIES_BY_ID_REQUEST, GET_PROPERTIES_BY_ID_SUCCESS, GET_PROPERTIES_BY_ID_FAILURE,
+
+CREATE_PAYMENT_REQUEST,
+  CREATE_PAYMENT_SUCCESS,
+  CREATE_PAYMENT_FAILURE,
+  GET_PAYMENTS_BY_LEASE_REQUEST,
+  GET_PAYMENTS_BY_LEASE_SUCCESS,
+  GET_PAYMENTS_BY_LEASE_FAILURE,
+  GET_PAYMENTS_BY_CLIENT_REQUEST,
+  GET_PAYMENTS_BY_CLIENT_SUCCESS,
+  GET_PAYMENTS_BY_CLIENT_FAILURE,
+
+  GET_ALL_LEASES_REQUEST, GET_ALL_LEASES_SUCCESS,  GET_ALL_LEASES_FAILURE,
+  GET_LEASES_BY_CLIENT_REQUEST,
+  GET_LEASES_BY_CLIENT_SUCCESS,
+  GET_LEASES_BY_CLIENT_FAILURE,
+
 
 } from './actions-types'
 
@@ -360,6 +376,84 @@ export const createLease = (leaseData) => async (dispatch) => {
       title: "Error",
       text: errorMessage,
       icon: "error",
+    });
+  }
+};
+
+export const createPayment = (paymentData) => async (dispatch) => {
+  dispatch({ type: CREATE_PAYMENT_REQUEST });
+  try {
+    const response = await axios.post("/payment", paymentData);
+    dispatch({
+      type: CREATE_PAYMENT_SUCCESS,
+      payload: response.data,
+    });
+  } catch (error) {
+    dispatch({
+      type: CREATE_PAYMENT_FAILURE,
+      payload: error.response?.data?.error || error.message,
+    });
+  }
+};
+
+export const getPaymentsByLeaseId = (leaseId) => async (dispatch) => {
+  dispatch({ type: GET_PAYMENTS_BY_LEASE_REQUEST });
+  try {
+    const response = await axios.get(`/payment/${leaseId}`);
+    dispatch({
+      type: GET_PAYMENTS_BY_LEASE_SUCCESS,
+      payload: response.data,
+    });
+  } catch (error) {
+    dispatch({
+      type: GET_PAYMENTS_BY_LEASE_FAILURE,
+      payload: error.response?.data?.error || error.message,
+    });
+  }
+};
+
+export const getPaymentsByClient = (idClient) => async (dispatch) => {
+  dispatch({ type: GET_PAYMENTS_BY_CLIENT_REQUEST });
+  try {
+    const response = await axios.get(`/payment/${idClient}`);
+    dispatch({
+      type: GET_PAYMENTS_BY_CLIENT_SUCCESS,
+      payload: response.data,
+    });
+  } catch (error) {
+    dispatch({
+      type: GET_PAYMENTS_BY_CLIENT_FAILURE,
+      payload: error.response?.data?.error || error.message,
+    });
+  }
+};
+
+export const getAllLeases = () => async (dispatch) => {
+  dispatch({ type: GET_ALL_LEASES_REQUEST });
+  try {
+    const response = await axios.get('/lease/all');
+    dispatch({ type: GET_ALL_LEASES_SUCCESS, payload: response.data });
+  } catch (error) {
+    dispatch({
+      type: GET_ALL_LEASES_FAILURE,
+      payload: error.response?.data?.error || error.message,
+    });
+    Swal.fire("Error", "No se pudieron obtener los contratos", "error");
+  }
+};
+
+export const getLeasesByIdClient = (idClient) => async (dispatch) => {
+  dispatch({ type: GET_LEASES_BY_CLIENT_REQUEST });
+  try {
+    const response = await axios.get(`/lease/client/${idClient}`);
+    dispatch({
+      type: GET_LEASES_BY_CLIENT_SUCCESS,
+      payload: response.data,
+    });
+  } catch (error) {
+    dispatch({
+      type: GET_LEASES_BY_CLIENT_FAILURE,
+      payload: error.response?.data?.error || error.message,
     });
   }
 };

@@ -30,7 +30,7 @@ const PanelContratos = () => {
       <div className="flex-grow flex flex-col justify-center items-center space-y-4 p-6">
         <div className="flex flex-row justify-center items-center space-x-2">
           <Link
-            to="/listadoContratos"
+            to="/leaseList"
             className="w-64 h-64 bg-lime-500 hover:bg-lime-600 text-black flex justify-center items-center rounded-lg shadow-lg text-2xl font-semibold transition duration-300 uppercase"
           >
             Listado

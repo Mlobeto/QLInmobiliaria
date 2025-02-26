@@ -18,7 +18,7 @@ router.use("/auth", require("./auth"));
 router.use("/client", require("./client"));
 router.use("/lease", require("./lease"));
 router.use("/payment", require("./payment"));
-router.use("/sale", require("./SaleAuthorization"));
+
 router.use("/property", require("./property"));
 router.use("/garantor", require("./garantor"));
 

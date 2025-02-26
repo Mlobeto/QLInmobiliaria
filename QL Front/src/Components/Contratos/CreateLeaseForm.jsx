@@ -94,8 +94,7 @@ const CreateLeaseForm = () => {
         });
         return;
       }
-
-      // Obtención del ID del propietario de la propiedad (landlord)
+  
       const landlordId = property.Clients?.find(
         client => client.ClientProperty.role === 'propietario'
       )?.idClient;
@@ -108,20 +107,18 @@ const CreateLeaseForm = () => {
         });
         return;
       }
-
-      // Asigna el rol 'inquilino' a través de la acción para establecer la relación
+  
       const roleResponse = await dispatch(addPropertyToClientWithRole({
         idClient: formData.locatarioId,
         propertyId: formData.propertyId,
         role: 'inquilino'
       }));
       console.log('Role assignment response:', roleResponse);
-
-      // Construcción del objeto que se envía para crear el contrato
+  
       const leaseData = {
         propertyId: parseInt(formData.propertyId),
-        landlordId: parseInt(landlordId),             // Anteriormente 'locador'
-        tenantId: parseInt(formData.locatarioId),       // Anteriormente 'locatario'
+        landlordId: parseInt(landlordId),
+        tenantId: parseInt(formData.locatarioId),
         startDate: formData.startDate,
         rentAmount: formData.rentAmount,
         updateFrequency: formData.updateFrequency,
@@ -129,15 +126,31 @@ const CreateLeaseForm = () => {
         totalMonths: parseInt(formData.totalMonths),
         inventory: formData.inventory
       };
-
+  
       const leaseResponse = await dispatch(createLease(leaseData));
       console.log('Lease creation response:', leaseResponse);
-
+  
       Swal.fire({
         title: "¡Éxito!",
         text: "Contrato creado correctamente y rol de inquilino asignado",
         icon: "success",
       });
+  
+      // Limpiar el formulario para poder crear otro contrato
+      setFormData({
+        propertyId: '',
+        locador: '',
+        locatario: '',
+        locatarioId: '',
+        startDate: '',
+        rentAmount: '',
+        updateFrequency: '',
+        commission: '',
+        totalMonths: '',
+        inventory: '',
+      });
+      setFilteredClients([]);
+      setShowClientList(false);
     } catch (error) {
       console.error('Error en handleSubmit:', error);
       Swal.fire({

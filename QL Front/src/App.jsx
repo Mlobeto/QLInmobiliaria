@@ -3,7 +3,7 @@ import Landing from "./Components/Landing";
 import Panel from "./Components/Admin/Panel";
 import Clientes from "./Components/Clientes/Clientes";
 import Propiedades from "./Components/Propiedades/Propiedades";
-
+import EstadoContratos from "./Components/Contratos/EstadoContratos";
 import PanelClientes from "./Components/Admin/PanelClientes";
 import PanelContratos from "./Components/Admin/PanelContratos";
 import PanelPropiedades from "./Components/Admin/PanelPropiedades";
@@ -16,7 +16,8 @@ import CompraVenta from "./Components/Contratos/CompraVenta"
 //import EstadoContratos from "./Components/Contratos/EstadoContratos"
 // eslint-disable-next-line no-unused-vars
 import ProtectedRoutes from "./utils/ProtectedRoutes";
-
+import PaymentForm from "./Components/Pagos/PaymentForm";
+import ReceiptGenerator from "./Components/Pagos/ReceiptGenerator ";
 
 function App() {
   return (
@@ -101,14 +102,7 @@ function App() {
           //  </ProtectedRoutes>
         }
       />
-      <Route
-        path="/contratoAlquiler"
-        element={
-          //  <ProtectedRoutes>
-          <CreateLeaseForm />
-          //  </ProtectedRoutes>
-        }
-      />
+      
       <Route
         path="/sale"
         element={
@@ -123,6 +117,31 @@ function App() {
         element={
           //  <ProtectedRoutes>
           <Propiedades />
+          //  </ProtectedRoutes>
+        }
+      />
+      <Route
+        path="/create-payment"
+        element={
+          //  <ProtectedRoutes>
+          <PaymentForm />
+          //  </ProtectedRoutes>
+        }
+      />
+       <Route
+        path="/generate-pdf"
+        element={
+          //  <ProtectedRoutes>
+          <ReceiptGenerator />
+          //  </ProtectedRoutes>
+        }
+      />
+
+<Route
+        path="/leaseList"
+        element={
+          //  <ProtectedRoutes>
+          <EstadoContratos />
           //  </ProtectedRoutes>
         }
       />
