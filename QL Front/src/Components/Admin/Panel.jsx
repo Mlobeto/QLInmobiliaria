@@ -1,17 +1,21 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { IoLogOutOutline } from 'react-icons/io5';
+import UpcomingExpiryPopup from '../Contratos/UpcomingExpiryPopup';
 
 const Panel = () => {
   const navigate = useNavigate();
 
   const handleLogout = () => {
     // Aquí agregarías tu lógica de logout
-    navigate('/login'); // Redirigir al login después del logout
+    navigate('/login');
   };
 
   return (
     <div className="min-h-screen bg-gray-900 flex flex-col p-80">
+      {/* Mostrar el popup de vencimientos */}
+      <UpcomingExpiryPopup />
+
       {/* Header */}
       <div className="w-full bg-gray-800 p-2 shadow-md flex justify-between items-center ">
         <Link to="/" className="text-white text-xl font-semibold hover:underline">
@@ -28,6 +32,7 @@ const Panel = () => {
 
       {/* Centro de la pantalla */}
       <div className="flex-grow flex flex-col justify-center items-center space-y-4 p-6">
+        {/* Botones de navegación */}
         <div className="flex flex-row justify-center items-center space-x-2">
           <Link
             to="/panelClientes"
@@ -57,7 +62,7 @@ const Panel = () => {
 
         {/* Nuevo rectángulo debajo */}
         <Link
-          to="/informes"
+          to="/PanelInformes"
           className="w-full h-32 bg-yellow-500 text-white flex justify-center items-center rounded-lg shadow-lg text-2xl font-semibold hover:bg-yellow-600 transition duration-300 uppercase"
         >
           Informes

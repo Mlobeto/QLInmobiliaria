@@ -43,5 +43,6 @@ module.exports = {
   getAllProperties: catchedAsync(PropertyController.getAllProperties),
   getPropertyById: catchedAsync(PropertyController.getPropertyById),
   createSaleAuthorization: catchedAsync(createSaleAuthorization.createSaleAuthorization),
-  getAllLeases: catchedAsync(LeaseController.getAllLeases)
+  getAllLeases: catchedAsync(LeaseController.getAllLeases),
+  getAllPayments: catchedAsync(PaymentController.getAllPayments),
 };

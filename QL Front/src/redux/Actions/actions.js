@@ -38,6 +38,9 @@ CREATE_PAYMENT_REQUEST,
   GET_LEASES_BY_CLIENT_SUCCESS,
   GET_LEASES_BY_CLIENT_FAILURE,
 
+  GET_ALL_PAYMENTS_REQUEST,
+  GET_ALL_PAYMENTS_SUCCESS,
+GET_ALL_PAYMENTS_FAILURE
 
 } from './actions-types'
 
@@ -453,6 +456,22 @@ export const getLeasesByIdClient = (idClient) => async (dispatch) => {
   } catch (error) {
     dispatch({
       type: GET_LEASES_BY_CLIENT_FAILURE,
+      payload: error.response?.data?.error || error.message,
+    });
+  }
+};
+
+export const getAllPayments = () => async (dispatch) => {
+  dispatch({ type: GET_ALL_PAYMENTS_REQUEST });
+  try {
+    const response = await axios.get('/payment');
+    dispatch({
+      type: GET_ALL_PAYMENTS_SUCCESS,
+      payload: response.data,
+    });
+  } catch (error) {
+    dispatch({
+      type: GET_ALL_PAYMENTS_FAILURE,
       payload: error.response?.data?.error || error.message,
     });
   }
