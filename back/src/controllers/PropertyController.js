@@ -186,18 +186,18 @@ exports.getFilteredProperties = async (req, res) => {
       planType,
       plantQuantity,
       bathrooms,
-
+      escritura,
+      comision,
+      isAvailable,
       page = 1, // Página por defecto
       limit = 10, // Número de resultados por página
     } = req.query;
 
     // Validar precios (si priceMin existe, no debe ser mayor que priceMax)
     if (priceMin && priceMax && parseFloat(priceMin) > parseFloat(priceMax)) {
-      return res
-        .status(400)
-        .json({
-          error: "El precio mínimo no puede ser mayor que el precio máximo.",
-        });
+      return res.status(400).json({
+        error: "El precio mínimo no puede ser mayor que el precio máximo.",
+      });
     }
 
     // Construir el objeto 'where' para la consulta
@@ -216,6 +216,14 @@ exports.getFilteredProperties = async (req, res) => {
     if (planType) where.planType = planType;
     if (plantQuantity) where.plantQuantity = plantQuantity;
     if (bathrooms) where.bathrooms = bathrooms;
+    // Filtro por escritura
+    if (escritura) where.escritura = escritura;
+    // Filtro por isAvailable, convirtiendo el string a booleano
+    if (typeof isAvailable !== 'undefined') {
+      where.isAvailable = isAvailable === 'true';
+    }
+    // Si necesitás filtrar por comision, se puede agregar igualmente:
+    if (comision) where.comision = comision;
 
     // Paginación
     const offset = (page - 1) * limit; // Calcular el offset de la página actual
@@ -227,12 +235,10 @@ exports.getFilteredProperties = async (req, res) => {
 
     res.status(200).json(properties);
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        error: "Error al filtrar las propiedades",
-        details: error.message,
-      });
+    res.status(500).json({
+      error: "Error al filtrar las propiedades",
+      details: error.message,
+    });
   }
 };
 
