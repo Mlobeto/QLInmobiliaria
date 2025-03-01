@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 import { jsPDF } from "jspdf";
 
-const ContratoAlquiler = ({ client, property }) => {
+const ContratoAlquiler = ({ client, property, buttonEnabled }) => {
   const generatePdf = () => {
     const doc = new jsPDF();
     const maxWidth = 170; // Ancho máximo para el texto
@@ -61,7 +61,13 @@ const ContratoAlquiler = ({ client, property }) => {
 
   return (
     <div className="col-span-full text-center mt-4">
-      <button onClick={generatePdf} className="bg-yellow-500 text-white px-3 py-2  rounded">
+      <button
+        onClick={generatePdf}
+        disabled={!buttonEnabled}
+        className={`px-3 py-2 rounded text-white ${
+          buttonEnabled ? "bg-yellow-500 hover:bg-yellow-600" : "bg-gray-400 cursor-not-allowed"
+        }`}
+      >
         Generar Contrato de Alquiler
       </button>
     </div>

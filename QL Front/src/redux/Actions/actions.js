@@ -360,12 +360,7 @@ export const createLease = (leaseData) => async (dispatch) => {
 
     dispatch({ type: CREATE_LEASE_SUCCESS, payload: response.data });
 
-    // Mostrar alerta de éxito
-    Swal.fire({
-      title: "¡Éxito!",
-      text: "Contrato creado correctamente",
-      icon: "success",
-    });
+    return response.data; // Asegúrate de retornar la respuesta
   } catch (error) {
     console.log("Error al crear el contrato:", error);
 
@@ -380,6 +375,8 @@ export const createLease = (leaseData) => async (dispatch) => {
       text: errorMessage,
       icon: "error",
     });
+
+    throw error; // Asegúrate de lanzar el error
   }
 };
 

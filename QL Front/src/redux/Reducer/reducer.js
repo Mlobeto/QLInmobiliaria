@@ -280,7 +280,7 @@ const rootReducer = (state = initialState, action) => {
         error: action.payload,
       };
 
-    case CREATE_LEASE_REQUEST:
+      case CREATE_LEASE_REQUEST:
       return {
         ...state,
         leaseCreate: {
@@ -289,12 +289,11 @@ const rootReducer = (state = initialState, action) => {
           error: null,
         },
       };
-
     case CREATE_LEASE_SUCCESS:
       return {
         ...state,
         leases: [...state.leases, action.payload],
-        leasesCreate: {
+        leaseCreate: {
           loading: false,
           success: true,
           error: null,
@@ -309,6 +308,8 @@ const rootReducer = (state = initialState, action) => {
           error: action.payload,
         },
       };
+
+
     case GET_PROPERTIES_BY_CLIENT_REQUEST:
     case GET_PROPERTIES_BY_TYPE_REQUEST:
     case UPDATE_PROPERTY_REQUEST:
