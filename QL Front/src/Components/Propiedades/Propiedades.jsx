@@ -9,10 +9,12 @@ import {
   loadCloudinaryScript,
   openCloudinaryWidget,
 } from "../../cloudinaryConfig";
+import { useNavigate } from "react-router-dom";
 
 import AutorizacionVentaPdf from "../PdfTemplates/AutorizacionVentaPdf";
 
 const CreateProperty = () => {
+  const navigate = useNavigate();
   const dispatch = useDispatch();
   const [images, setImages] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -173,6 +175,12 @@ const CreateProperty = () => {
 
   return (
     <div className="max-w-4xl mx-auto p-6 bg-gray-600  shadow-md mt-20">
+    <button
+        onClick={() => navigate(-1)}
+        className="mb-4 text-blue-500 hover:underline"
+      >
+        Volver
+      </button>
       <h1 className="text-3xl font-bold text-center text-white mb-8">
         Crear Propiedad
       </h1>

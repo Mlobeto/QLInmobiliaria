@@ -40,7 +40,15 @@ CREATE_PAYMENT_REQUEST,
 
   GET_ALL_PAYMENTS_REQUEST,
   GET_ALL_PAYMENTS_SUCCESS,
-GET_ALL_PAYMENTS_FAILURE
+  GET_ALL_PAYMENTS_FAILURE,
+
+  CREATE_GUARANTORS_REQUEST,
+  CREATE_GUARANTORS_SUCCESS,
+  CREATE_GUARANTORS_FAIL,
+  GET_GUARANTORS_REQUEST,
+  GET_GUARANTORS_SUCCESS,
+  GET_GUARANTORS_FAIL
+
 
 } from './actions-types'
 
@@ -360,12 +368,7 @@ export const createLease = (leaseData) => async (dispatch) => {
 
     dispatch({ type: CREATE_LEASE_SUCCESS, payload: response.data });
 
-    // Mostrar alerta de éxito
-    Swal.fire({
-      title: "¡Éxito!",
-      text: "Contrato creado correctamente",
-      icon: "success",
-    });
+    return response.data; // Asegúrate de retornar la respuesta
   } catch (error) {
     console.log("Error al crear el contrato:", error);
 
@@ -380,6 +383,8 @@ export const createLease = (leaseData) => async (dispatch) => {
       text: errorMessage,
       icon: "error",
     });
+
+    throw error; // Asegúrate de lanzar el error
   }
 };
 
@@ -473,6 +478,45 @@ export const getAllPayments = () => async (dispatch) => {
     dispatch({
       type: GET_ALL_PAYMENTS_FAILURE,
       payload: error.response?.data?.error || error.message,
+    });
+  }
+};
+
+export const createGarantorsForLease = (leaseId, guarantors) => async (dispatch) => {
+  try {
+    dispatch({ type: CREATE_GUARANTORS_REQUEST });
+
+    const { data } = await axios.post(`/lease/${leaseId}/garantors`, { guarantors });
+
+    dispatch({
+      type: CREATE_GUARANTORS_SUCCESS,
+      payload: data,
+    });
+  } catch (error) {
+    dispatch({
+      type: CREATE_GUARANTORS_FAIL,
+      payload: error.response && error.response.data.error
+        ? error.response.data.error
+        : error.message,
+    });
+  }
+};
+
+
+export const getGarantorsByLeaseId = (leaseId) => async (dispatch) => {
+  dispatch({ type: GET_GUARANTORS_REQUEST });
+  try {
+    const { data } = await axios.get(`/lease/${leaseId}/garantors`);
+    dispatch({
+      type: GET_GUARANTORS_SUCCESS,
+      payload: data.guarantors, // suponer que la respuesta tiene { guarantors: [...] }
+    });
+  } catch (error) {
+    dispatch({
+      type: GET_GUARANTORS_FAIL,
+      payload: error.response && error.response.data.error
+        ? error.response.data.error
+        : error.message,
     });
   }
 };

@@ -1,14 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import {
-  getAllClients,
-  updateClient,
-  deleteClient,
-} from "../../redux/Actions/actions";
-
+import { getAllClients, updateClient, deleteClient } from "../../redux/Actions/actions";
+import { useNavigate } from 'react-router-dom';
 const ListadoDeClientes = () => {
+  
+  
   const dispatch = useDispatch();
-
+  const navigate = useNavigate();
   // Estado global desde Redux
   const { clients, loading, error } = useSelector((state) => ({
     clients: state.clients,
@@ -31,10 +29,7 @@ const ListadoDeClientes = () => {
 
   // Calcular clientes actuales según la página
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const currentClients = filteredClients.slice(
-    startIndex,
-    startIndex + itemsPerPage
-  );
+  const currentClients = filteredClients.slice(startIndex, startIndex + itemsPerPage);
 
   const totalPages = Math.ceil(filteredClients.length / itemsPerPage);
 
@@ -72,10 +67,16 @@ const ListadoDeClientes = () => {
 
   return (
     <div className="p-6 min-h-screen mt-20">
-      <h1 className="text-2xl font-bold mb-6">Listado de Clientes</h1>
+    <button
+        onClick={() => navigate(-1)}
+        className="mb-4 text-blue-500 hover:underline"
+      >
+        Volver
+      </button>
+      <h1 className="text-2xl font-bold mb-6 text-center">Listado de Clientes</h1>
 
-      {loading && <p>Cargando clientes...</p>}
-      {error && <p className="text-red-500">Error: {error}</p>}
+      {loading && <p className="text-center">Cargando clientes...</p>}
+      {error && <p className="text-center text-red-500">Error: {error}</p>}
 
       {/* Barra de búsqueda */}
       <input
@@ -83,92 +84,100 @@ const ListadoDeClientes = () => {
         placeholder="Buscar por nombre"
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
-        className="mb-4 p-2 border rounded"
+        className="mb-4 p-2 border rounded w-full sm:w-1/2 block mx-auto"
       />
 
-      {/* Tabla de clientes */}
+      {/* Tabla de clientes en contenedor responsive */}
       {!loading && !error && filteredClients.length > 0 && (
         <div className="overflow-x-auto">
-          <table className="min-w-full bg-white rounded-lg shadow-md overflow-hidden">
+          <table className="min-w-full bg-white rounded-lg shadow-md">
             <thead className="bg-blue-600 text-white">
               <tr>
-                <th className="py-3 px-6 text-left">ID</th>
-                <th className="py-3 px-6 text-left">CUIT-CUIL</th>
-                <th className="py-3 px-6 text-left">Nombre</th>
-                <th className="py-3 px-6 text-left">Email</th>
-              
-                <th className="py-3 px-6 text-left">Teléfono</th>
-                <th className="py-3 px-6 text-left">Acciones</th>
+                <th className="py-3 px-4 text-left">ID</th>
+                <th className="py-3 px-4 text-left">CUIT-CUIL</th>
+                <th className="py-3 px-4 text-left">Nombre</th>
+                <th className="py-3 px-4 text-left">Email</th>
+                <th className="py-3 px-4 text-left">Domicilio</th>
+                <th className="py-3 px-4 text-left">Teléfono</th>
+                <th className="py-3 px-4 text-left">Acciones</th>
               </tr>
             </thead>
             <tbody>
               {currentClients.map((client) => (
-                <tr
-                  key={client.idClient}
-                  className="border-b hover:bg-gray-100 transition"
-                >
-                  <td className="py-3 px-6">{client.idClient}</td>
-                  <td className="py-3 px-6">
+                <tr key={client.idClient} className="border-b hover:bg-gray-100 transition">
+                  <td className="py-3 px-4">{client.idClient}</td>
+                  <td className="py-3 px-4">
                     {editingClientId === client.idClient ? (
                       <input
-                        name="email"
-                        value={editedClient.email || ""}
+                        name="cuil"
+                        value={editedClient.cuil || ""}
                         onChange={handleInputChange}
-                        className="border p-1 rounded"
+                        className="border p-1 rounded w-full"
                       />
                     ) : (
-                      client.email
+                      client.cuil
                     )}
                   </td>
-                  <td className="py-3 px-6">
+                  <td className="py-3 px-4">
                     {editingClientId === client.idClient ? (
                       <input
                         name="name"
                         value={editedClient.name || ""}
                         onChange={handleInputChange}
-                        className="border p-1 rounded"
+                        className="border p-1 rounded w-full"
                       />
                     ) : (
                       client.name
                     )}
                   </td>
-                  <td className="py-3 px-6">
-  {editingClientId === client.idClient ? (
-    <input
-      name="email"
-      value={editedClient.email || ""}
-      onChange={handleInputChange}
-      className="border p-1 rounded"
-    />
-  ) : (
-    client.email
-  )}
-</td>
-                  
-                  <td className="py-3 px-6">
-  {editingClientId === client.idClient ? (
-    <input
-      name="mobilePhone"
-      value={editedClient.mobilePhone || ""}
-      onChange={handleInputChange}
-      className="border p-1 rounded"
-    />
-  ) : (
-    client.mobilePhone
-  )}
-</td>
-                  <td className="py-3 px-6 flex items-center gap-2">
+                  <td className="py-3 px-4">
+                    {editingClientId === client.idClient ? (
+                      <input
+                        name="email"
+                        value={editedClient.email || ""}
+                        onChange={handleInputChange}
+                        className="border p-1 rounded w-full"
+                      />
+                    ) : (
+                      client.email
+                    )}
+                  </td>
+                  <td className="py-3 px-4">
+                    {editingClientId === client.idClient ? (
+                      <input
+                        name="direccion"
+                        value={editedClient.direccion || ""}
+                        onChange={handleInputChange}
+                        className="border p-1 rounded w-full"
+                      />
+                    ) : (
+                      client.direccion
+                    )}
+                  </td>
+                  <td className="py-3 px-4">
+                    {editingClientId === client.idClient ? (
+                      <input
+                        name="mobilePhone"
+                        value={editedClient.mobilePhone || ""}
+                        onChange={handleInputChange}
+                        className="border p-1 rounded w-full"
+                      />
+                    ) : (
+                      client.mobilePhone
+                    )}
+                  </td>
+                  <td className="py-3 px-4 flex flex-col sm:flex-row sm:items-center sm:gap-2">
                     {editingClientId === client.idClient ? (
                       <button
                         onClick={() => handleSaveClick(client.idClient)}
-                        className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600"
+                        className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 mb-2 sm:mb-0"
                       >
                         Guardar
                       </button>
                     ) : (
                       <button
                         onClick={() => handleEditClick(client)}
-                        className="px-4 py-2 bg-yellow-500 text-white rounded-md hover:bg-yellow-600"
+                        className="px-4 py-2 bg-yellow-500 text-white rounded-md hover:bg-yellow-600 mb-2 sm:mb-0"
                       >
                         Editar
                       </button>
@@ -189,7 +198,7 @@ const ListadoDeClientes = () => {
 
       {/* Mensaje si no hay clientes */}
       {!loading && filteredClients.length === 0 && (
-        <p>No se encontraron clientes.</p>
+        <p className="text-center">No se encontraron clientes.</p>
       )}
 
       {/* Paginación */}
@@ -198,11 +207,9 @@ const ListadoDeClientes = () => {
           <button
             key={index}
             onClick={() => setCurrentPage(index + 1)}
-            className={`px-4 py-2 mx-1 ${
-              currentPage === index + 1
-                ? "bg-blue-500 text-white"
-                : "bg-gray-200"
-            } rounded`}
+            className={`px-4 py-2 mx-1 rounded ${
+              currentPage === index + 1 ? "bg-blue-500 text-white" : "bg-gray-200"
+            }`}
           >
             {index + 1}
           </button>

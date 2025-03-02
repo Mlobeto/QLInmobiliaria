@@ -47,6 +47,14 @@ const CreateClientForm = () => {
 
   return (
     <div className="max-w-md mx-auto p-6 bg-white rounded-lg shadow-md mt-40">
+      {/* Botón de volver */}
+      <button
+        onClick={() => navigate(-1)}
+        className="mb-4 text-blue-500 hover:underline"
+      >
+        Volver
+      </button>
+      
       <h1 className="text-2xl font-bold mb-6 text-center">Crear Cliente</h1>
 
       {/* Mensajes de carga, error y éxito */}

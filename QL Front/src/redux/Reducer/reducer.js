@@ -66,8 +66,13 @@ import {
   GET_LEASES_BY_CLIENT_FAILURE,
   GET_ALL_PAYMENTS_REQUEST,
   GET_ALL_PAYMENTS_SUCCESS,
-GET_ALL_PAYMENTS_FAILURE
-  
+  GET_ALL_PAYMENTS_FAILURE,
+  CREATE_GUARANTORS_REQUEST,
+  CREATE_GUARANTORS_SUCCESS,
+  CREATE_GUARANTORS_FAIL,
+  GET_GUARANTORS_REQUEST,
+  GET_GUARANTORS_SUCCESS,
+  GET_GUARANTORS_FAIL,
 
 
 } from "../Actions/actions-types";
@@ -77,7 +82,8 @@ const initialState = {
   propertyClientData: null,
   token: null,
   payments: [],
-  clients: [], // Estado inicial para los clientes
+  clients: [], 
+  guarantors: [],
   client: null,
   allPayments: [],
   property: null,
@@ -280,7 +286,7 @@ const rootReducer = (state = initialState, action) => {
         error: action.payload,
       };
 
-    case CREATE_LEASE_REQUEST:
+      case CREATE_LEASE_REQUEST:
       return {
         ...state,
         leaseCreate: {
@@ -289,12 +295,11 @@ const rootReducer = (state = initialState, action) => {
           error: null,
         },
       };
-
     case CREATE_LEASE_SUCCESS:
       return {
         ...state,
         leases: [...state.leases, action.payload],
-        leasesCreate: {
+        leaseCreate: {
           loading: false,
           success: true,
           error: null,
@@ -309,6 +314,8 @@ const rootReducer = (state = initialState, action) => {
           error: action.payload,
         },
       };
+
+
     case GET_PROPERTIES_BY_CLIENT_REQUEST:
     case GET_PROPERTIES_BY_TYPE_REQUEST:
     case UPDATE_PROPERTY_REQUEST:
@@ -512,6 +519,39 @@ const rootReducer = (state = initialState, action) => {
                 loading: false,
                 error: action.payload
               };
+
+              case CREATE_GUARANTORS_REQUEST:
+    case GET_GUARANTORS_REQUEST:
+      return {
+        ...state,
+        loading: true,
+        error: null,
+      };
+
+    
+    case CREATE_GUARANTORS_SUCCESS:
+      return {
+        ...state,
+        loading: false,
+        guarantors: action.payload.guarantors, // Suponiendo que la respuesta trae { guarantors: [...] }
+      };
+
+   
+    case GET_GUARANTORS_SUCCESS:
+      return {
+        ...state,
+        loading: false,
+        guarantors: action.payload, 
+      };
+
+    case CREATE_GUARANTORS_FAIL:
+    case GET_GUARANTORS_FAIL:
+      return {
+        ...state,
+        loading: false,
+        error: action.payload,
+      };
+
         
 
     default:
