@@ -1,20 +1,26 @@
 /* eslint-disable react/prop-types */
 import { jsPDF } from "jspdf";
 
-const ContratoAlquiler = ({ client, property, buttonEnabled }) => {
+const ContratoAlquiler = ({ client, tenant, property, onDownload }) => {
   const generatePdf = () => {
     const doc = new jsPDF();
-    const maxWidth = 170; // Ancho máximo para el texto
-    let currentY = 15; // Posición inicial vertical
-    console.log(client, property)
-    // Título
+    const maxWidth = 170;
+    let currentY = 15;
+    
+    // Título centrado
     doc.setFontSize(15);
-    doc.text(`CONTRATO DE LOCACION DE INMUEBLE`, 15, currentY);
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const title = `CONTRATO DE LOCACION DE INMUEBLE`;
+    const titleWidth = doc.getTextWidth(title);
+    const centerX = (pageWidth - titleWidth) / 2;
+    doc.text(title, centerX, currentY);
     currentY += 10; // Espaciado después del título
 
-    // PRIMERO
+  
+
+    // Introduccion ...
     doc.setFontSize(12);
-    const firstText = `En la ciudad de Belén, provincia de Catamarca, entre el Sr. ${client.name} CUIL/CUIT ${client.cuil} ${property.socio} ,  denominado el/los PROPIETARIOS, por una parte, y QUINTERO LOBETO PROPIEDADES, Tel celular 3835 521584-410338 con domicilio en Av. Cubas Nº50 de la ciudad de Belén, en adelante denominado LA INMOBILIARIA han llegado a un acuerdo para la autorización de venta del inmueble bajo las siguientes condiciones.`;
+    const firstText = `Entre el Sr/sra. ${client.name} CUIL/CUIT ${client.cuil} / ${property.socio} ,${client.direccion}  en adelante denominado el/los “LOCADOR” , por una parte, y por la otra el SR/SRA, ${tenant.name}Tel celular 3835 521584-410338 con domicilio en Av. Cubas Nº50 de la ciudad de Belén, en adelante denominado LA INMOBILIARIA han llegado a un acuerdo para la autorización de venta del inmueble bajo las siguientes condiciones.`;
     const firstTextLines = doc.splitTextToSize(firstText, maxWidth);
     doc.text(firstTextLines, 20, currentY);
     currentY += firstTextLines.length * 8; // Incremento dinámico según el texto
@@ -54,24 +60,20 @@ const ContratoAlquiler = ({ client, property, buttonEnabled }) => {
     currentY += 10;
     doc.text(`“Propietario”`, 20, currentY);
 
-    // Nombre del archivo
     const fileName = `autorizacion_venta_${property.address}.pdf`;
     doc.save(fileName);
+
+    if (onDownload) onDownload();
   };
 
   return (
     <div className="col-span-full text-center mt-4">
-      <button
-        onClick={generatePdf}
-        disabled={!buttonEnabled}
-        className={`px-3 py-2 rounded text-white ${
-          buttonEnabled ? "bg-yellow-500 hover:bg-yellow-600" : "bg-gray-400 cursor-not-allowed"
-        }`}
-      >
-        Generar Contrato de Alquiler
+      <button onClick={generatePdf} className="bg-yellow-500 text-white px-3 py-2 rounded">
+        Descargar Contrato PDF
       </button>
     </div>
   );
 };
 
 export default ContratoAlquiler;
+

@@ -54,9 +54,9 @@ module.exports = (sequelize) => {
         },
       },
 
-      dirección: {
+      direccion: {
         type: DataTypes.STRING,
-       allowNull:  true
+       allowNull:  false
         
       },
       ciudad: {

@@ -1,29 +1,35 @@
-import React, { useState, useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { createLease, getPropertiesById, addPropertyToClientWithRole, getAllClients } from '../../redux/Actions/actions';
-import Listado from '../Propiedades/Listado';
-import Swal from 'sweetalert2';
-import ContratoAlquiler from '../PdfTemplates/ContratoAlquiler';
+import React, { useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  createLease,
+  getPropertiesById,
+  addPropertyToClientWithRole,
+  getAllClients,
+} from "../../redux/Actions/actions";
+import Listado from "../Propiedades/Listado";
+import Swal from "sweetalert2";
+import ContratoAlquiler from "../PdfTemplates/ContratoAlquiler";
 
 const CreateLeaseForm = () => {
   const dispatch = useDispatch();
-  const property = useSelector(state => state.property);
-  const clients = useSelector(state => state.clients);
-  const { loading, success, error } = useSelector(state => state.leaseCreate);
+  const property = useSelector((state) => state.property);
+  const clients = useSelector((state) => state.clients);
+  const { loading, success, error } = useSelector((state) => state.leaseCreate);
 
   const [showClientList, setShowClientList] = useState(false);
   const [filteredClients, setFilteredClients] = useState([]);
   const [formData, setFormData] = useState({
-    propertyId: '',
-    locador: '',
-    locatario: '',
-    locatarioId: '',
-    startDate: '',
-    rentAmount: '',
-    updateFrequency: '',
-    commission: '',
-    totalMonths: '',
-    inventory: '',
+    propertyId: "",
+    locador: "",
+    locatario: "",
+    locatarioId: "",
+    locatarioCuil: "",
+    startDate: "",
+    rentAmount: "",
+    updateFrequency: "",
+    commission: "",
+    totalMonths: "",
+    inventory: "",
   });
 
   useEffect(() => {
@@ -32,34 +38,36 @@ const CreateLeaseForm = () => {
 
   useEffect(() => {
     if (property) {
-      const owner = property.Clients?.find(client => client.ClientProperty.role === 'propietario');
-      setFormData(prevData => ({
+      const owner = property.Clients?.find(
+        (client) => client.ClientProperty.role === "propietario"
+      );
+      setFormData((prevData) => ({
         ...prevData,
-        locador: owner?.name || '',
-        rentAmount: property.price || '',
-        commission: property.comision || '',
-        inventory: property.inventory || ''
+        locador: owner?.name || "",
+        rentAmount: property.price || "",
+        commission: property.comision || "",
+        inventory: property.inventory || "",
       }));
     }
   }, [property]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prevData => ({
+    setFormData((prevData) => ({
       ...prevData,
       [name]: value,
     }));
 
-    if (name === 'propertyId') {
+    if (name === "propertyId") {
       // Disparamos la búsqueda solo cuando el valor tenga al menos 2 dígitos (y hasta 4 dígitos)
-      if (value.length >= 2 && /^\d{1,4}$/.test(value)) {
+      if (value.length >= 1 && /^\d{1,4}$/.test(value)) {
         dispatch(getPropertiesById(value));
       }
     }
 
-    if (name === 'locatario') {
+    if (name === "locatario") {
       if (value.length > 0) {
-        const filtered = clients.filter(client =>
+        const filtered = clients.filter((client) =>
           client.name.toLowerCase().includes(value.toLowerCase())
         );
         setFilteredClients(filtered);
@@ -84,7 +92,7 @@ const CreateLeaseForm = () => {
       }
 
       const landlordId = property.Clients?.find(
-        client => client.ClientProperty.role === 'propietario'
+        (client) => client.ClientProperty.role === "propietario"
       )?.idClient;
 
       if (!landlordId) {
@@ -96,12 +104,14 @@ const CreateLeaseForm = () => {
         return;
       }
 
-      const roleResponse = await dispatch(addPropertyToClientWithRole({
-        idClient: formData.locatarioId,
-        propertyId: formData.propertyId,
-        role: 'inquilino'
-      }));
-      console.log('Role assignment response:', roleResponse);
+      const roleResponse = await dispatch(
+        addPropertyToClientWithRole({
+          idClient: formData.locatarioId,
+          propertyId: formData.propertyId,
+          role: "inquilino",
+        })
+      );
+      console.log("Role assignment response:", roleResponse);
 
       const leaseData = {
         propertyId: parseInt(formData.propertyId),
@@ -112,11 +122,11 @@ const CreateLeaseForm = () => {
         updateFrequency: formData.updateFrequency,
         commission: formData.commission,
         totalMonths: parseInt(formData.totalMonths),
-        inventory: formData.inventory
+        inventory: formData.inventory,
       };
 
       const leaseResponse = await dispatch(createLease(leaseData));
-      console.log('Lease creation response:', leaseResponse);
+      console.log("Lease creation response:", leaseResponse);
 
       Swal.fire({
         title: "¡Éxito!",
@@ -125,21 +135,21 @@ const CreateLeaseForm = () => {
       });
 
       setFormData({
-        propertyId: '',
-        locador: '',
-        locatario: '',
-        locatarioId: '',
-        startDate: '',
-        rentAmount: '',
-        updateFrequency: '',
-        commission: '',
-        totalMonths: '',
-        inventory: '',
+        propertyId: "",
+        locador: "",
+        locatario: "",
+        locatarioId: "",
+        startDate: "",
+        rentAmount: "",
+        updateFrequency: "",
+        commission: "",
+        totalMonths: "",
+        inventory: "",
       });
       setFilteredClients([]);
       setShowClientList(false);
     } catch (error) {
-      console.error('Error en handleSubmit:', error);
+      console.error("Error en handleSubmit:", error);
       Swal.fire({
         title: "Error",
         text: error.response?.data?.error || "Error al crear el contrato",
@@ -149,35 +159,42 @@ const CreateLeaseForm = () => {
   };
 
   const handleClientSelect = (client) => {
-    setFormData(prevData => ({
+    setFormData((prevData) => ({
       ...prevData,
       locatario: client.name,
-      locatarioId: client.idClient
+      locatarioId: client.idClient,
+      locatarioCuil: client.cuil,
     }));
     setShowClientList(false);
   };
 
   const handlePropertySelect = (property) => {
-    setFormData(prevData => ({
+    setFormData((prevData) => ({
       ...prevData,
       propertyId: property.propertyId,
-      locador: property.Clients?.find(client =>
-        client.ClientProperty.role === 'propietario'
-      )?.name || '',
+      locador:
+        property.Clients?.find(
+          (client) => client.ClientProperty.role === "propietario"
+        )?.name || "",
       rentAmount: property.price,
       commission: property.comision,
-      inventory: property.inventory
+      inventory: property.inventory,
     }));
   };
 
   // Obtenemos al propietario mediante property.Clients
-  const owner = property ? property.Clients?.find(client => client.ClientProperty.role === 'propietario') : null;
+  const owner = property
+    ? property.Clients?.find(
+        (client) => client.ClientProperty.role === "propietario"
+      )
+    : null;
 
   return (
     <div className="min-h-screen bg-gray-100 py-6 flex flex-col justify-center sm:py-12">
-      <div className="mb-8">
-        <Listado onSelectProperty={handlePropertySelect} />
-      </div>
+      <Listado
+        properties={property ? property.filter((p) => p.isAvailable) : []}
+        onSelectProperty={handlePropertySelect}
+      />
       <div className="relative py-3 sm:max-w-xl sm:mx-auto">
         <div className="relative px-4 py-10 bg-white mx-8 md:mx-0 shadow rounded-3xl sm:p-10">
           <div className="max-w-md mx-auto">
@@ -191,14 +208,23 @@ const CreateLeaseForm = () => {
                   <label className="text-sm font-medium text-gray-700 mb-1">
                     ID Propiedad:
                   </label>
-                  <input
-                    type="text"
+                  <select
                     name="propertyId"
                     value={formData.propertyId}
                     onChange={handleInputChange}
                     className="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-lime-500 focus:border-lime-500"
                     required
-                  />
+                  >
+                    <option value="">Seleccione una propiedad</option>
+                    {property &&
+                      property
+                        .filter((p) => p.isAvailable)
+                        .map((p) => (
+                          <option key={p.propertyId} value={p.propertyId}>
+                            {p.propertyName || p.propertyId}
+                          </option>
+                        ))}
+                  </select>
                 </div>
 
                 {/* Dueño */}
@@ -231,7 +257,7 @@ const CreateLeaseForm = () => {
                   />
                   {showClientList && filteredClients.length > 0 && (
                     <div className="absolute z-10 w-full mt-2 bg-white border border-gray-200 rounded-md shadow-lg">
-                      {filteredClients.map(client => (
+                      {filteredClients.map((client) => (
                         <div
                           key={client.idClient}
                           className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
@@ -335,7 +361,7 @@ const CreateLeaseForm = () => {
                     required
                   ></textarea>
                 </div>
-                </div>
+              </div>
               <div className="pt-4">
                 <button
                   type="submit"
@@ -348,10 +374,24 @@ const CreateLeaseForm = () => {
             {loading && <p>Cargando...</p>}
             {success && (
               <div className="mt-4">
-                
-                {/* En lugar de llamar a handleDownloadPDF, rendereamos el componente ContratoAlquiler */}
                 {owner && property && (
-                  <ContratoAlquiler client={owner} property={property} />
+                  <>
+                    {console.log("Owner: ", { ...owner, cuil: owner.cuil })}
+                    {console.log("Tenant: ", {
+                      name: formData.locatario,
+                      id: formData.locatarioId,
+                      cuil: formData.locatarioCuil,
+                    })}
+                    <ContratoAlquiler
+                      client={{ ...owner, cuil: owner.cuil }}
+                      tenant={{
+                        name: formData.locatario,
+                        id: formData.locatarioId,
+                        cuil: formData.locatarioCuil,
+                      }}
+                      property={property}
+                    />
+                  </>
                 )}
               </div>
             )}
