@@ -7,6 +7,7 @@ import Swal from 'sweetalert2';
 const CreateSaleContractForm = () => {
   const dispatch = useDispatch();
   const property = useSelector(state => state.property); // Propiedad seleccionada
+  console.log('Propiedad seleccionada:', property);
   const clients = useSelector(state => state.clients);
 
   // Estados locales para filtrar y seleccionar comprador

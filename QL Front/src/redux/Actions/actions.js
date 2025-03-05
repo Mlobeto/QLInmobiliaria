@@ -311,10 +311,26 @@ export const getPropertiesById = (propertyId) => async (dispatch) => {
   dispatch({ type: GET_PROPERTIES_BY_ID_REQUEST });
   try {
     const response = await axios.get(`/property/${propertyId}`);
+    
+    // Verificar si la propiedad está disponible
+    if (!response.data.isAvailable) {
+      Swal.fire({
+        title: "Propiedad No Disponible",
+        text: "Esta propiedad ya tiene un contrato activo",
+        icon: "warning"
+      });
+    }
+    
     dispatch({ type: GET_PROPERTIES_BY_ID_SUCCESS, payload: response.data });
+    return response.data;
   } catch (error) {
     dispatch({ type: GET_PROPERTIES_BY_ID_FAILURE, payload: error.message });
-    Swal.fire("Error", "No se pudieron obtener las propiedades por tipo", "error");
+    Swal.fire({
+      title: "Error",
+      text: "No se pudo obtener la información de la propiedad",
+      icon: "error"
+    });
+    throw error;
   }
 };
 
@@ -486,12 +502,14 @@ export const createGarantorsForLease = (leaseId, guarantors) => async (dispatch)
   try {
     dispatch({ type: CREATE_GUARANTORS_REQUEST });
 
-    const { data } = await axios.post(`/lease/${leaseId}/garantors`, { guarantors });
+    const { data } = await axios.post(`/garantor/${leaseId}`, { guarantors });
 
     dispatch({
       type: CREATE_GUARANTORS_SUCCESS,
       payload: data,
     });
+
+    return data; // Return the data so it's available in the component
   } catch (error) {
     dispatch({
       type: CREATE_GUARANTORS_FAIL,
@@ -499,6 +517,7 @@ export const createGarantorsForLease = (leaseId, guarantors) => async (dispatch)
         ? error.response.data.error
         : error.message,
     });
+    throw error; // Throw the error to handle it in the component
   }
 };
 
