@@ -1,4 +1,94 @@
 const { Lease, Property, Client, ClientProperty, PaymentReceipt, Garantor } = require('../data');
+const fs = require('fs');
+const path = require('path');
+
+// Function to decode base64 string to buffer
+function decodeBase64(dataString) {
+  try {
+    // Verificar si el string comienza con el prefijo esperado
+    const base64Data = dataString.startsWith('data:application/pdf;base64,')
+      ? dataString.slice('data:application/pdf;base64,'.length)
+      : dataString; // Si no comienza con el prefijo, usar el string completo
+
+    // Decodificar el string Base64
+    const buffer = Buffer.from(base64Data, 'base64');
+    return buffer;
+  } catch (error) {
+    console.error('decodeBase64 - Error al decodificar Base64:', error);
+    throw new Error('Error al decodificar la cadena Base64');
+  }
+}
+
+exports.savePdf = async (req, res) => {
+  try {
+    console.log('savePdf - Received data:', req.body);
+
+    const { pdfData, fileName, leaseId } = req.body;
+
+    if (!pdfData || !fileName || !leaseId) {
+      return res.status(400).json({
+        error: 'Datos incompletos',
+        details: 'Los campos pdfData, fileName y leaseId son obligatorios'
+      });
+    }
+
+    // Decode base64 string
+    const buffer = decodeBase64(pdfData);
+
+    // Define the path where the PDF will be saved
+    const pdfDirectory = path.join(__dirname, '../../pdfs'); // Directory relative to the controller
+    if (!fs.existsSync(pdfDirectory)) {
+      fs.mkdirSync(pdfDirectory, { recursive: true }); // Create directory if it doesn't exist
+    }
+    const filePath = path.join(pdfDirectory, fileName);
+
+    // Save the PDF to a file
+    fs.writeFile(filePath, buffer, async (err) => {
+      if (err) {
+        console.error('savePdf - Error al guardar el PDF:', err);
+        return res.status(500).json({
+          error: 'Error al guardar el PDF',
+          details: err.message
+        });
+      }
+
+      console.log('savePdf - PDF guardado exitosamente en:', filePath);
+
+      // Update the Lease model with the pdfPath
+      try {
+        const lease = await Lease.findByPk(leaseId);
+        if (!lease) {
+          console.error('savePdf - Contrato no encontrado');
+          return res.status(404).json({
+            error: 'Contrato no encontrado',
+            details: 'No se encontró el contrato con el ID proporcionado'
+          });
+        }
+
+        await lease.update({ pdfPath: filePath });
+        console.log('savePdf - pdfPath actualizado en el contrato');
+
+        return res.status(200).json({
+          message: 'PDF guardado exitosamente y contrato actualizado',
+          filePath: filePath
+        });
+      } catch (updateError) {
+        console.error('savePdf - Error al actualizar el contrato:', updateError);
+        return res.status(500).json({
+          error: 'Error al actualizar el contrato',
+          details: updateError.message
+        });
+      }
+    });
+  } catch (error) {
+    console.error('savePdf - Error:', error);
+    res.status(500).json({
+      error: 'Error al guardar el PDF',
+      details: error.message
+    });
+  }
+};
+0
 
 exports.createLease = async (req, res) => {
   try {
@@ -80,7 +170,7 @@ exports.createLease = async (req, res) => {
         { model: PaymentReceipt, required: false },
         { model: Garantor, required: false },
         { model: Client, as: 'Tenant', attributes: ['name', 'cuil', 'direccion','ciudad','provincia'] },
-        { model: Client, as: 'Landlord', attributes: ['name', 'cuil', 'direccion','ciudad','provincia'] }
+        { model: Client, as: 'Landlord', attributes: ['name', 'cuil', 'direccion','ciudad','provincia','mobilePhone'] }
       ]
     });
 
