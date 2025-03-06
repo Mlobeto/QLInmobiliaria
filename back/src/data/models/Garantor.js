@@ -29,7 +29,6 @@ module.exports = (sequelize) => {
     cuil: {
       type: DataTypes.STRING,
       allowNull: false,
-      unique: true,
       validate: {
         isValidCuil,
       },
@@ -40,7 +39,7 @@ module.exports = (sequelize) => {
     },
     mobilePhone: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
       validate: {
         is: /^\d{10}$/,
       },

@@ -1,5 +1,5 @@
 const express = require('express');
-const { createLease, getLeasesByIdClient, getAllLeases, terminateLease } = require('../controllers');
+const { createLease, getLeasesByIdClient, getAllLeases, terminateLease, savePdf } = require('../controllers');
 const router = express.Router();
 
 // Add logging middleware
@@ -14,7 +14,7 @@ router.use((req, res, next) => {
 
 // POST route for creating a new lease
 router.post('/', createLease);
-
+router.post('/savePdf', savePdf);
 // GET routes
 router.get('/client/:idClient', getLeasesByIdClient);
 router.get('/all', getAllLeases);

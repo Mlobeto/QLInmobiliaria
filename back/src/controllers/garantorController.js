@@ -3,30 +3,40 @@ const { Garantor, Lease } = require("../data");
 exports.createGarantorsForLease = async (req, res) => {
   try {
     const { leaseId } = req.params;
+    console.log("[createGarantorsForLease] leaseId recibido:", leaseId);
+    console.log("[createGarantorsForLease] Body recibido:", req.body);
+
     const guarantors = req.body.guarantors; // Array de garantes
 
     // Validar que el contrato existe
     const lease = await Lease.findByPk(leaseId);
+    console.log("[createGarantorsForLease] Lease encontrado:", lease);
     if (!lease) {
+      console.error("[createGarantorsForLease] No se encontró el contrato de alquiler con ID:", leaseId);
       return res.status(404).json({ error: "Contrato de alquiler no encontrado" });
     }
 
     // Validar que hay entre 2 y 4 garantes
     if (!Array.isArray(guarantors) || guarantors.length < 2 || guarantors.length > 4) {
+      console.error("[createGarantorsForLease] Número de garantes inválido:", guarantors);
       return res.status(400).json({
         error: "Debe proporcionar entre 2 y 4 garantes.",
       });
     }
 
     // Crear y asociar los garantes
+    console.log("[createGarantorsForLease] Creando garantes...");
     const createdGuarantors = await Promise.all(
-      guarantors.map((guarantorData) => 
-        Garantor.create({ ...guarantorData, leaseId })
-      )
+      guarantors.map((guarantorData, index) => {
+        console.log(`[createGarantorsForLease] Creando garante ${index + 1}:`, guarantorData);
+        return Garantor.create({ ...guarantorData, leaseId });
+      })
     );
+    console.log("[createGarantorsForLease] Garantes creados:", createdGuarantors);
 
     res.status(201).json({ message: "Garantes creados exitosamente", guarantors: createdGuarantors });
   } catch (error) {
+    console.error("[createGarantorsForLease] Error al crear garantes:", error);
     res.status(500).json({
       error: "Error al crear garantes para el contrato de alquiler",
       details: error.message,

@@ -22,6 +22,7 @@ import PaymentList from "./Components/Pagos/PaymentList";
 import PaymentReport from "./Components/Pagos/PaymentReport";
 import PanelInformes from "./Components/Admin/PanelInformes";
 import ContractAlerts from "./Components/Contratos/ContractAlerts";
+import ContratoAlquiler from "./Components/PdfTemplates/ContratoAlquiler";
 
 function App() {
   return (
@@ -147,6 +148,14 @@ function App() {
         element={
           //  <ProtectedRoutes>
           <EstadoContratos />
+          //  </ProtectedRoutes>
+        }
+      />
+      <Route
+        path="/pdf"
+        element={
+          //  <ProtectedRoutes>
+          <ContratoAlquiler />
           //  </ProtectedRoutes>
         }
       />

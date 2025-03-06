@@ -64,6 +64,10 @@ module.exports = (sequelize) => {
         allowNull: false,
         defaultValue: "active",
       },
+      pdfPath: {
+        type: DataTypes.STRING, // Store the file path
+        allowNull: true, // The PDF is not required immediately
+      },
     },
     {
       paranoid: true,

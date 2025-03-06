@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { Link, useNavigate } from 'react-router-dom';
 import { IoLogOutOutline } from 'react-icons/io5';
 
@@ -14,7 +14,7 @@ const PanelPropiedades = () => {
     <div className="min-h-screen bg-gray-900 flex flex-col p-4 md:p-10 lg:p-20">
       {/* Header */}
       <div className="w-full bg-gray-800 p-2 shadow-md flex justify-between items-center">
-        <Link to="/" className="text-white text-xl font-semibold hover:underline">
+        <Link to="/panel" className="text-white text-xl font-semibold hover:underline">
           Panel
         </Link>
         <button

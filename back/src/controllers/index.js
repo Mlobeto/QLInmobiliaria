@@ -24,6 +24,7 @@ module.exports = {
   updateClient:catchedAsync(clientController.updateClient),
   deleteClient: catchedAsync(clientController.deleteClient),
   createLease: catchedAsync(LeaseController.createLease),
+  savePdf: catchedAsync(LeaseController.savePdf),
   getLeasesByIdClient: catchedAsync(LeaseController.getLeasesByIdClient),
   terminateLease: catchedAsync(LeaseController.terminateLease),
   createPayment: catchedAsync(PaymentController.  createPayment) ,
