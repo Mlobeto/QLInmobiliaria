@@ -41,10 +41,14 @@ exports.login = async (req, res) => {
       return res.status(401).json({ message: 'Credenciales inválidas' });
     }
 
-    // Crear el token JWT
-    const token = jwt.sign({ id: admin.id, role: admin.role }, process.env.JWT_SECRET_KEY, { expiresIn: '1h' });
+    // Crear el token JWT con el rol
+    const token = jwt.sign(
+      { id: admin.adminId, role: admin.role }, // Incluye el rol en el payload
+      process.env.JWT_SECRET_KEY,
+      { expiresIn: '1h' }
+    );
 
-    res.status(200).json({ message: 'Inicio de sesión exitoso', token , admin});
+    res.status(200).json({ message: 'Inicio de sesión exitoso', token, admin });
   } catch (error) {
     res.status(500).json({ message: 'Error en el inicio de sesión', error });
   }

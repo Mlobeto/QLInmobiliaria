@@ -9,15 +9,12 @@ import PanelContratos from "./Components/Admin/PanelContratos";
 import PanelPropiedades from "./Components/Admin/PanelPropiedades";
 import ListadoDeClientes from "./Components/Clientes/ListadoDeClientes";
 import Listado from "./Components/Propiedades/Listado";
-import FiltroPropiedades from "./Components/Propiedades/FiltroPropiedades"
+import FiltroPropiedades from "./Components/Propiedades/FiltroPropiedades";
 import LoginAdmin from "./Components/Admin/Login/Login";
-import CreateLeaseForm from "./Components/Contratos/CreateLeaseForm"
-import CompraVenta from "./Components/Contratos/CompraVenta"
-//import EstadoContratos from "./Components/Contratos/EstadoContratos"
-// eslint-disable-next-line no-unused-vars
-import ProtectedRoutes from "./utils/ProtectedRoutes";
+import CreateLeaseForm from "./Components/Contratos/CreateLeaseForm";
+import CompraVenta from "./Components/Contratos/CompraVenta";
+import ProtectedRoutes from "./utils/ProtectedRoutes"; // Importa el componente de rutas protegidas
 import PaymentForm from "./Components/Pagos/PaymentForm";
-
 import PaymentList from "./Components/Pagos/PaymentList";
 import PaymentReport from "./Components/Pagos/PaymentReport";
 import PanelInformes from "./Components/Admin/PanelInformes";
@@ -28,167 +25,153 @@ function App() {
   return (
     <Routes>
       <Route path="/" element={<Landing />} />
-      {/* Ruta protegida: solo los administradores pueden ver el Panel */}
+      <Route path="/login" element={<LoginAdmin />} />
+
+      {/* Rutas protegidas */}
       <Route
         path="/panel"
         element={
-          //  <ProtectedRoutes>
-          <Panel />
-          //  </ProtectedRoutes>
+          <ProtectedRoutes>
+            <Panel />
+          </ProtectedRoutes>
         }
       />
-       <Route
+      <Route
         path="/panelClientes"
         element={
-          //  <ProtectedRoutes>
-          <PanelClientes />
-          //  </ProtectedRoutes>
+          <ProtectedRoutes>
+            <PanelClientes />
+          </ProtectedRoutes>
         }
       />
       <Route
         path="/listadoClientes"
         element={
-          //  <ProtectedRoutes>
-          <ListadoDeClientes />
-          //  </ProtectedRoutes>
+          <ProtectedRoutes>
+            <ListadoDeClientes />
+          </ProtectedRoutes>
         }
       />
       <Route
         path="/panelContratos"
         element={
-          //  <ProtectedRoutes>
-          <PanelContratos />
-          //  </ProtectedRoutes>
+          <ProtectedRoutes>
+            <PanelContratos />
+          </ProtectedRoutes>
         }
       />
-
-<Route
+      <Route
         path="/panelPropiedades"
         element={
-          //  <ProtectedRoutes>
-          <PanelPropiedades />
-          //  </ProtectedRoutes>
+          <ProtectedRoutes>
+            <PanelPropiedades />
+          </ProtectedRoutes>
         }
       />
-
-<Route
+      <Route
         path="/PanelInformes"
         element={
-          //  <ProtectedRoutes>
-          <PanelInformes />
-          //  </ProtectedRoutes>
+          <ProtectedRoutes>
+            <PanelInformes />
+          </ProtectedRoutes>
         }
       />
-
-
-<Route
+      <Route
         path="/listadoDePropiedades"
         element={
-          //  <ProtectedRoutes>
-          <Listado />
-          //  </ProtectedRoutes>
+          <ProtectedRoutes>
+            <Listado />
+          </ProtectedRoutes>
         }
       />
-
-<Route
+      <Route
         path="/filtro"
         element={
-          //  <ProtectedRoutes>
-          <FiltroPropiedades />
-          //  </ProtectedRoutes>
+          <ProtectedRoutes>
+            <FiltroPropiedades />
+          </ProtectedRoutes>
         }
       />
-
-
       <Route
         path="/cliente"
         element={
-          //  <ProtectedRoutes>
-          <Clientes />
-          //  </ProtectedRoutes>
+          <ProtectedRoutes>
+            <Clientes />
+          </ProtectedRoutes>
         }
       />
       <Route
         path="/contratoAlquiler"
         element={
-          //  <ProtectedRoutes>
-          <CreateLeaseForm />
-          //  </ProtectedRoutes>
+          <ProtectedRoutes>
+            <CreateLeaseForm />
+          </ProtectedRoutes>
         }
       />
-      
       <Route
         path="/sale"
         element={
-          //  <ProtectedRoutes>
-          <CompraVenta />
-          //  </ProtectedRoutes>
+          <ProtectedRoutes>
+            <CompraVenta />
+          </ProtectedRoutes>
         }
       />
-
       <Route
         path="/cargarPropiedad"
         element={
-          //  <ProtectedRoutes>
-          <Propiedades />
-          //  </ProtectedRoutes>
+          <ProtectedRoutes>
+            <Propiedades />
+          </ProtectedRoutes>
         }
       />
       <Route
         path="/create-payment"
         element={
-          //  <ProtectedRoutes>
-          <PaymentForm />
-          //  </ProtectedRoutes>
+          <ProtectedRoutes>
+            <PaymentForm />
+          </ProtectedRoutes>
         }
       />
-      
-<Route
+      <Route
         path="/leaseList"
         element={
-          //  <ProtectedRoutes>
-          <EstadoContratos />
-          //  </ProtectedRoutes>
+          <ProtectedRoutes>
+            <EstadoContratos />
+          </ProtectedRoutes>
         }
       />
       <Route
         path="/pdf"
         element={
-          //  <ProtectedRoutes>
-          <ContratoAlquiler />
-          //  </ProtectedRoutes>
+          <ProtectedRoutes>
+            <ContratoAlquiler />
+          </ProtectedRoutes>
         }
       />
-
-<Route
+      <Route
         path="/paymentList"
         element={
-          //  <ProtectedRoutes>
-          <PaymentList />
-          //  </ProtectedRoutes>
+          <ProtectedRoutes>
+            <PaymentList />
+          </ProtectedRoutes>
         }
       />
-
-<Route
+      <Route
         path="/reportes"
         element={
-          //  <ProtectedRoutes>
-          <PaymentReport />
-          //  </ProtectedRoutes>
+          <ProtectedRoutes>
+            <PaymentReport />
+          </ProtectedRoutes>
         }
       />
-
-<Route
+      <Route
         path="/alertas"
         element={
-          //  <ProtectedRoutes>
-          <ContractAlerts />
-          //  </ProtectedRoutes>
+          <ProtectedRoutes>
+            <ContractAlerts />
+          </ProtectedRoutes>
         }
       />
-
-
-      <Route path="/login" element={<LoginAdmin />} />
     </Routes>
   );
 }

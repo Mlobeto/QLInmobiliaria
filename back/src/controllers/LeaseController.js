@@ -88,7 +88,7 @@ exports.savePdf = async (req, res) => {
     });
   }
 };
-0
+
 
 exports.createLease = async (req, res) => {
   try {

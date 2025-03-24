@@ -1,97 +1,121 @@
 const { Client, Property, ClientProperty } = require("../data");
 
-// POST: Crear una propiedad
 exports.createProperty = async (req, res) => {
-    try {
-      const {
-        address,
-        neighborhood,
-        city,
-        type,
-        typeProperty,
-        price,
-        images,
-        comision,
-        escritura,
-        rooms, // Asegúrate de que rooms está incluido
-        socio,
-        inventory,
-        superficieCubierta,
-        superficieTotal,
+  try {
+    const {
+      address,
+      neighborhood,
+      city,
+      type,
+      typeProperty,
+      price,
+      images,
+      comision,
+      escritura,
+      rooms,
+      socio,
+      inventory,
+      superficieCubierta,
+      superficieTotal,
+      idClient, // ID del cliente que será el propietario
+      role = "propietario", // Rol por defecto
+    } = req.body;
 
-      } = req.body;
-  
-      // Validación básica
-      if (
-        !address ||
-        !neighborhood ||
-        !city ||
-        !type ||
-        !typeProperty ||
-        !price ||
-        !images ||
-        !escritura ||
-        !comision
-      ) {
-        return res.status(400).json({
-          error: "Faltan datos requeridos",
-          details: "Por favor asegúrese de que todos los campos estén completos.",
-        });
-      }
-  
-      // Validación de tipo de precio
-      if (isNaN(price)) {
-        return res.status(400).json({
-          error: "El precio debe ser un número válido",
-          details: `Precio recibido: ${price}`,
-        });
-      }
-  
-      // Convertir rooms a número si está presente
-      const parsedRooms = rooms ? parseInt(rooms, 10) : null;
-      if (rooms && isNaN(parsedRooms)) {
-        return res.status(400).json({
-          error: "El campo 'rooms' debe ser un número válido",
-          details: `Valor recibido para 'rooms': ${rooms}`,
-        });
-      }
-  
-      // Crear la propiedad
-      const newProperty = await Property.create({
-        address,
-        neighborhood,
-        city,
-        type,
-        typeProperty,
-        price,
-        images,
-        comision,
-        escritura,
-        rooms: parsedRooms, // Asignar parsedRooms al modelo
-        isAvailable: true, // Si isAvailable debe tener un valor por defecto
-        description: req.body.description || "", // Valor por defecto para description
-        planType: req.body.planType || "", // Valor por defecto para planType
-        plantQuantity: req.body.plantQuantity || 0, // Valor numérico por defecto
-        bathrooms: req.body.bathrooms || 0, // Valor numérico por defecto
-        highlights: req.body.highlights || "", // Valor por defecto para highlights
-        socio,
-        inventory,
-        superficieCubierta,
-        superficieTotal
-      });
-  
-      // Responder con la propiedad creada
-      res.status(201).json(newProperty);
-    } catch (error) {
-      console.error("Error al crear propiedad:", error);
-      res.status(500).json({
-        error: "Error al crear la propiedad",
-        details: error.message,
-        stack: error.stack,
+    // Validación básica
+    if (
+      !address ||
+      !neighborhood ||
+      !city ||
+      !type ||
+      !typeProperty ||
+      !price ||
+      !images ||
+      !escritura ||
+      !comision ||
+      !idClient // Asegúrate de que el cliente esté incluido
+    ) {
+      return res.status(400).json({
+        error: "Faltan datos requeridos",
+        details: "Por favor asegúrese de que todos los campos estén completos.",
       });
     }
-  };
-  
+
+    // Validación de tipo de precio
+    if (isNaN(price)) {
+      return res.status(400).json({
+        error: "El precio debe ser un número válido",
+        details: `Precio recibido: ${price}`,
+      });
+    }
+
+    // Convertir rooms a número si está presente
+    const parsedRooms = rooms ? parseInt(rooms, 10) : null;
+    if (rooms && isNaN(parsedRooms)) {
+      return res.status(400).json({
+        error: "El campo 'rooms' debe ser un número válido",
+        details: `Valor recibido para 'rooms': ${rooms}`,
+      });
+    }
+
+    // Verificar si el cliente existe
+    const client = await Client.findByPk(idClient);
+    if (!client) {
+      return res.status(404).json({
+        error: "Cliente no encontrado",
+        details: `No se encontró un cliente con el ID: ${idClient}`,
+      });
+    }
+
+    // Crear la propiedad
+    const newProperty = await Property.create({
+      address,
+      neighborhood,
+      city,
+      type,
+      typeProperty,
+      price,
+      images,
+      comision,
+      escritura,
+      rooms: parsedRooms,
+      isAvailable: true,
+      description: req.body.description || "",
+      planType: req.body.planType || "",
+      plantQuantity: req.body.plantQuantity || 0,
+      bathrooms: req.body.bathrooms || 0,
+      highlights: req.body.highlights || "",
+      socio,
+      inventory,
+      superficieCubierta,
+      superficieTotal,
+    });
+
+    // Crear la relación en la tabla intermedia ClientProperty
+    await ClientProperty.create({
+      clientId: client.idClient, // ID del cliente
+      propertyId: newProperty.propertyId, // ID de la propiedad recién creada
+      role, // Rol del cliente para esta propiedad
+    });
+
+    // Responder con la propiedad creada y la relación
+    res.status(201).json({
+      message: "Propiedad creada y asignada al cliente con éxito",
+      property: newProperty,
+      client: {
+        id: client.idClient,
+        name: client.name,
+        role,
+      },
+    });
+  } catch (error) {
+    console.error("Error al crear propiedad:", error);
+    res.status(500).json({
+      error: "Error al crear la propiedad",
+      details: error.message,
+      stack: error.stack,
+    });
+  }
+};
 
 // GET: Obtener todas las propiedades de un cliente
 exports.getPropertiesByIdClient = async (req, res) => {
