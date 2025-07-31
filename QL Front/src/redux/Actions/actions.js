@@ -74,24 +74,23 @@ export const registerAdmin = (adminData) => async (dispatch) => {
 export const loginAdmin = (adminData) => async (dispatch) => {
   try {
     const response = await axios.post('/auth/login', adminData);
-
-    // Guarda el token en el almacenamiento local
     localStorage.setItem('token', response.data.token);
-
     dispatch({
       type: LOGIN_SUCCESS,
       payload: {
         token: response.data.token,
-        admin: response.data.admin, // Información del administrador
+        admin: response.data.admin,
       },
     });
+    return { type: "LOGIN_SUCCESS" };
   } catch (error) {
     dispatch({
       type: LOGIN_FAIL,
       payload: error.response?.data?.message || 'Error al iniciar sesión',
     });
+    return { type: "LOGIN_FAIL" };
   }
-};
+}
 
 
 export const createClient = (clientData) => async (dispatch) => {
