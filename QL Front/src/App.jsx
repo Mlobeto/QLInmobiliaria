@@ -1,4 +1,7 @@
 import { Routes, Route } from "react-router-dom";
+import { useEffect } from "react";
+import { useDispatch } from "react-redux";
+import { verifyToken } from "./redux/Actions/actions"; // Asegúrate de tener esta action
 import Landing from "./Components/Landing";
 import Panel from "./Components/Admin/Panel";
 import Clientes from "./Components/Clientes/Clientes";
@@ -13,7 +16,7 @@ import FiltroPropiedades from "./Components/Propiedades/FiltroPropiedades";
 import LoginAdmin from "./Components/Admin/Login/Login";
 import CreateLeaseForm from "./Components/Contratos/CreateLeaseForm";
 import CompraVenta from "./Components/Contratos/CompraVenta";
-import ProtectedRoutes from "./utils/ProtectedRoutes"; // Importa el componente de rutas protegidas
+import ProtectedRoutes from "./utils/ProtectedRoutes";
 import PaymentForm from "./Components/Pagos/PaymentForm";
 import PaymentList from "./Components/Pagos/PaymentList";
 import PaymentReport from "./Components/Pagos/PaymentReport";
@@ -23,6 +26,16 @@ import ContratoAlquiler from "./Components/PdfTemplates/ContratoAlquiler";
 import ActualizarAlquileres from "./Components/Contratos/ActualizarAlquileres";
 
 function App() {
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    // Verifica si hay un token guardado al cargar la aplicación
+    const token = localStorage.getItem('token');
+    if (token) {
+      dispatch(verifyToken());
+    }
+  }, [dispatch]);
+
   return (
     <Routes>
       <Route path="/" element={<Landing />} />

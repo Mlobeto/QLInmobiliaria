@@ -78,9 +78,12 @@ import {
   GET_LEASE_FAILURE,
   UPDATE_LEASE_RENT_REQUEST,
   UPDATE_LEASE_RENT_SUCCESS,
-  UPDATE_LEASE_RENT_FAILURE
-
-
+  UPDATE_LEASE_RENT_FAILURE,
+  VERIFY_TOKEN_REQUEST,
+  VERIFY_TOKEN_SUCCESS,
+  VERIFY_TOKEN_FAILURE,
+  LOGOUT,
+  SET_TOKEN
 } from "../Actions/actions-types";
 
 const initialState = {
@@ -125,23 +128,52 @@ const initialState = {
 
 const rootReducer = (state = initialState, action) => {
   switch (action.type) {
+    // ========== AUTENTICACIÓN ==========
     case REGISTER_SUCCESS:
     case LOGIN_SUCCESS:
+    case VERIFY_TOKEN_SUCCESS:
       return {
         ...state,
         adminInfo: action.payload.admin,
         token: action.payload.token,
         error: null,
+        loading: false,
       };
 
     case REGISTER_FAIL:
     case LOGIN_FAIL:
+    case VERIFY_TOKEN_FAILURE:
       return {
         ...state,
+        adminInfo: null,
+        token: null,
         error: action.payload,
+        loading: false,
       };
 
-    // Crear cliente
+    case VERIFY_TOKEN_REQUEST:
+      return {
+        ...state,
+        loading: true,
+        error: null,
+      };
+
+    case SET_TOKEN:
+      return {
+        ...state,
+        token: action.payload,
+      };
+
+    case LOGOUT:
+      return {
+        ...state,
+        adminInfo: null,
+        token: null,
+        error: null,
+        loading: false,
+      };
+
+    // ========== CLIENTES ==========
     case CREATE_CLIENT_REQUEST:
       return {
         ...state,
@@ -151,6 +183,7 @@ const rootReducer = (state = initialState, action) => {
           error: null,
         },
       };
+
     case CREATE_CLIENT_SUCCESS:
       return {
         ...state,
@@ -161,6 +194,7 @@ const rootReducer = (state = initialState, action) => {
           error: null,
         },
       };
+
     case CREATE_CLIENT_FAILURE:
       return {
         ...state,
@@ -170,26 +204,29 @@ const rootReducer = (state = initialState, action) => {
           error: action.payload,
         },
       };
-    // Obtener todos los clientes
+
     case GET_ALL_CLIENT_REQUEST:
       return {
         ...state,
         loading: true,
         error: null,
       };
+
     case GET_ALL_CLIENT_SUCCESS:
       return {
         ...state,
-        clients: action.payload, // Lista de clientes
+        clients: action.payload,
         loading: false,
         error: null,
       };
+
     case GET_ALL_CLIENT_FAIL:
       return {
         ...state,
         loading: false,
         error: action.payload,
       };
+
     case GET_CLIENT_REQUEST:
     case UPDATE_CLIENT_REQUEST:
     case DELETE_CLIENT_REQUEST:
@@ -202,7 +239,7 @@ const rootReducer = (state = initialState, action) => {
     case GET_CLIENT_SUCCESS:
       return {
         ...state,
-        client: action.payload, // Cliente cargado
+        client: action.payload,
         loading: false,
         error: null,
       };
@@ -236,6 +273,7 @@ const rootReducer = (state = initialState, action) => {
         error: action.payload,
       };
 
+    // ========== PROPIEDADES ==========
     case CREATE_PROPERTY_REQUEST:
       return {
         ...state,
@@ -245,6 +283,7 @@ const rootReducer = (state = initialState, action) => {
           error: null,
         },
       };
+
     case CREATE_PROPERTY_SUCCESS:
       return {
         ...state,
@@ -255,6 +294,7 @@ const rootReducer = (state = initialState, action) => {
           error: null,
         },
       };
+
     case CREATE_PROPERTY_FAILURE:
       return {
         ...state,
@@ -264,6 +304,7 @@ const rootReducer = (state = initialState, action) => {
           error: action.payload,
         },
       };
+
     case RESET_CREATE_PROPERTY_STATE:
       return {
         ...state,
@@ -273,18 +314,20 @@ const rootReducer = (state = initialState, action) => {
           error: null,
         },
       };
+
     case ADD_PROPERTY_TO_CLIENT_REQUEST:
       return {
         ...state,
         loading: true,
       };
+
     case ADD_PROPERTY_TO_CLIENT_SUCCESS:
-      console.log("Propiedad agregada al cliente:", action.payload);
       return {
         ...state,
         loading: false,
-        propertyClientData: action.payload, // Almacena los datos que regresan de la API
+        propertyClientData: action.payload,
       };
+
     case ADD_PROPERTY_TO_CLIENT_FAILURE:
       return {
         ...state,
@@ -292,48 +335,30 @@ const rootReducer = (state = initialState, action) => {
         error: action.payload,
       };
 
-      case CREATE_LEASE_REQUEST:
-      return {
-        ...state,
-        leaseCreate: {
-          loading: true,
-          success: false,
-          error: null,
-        },
-      };
-    case CREATE_LEASE_SUCCESS:
-      return {
-        ...state,
-        leases: [...state.leases, action.payload],
-        leaseCreate: {
-          loading: false,
-          success: true,
-          error: null,
-        },
-      };
-    case CREATE_LEASE_FAILURE:
-      return {
-        ...state,
-        leaseCreate: {
-          loading: false,
-          success: false,
-          error: action.payload,
-        },
-      };
-
-
     case GET_PROPERTIES_BY_CLIENT_REQUEST:
     case GET_PROPERTIES_BY_TYPE_REQUEST:
     case UPDATE_PROPERTY_REQUEST:
     case DELETE_PROPERTY_REQUEST:
     case GET_FILTERED_PROPERTIES_REQUEST:
-      return { ...state, loading: true, error: null };
+      return { 
+        ...state, 
+        loading: true, 
+        error: null 
+      };
 
     case GET_PROPERTIES_BY_CLIENT_SUCCESS:
-      return { ...state, loading: false, properties: action.payload };
+      return { 
+        ...state, 
+        loading: false, 
+        properties: action.payload 
+      };
 
     case GET_PROPERTIES_BY_TYPE_SUCCESS:
-      return { ...state, loading: false, properties: action.payload };
+      return { 
+        ...state, 
+        loading: false, 
+        properties: action.payload 
+      };
 
     case UPDATE_PROPERTY_SUCCESS:
       return {
@@ -356,14 +381,22 @@ const rootReducer = (state = initialState, action) => {
       };
 
     case GET_FILTERED_PROPERTIES_SUCCESS:
-      return { ...state, loading: false, filteredProperties: action.payload };
+      return { 
+        ...state, 
+        loading: false, 
+        filteredProperties: action.payload 
+      };
 
     case GET_PROPERTIES_BY_CLIENT_FAILURE:
     case GET_PROPERTIES_BY_TYPE_FAILURE:
     case UPDATE_PROPERTY_FAILURE:
     case DELETE_PROPERTY_FAILURE:
     case GET_FILTERED_PROPERTIES_FAILURE:
-      return { ...state, loading: false, error: action.payload };
+      return { 
+        ...state, 
+        loading: false, 
+        error: action.payload 
+      };
 
     case GET_ALL_PROPERTIES_REQUEST:
       return {
@@ -376,7 +409,7 @@ const rootReducer = (state = initialState, action) => {
       return {
         ...state,
         loading: false,
-        allProperties: action.payload, // Asigna todas las propiedades al estado
+        allProperties: action.payload,
         error: null,
       };
 
@@ -398,7 +431,7 @@ const rootReducer = (state = initialState, action) => {
       return {
         ...state,
         loading: false,
-        property: action.payload, // Store the single property in state
+        property: action.payload,
         error: null,
       };
 
@@ -408,125 +441,209 @@ const rootReducer = (state = initialState, action) => {
         loading: false,
         error: action.payload,
       };
-    
+
+    // ========== CONTRATOS ==========
+    case CREATE_LEASE_REQUEST:
+      return {
+        ...state,
+        leaseCreate: {
+          loading: true,
+          success: false,
+          error: null,
+        },
+      };
+
+    case CREATE_LEASE_SUCCESS:
+      return {
+        ...state,
+        leases: [...state.leases, action.payload],
+        leaseCreate: {
+          loading: false,
+          success: true,
+          error: null,
+        },
+      };
+
+    case CREATE_LEASE_FAILURE:
+      return {
+        ...state,
+        leaseCreate: {
+          loading: false,
+          success: false,
+          error: action.payload,
+        },
+      };
+
+    case GET_ALL_LEASES_REQUEST:
+      return {
+        ...state,
+        loading: true,
+        error: null,
+      };
+
+    case GET_ALL_LEASES_SUCCESS:
+      return {
+        ...state,
+        loading: false,
+        leases: action.payload,
+        error: null,
+      };
+
+    case GET_ALL_LEASES_FAILURE:
+      return {
+        ...state,
+        loading: false,
+        error: action.payload,
+      };
+
+    case GET_LEASES_BY_CLIENT_REQUEST:
+      return {
+        ...state,
+        loading: true,
+        error: null,
+      };
+
+    case GET_LEASES_BY_CLIENT_SUCCESS:
+      return {
+        ...state,
+        loading: false,
+        leases: action.payload,
+        error: null,
+      };
+
+    case GET_LEASES_BY_CLIENT_FAILURE:
+      return {
+        ...state,
+        loading: false,
+        error: action.payload,
+      };
+
+    case GET_LEASE_REQUEST:
+      return { 
+        ...state, 
+        loading: true, 
+        error: null 
+      };
+
+    case GET_LEASE_SUCCESS:
+      return { 
+        ...state, 
+        loading: false, 
+        lease: action.payload 
+      };
+
+    case GET_LEASE_FAILURE:
+      return { 
+        ...state, 
+        loading: false, 
+        error: action.payload 
+      };
+
+    case UPDATE_LEASE_RENT_REQUEST:
+      return {
+        ...state,
+        loading: true,
+        error: null,
+      };
+
+    case UPDATE_LEASE_RENT_SUCCESS:
+      return {
+        ...state,
+        loading: false,
+        leases: state.leases.map((lease) =>
+          lease.id === action.payload.lease.id ? action.payload.lease : lease
+        ),
+      };
+
+    case UPDATE_LEASE_RENT_FAILURE:
+      return {
+        ...state,
+        loading: false,
+        error: action.payload,
+      };
+
+    // ========== PAGOS ==========
+    case CREATE_PAYMENT_REQUEST:
+      return {
+        ...state,
+        paymentCreate: {
+          ...state.paymentCreate,
+          loading: true,
+          success: false,
+          error: null
+        }
+      };
+
+    case CREATE_PAYMENT_SUCCESS:
+      return {
+        ...state,
+        paymentCreate: {
+          loading: false,
+          success: true,
+          error: null,
+          payment: action.payload
+        }
+      };
+
+    case CREATE_PAYMENT_FAILURE:
+      return {
+        ...state,
+        paymentCreate: {
+          ...state.paymentCreate,
+          loading: false,
+          success: false,
+          error: action.payload
+        }
+      };
+
     case GET_PAYMENTS_BY_LEASE_REQUEST:
     case GET_PAYMENTS_BY_CLIENT_REQUEST:
-      return { ...state, loading: true, error: null };
-
+      return { 
+        ...state, 
+        loading: true, 
+        error: null 
+      };
 
     case GET_PAYMENTS_BY_LEASE_SUCCESS:
     case GET_PAYMENTS_BY_CLIENT_SUCCESS:
-      return { ...state, loading: false, payments: action.payload };
+      return { 
+        ...state, 
+        loading: false, 
+        payments: action.payload 
+      };
 
-     
     case GET_PAYMENTS_BY_LEASE_FAILURE:
     case GET_PAYMENTS_BY_CLIENT_FAILURE:
-      return { ...state, loading: false, error: action.payload 
-
-
-
-       
+      return { 
+        ...state, 
+        loading: false, 
+        error: action.payload 
       };
-      case GET_ALL_LEASES_REQUEST:
-        return {
-          ...state,
-          loading: true,
-          error: null,
-        };
-  
-      case GET_ALL_LEASES_SUCCESS:
-        return {
-          ...state,
-          loading: false,
-          leases: action.payload, // Asigna todos los contratos al estado
-          error: null,
-        };
-  
-      case GET_ALL_LEASES_FAILURE:
-        return {
-          ...state,
-          loading: false,
-          error: action.payload,
-        };
 
-        case GET_LEASES_BY_CLIENT_REQUEST:
-          return {
-            ...state,
-            loading: true,
-            error: null,
-          };
-    
-        case GET_LEASES_BY_CLIENT_SUCCESS:
-          return {
-            ...state,
-            loading: false,
-            leases: action.payload, // Se asignan los contratos recibidos al estado
-            error: null,
-          };
-    
-        case GET_LEASES_BY_CLIENT_FAILURE:
-          return {
-            ...state,
-            loading: false,
-            error: action.payload,
-          };
+    case GET_ALL_PAYMENTS_REQUEST:
+      return {
+        ...state,
+        loading: true,
+        error: null
+      };
 
-          case CREATE_PAYMENT_REQUEST:
-            return {
-              ...state,
-              paymentCreate: {
-                ...state.paymentCreate,
-                loading: true,
-                success: false,
-                error: null
-              }
-            };
-          
-          case CREATE_PAYMENT_SUCCESS:
-            return {
-              ...state,
-              paymentCreate: {
-                loading: false,
-                success: true,
-                error: null,
-                payment: action.payload
-              }
-            };
-          
-          case CREATE_PAYMENT_FAILURE:
-            return {
-              ...state,
-              paymentCreate: {
-                ...state.paymentCreate,
-                loading: false,
-                success: false,
-                error: action.payload
-              }
-            };
+    case GET_ALL_PAYMENTS_SUCCESS:
+      return {
+        ...state,
+        loading: false,
+        allPayments: action.payload,
+        error: null
+      };
 
-            case GET_ALL_PAYMENTS_REQUEST:
-              return {
-                ...state,
-                loading: true,
-                error: null
-              };
-        
-            case GET_ALL_PAYMENTS_SUCCESS:
-              return {
-                ...state,
-                loading: false,
-                allPayments: action.payload,
-                error: null
-              };
-        
-            case GET_ALL_PAYMENTS_FAILURE:
-              return {
-                ...state,
-                loading: false,
-                error: action.payload
-              };
+    case GET_ALL_PAYMENTS_FAILURE:
+      return {
+        ...state,
+        loading: false,
+        error: action.payload
+      };
 
-              case CREATE_GUARANTORS_REQUEST:
+    // ========== GARANTES ==========
+    case CREATE_GUARANTORS_REQUEST:
     case GET_GUARANTORS_REQUEST:
       return {
         ...state,
@@ -534,20 +651,18 @@ const rootReducer = (state = initialState, action) => {
         error: null,
       };
 
-    
     case CREATE_GUARANTORS_SUCCESS:
       return {
         ...state,
         loading: false,
-        guarantors: action.payload.guarantors, // Suponiendo que la respuesta trae { guarantors: [...] }
+        guarantors: action.payload.guarantors,
       };
 
-   
     case GET_GUARANTORS_SUCCESS:
       return {
         ...state,
         loading: false,
-        guarantors: action.payload, 
+        guarantors: action.payload,
       };
 
     case CREATE_GUARANTORS_FAIL:
@@ -557,39 +672,6 @@ const rootReducer = (state = initialState, action) => {
         loading: false,
         error: action.payload,
       };
-
- 
-      case GET_LEASE_REQUEST:
-            return { ...state, loading: true, error: null };
-          case GET_LEASE_SUCCESS:
-            return { ...state, loading: false, lease: action.payload };
-          case GET_LEASE_FAILURE:
-            return { ...state, loading: false, error: action.payload };
-  
-            case UPDATE_LEASE_RENT_REQUEST:
-              return {
-                ...state,
-                loading: true,
-                error: null,
-              };
-            case UPDATE_LEASE_RENT_SUCCESS:
-              return {
-                ...state,
-                loading: false,
-                leases: state.leases.map((lease) =>
-                  lease.id === action.payload.lease.id ? action.payload.lease : lease
-                ),
-              };
-            case UPDATE_LEASE_RENT_FAILURE:
-              return {
-                ...state,
-                loading: false,
-                error: action.payload,
-              };
-          
-      
-
-        
 
     default:
       return state;

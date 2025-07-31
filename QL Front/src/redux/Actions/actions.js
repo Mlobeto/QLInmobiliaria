@@ -52,6 +52,11 @@ CREATE_PAYMENT_REQUEST,
   UPDATE_LEASE_RENT_REQUEST,
   UPDATE_LEASE_RENT_SUCCESS,
   UPDATE_LEASE_RENT_FAILURE,
+   VERIFY_TOKEN_REQUEST,
+  VERIFY_TOKEN_SUCCESS,
+  VERIFY_TOKEN_FAILURE,
+  LOGOUT,
+  SET_TOKEN
 
 
 } from './actions-types'
@@ -91,7 +96,37 @@ export const loginAdmin = (adminData) => async (dispatch) => {
     return { type: "LOGIN_FAIL" };
   }
 }
+export const verifyToken = () => async (dispatch) => {
+  const token = localStorage.getItem('token');
+  
+  if (!token) {
+    dispatch({ type: LOGIN_FAIL, payload: 'No hay token' });
+    return;
+  }
 
+  try {
+    const response = await axios.get('/auth/verify', {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+    
+    dispatch({
+      type: LOGIN_SUCCESS,
+      payload: {
+        token: token,
+        admin: response.data.admin,
+      },
+    });
+  // eslint-disable-next-line no-unused-vars
+  } catch (error) {
+    localStorage.removeItem('token');
+    dispatch({
+      type: LOGIN_FAIL,
+      payload: 'Token inválido',
+    });
+  }
+};
 
 export const createClient = (clientData) => async (dispatch) => {
   dispatch({ type: CREATE_CLIENT_REQUEST });

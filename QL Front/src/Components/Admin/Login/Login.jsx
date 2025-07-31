@@ -1,28 +1,33 @@
-import React, { useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { loginAdmin } from '../../../redux/Actions/actions'; 
-import { useNavigate, Link } from 'react-router-dom';
+import React, { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { loginAdmin } from "../../../redux/Actions/actions";
+import { useNavigate, Link } from "react-router-dom";
 
 const LoginAdmin = () => {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
   const error = useSelector((state) => state.error);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    dispatch(loginAdmin({ username, password }));
-    navigate('/panel');
+    const result = await dispatch(loginAdmin({ username, password }));
+    if (result && result.type === "LOGIN_SUCCESS") {
+      navigate("/panel");
+    }
   };
 
   return (
     <div className="min-h-screen bg-gray-900 flex flex-col">
       {/* Navbar */}
       <div className="w-full bg-gray-800 p-4 shadow-md flex justify-between items-center">
-        <Link to="/" className="text-white text-xl font-semibold hover:underline">
+        <Link
+          to="/"
+          className="text-white text-xl font-semibold hover:underline"
+        >
           Inicio
         </Link>
       </div>
@@ -37,7 +42,10 @@ const LoginAdmin = () => {
 
           <form onSubmit={handleSubmit}>
             <div className="mb-4">
-              <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="username">
+              <label
+                className="block text-gray-700 text-sm font-bold mb-2"
+                htmlFor="username"
+              >
                 Usuario
               </label>
               <input
@@ -51,7 +59,10 @@ const LoginAdmin = () => {
             </div>
 
             <div className="mb-6">
-              <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="password">
+              <label
+                className="block text-gray-700 text-sm font-bold mb-2"
+                htmlFor="password"
+              >
                 Contraseña
               </label>
               <input
@@ -60,6 +71,7 @@ const LoginAdmin = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Ingresa tu contraseña"
+                autoComplete="current-password" // <-- agrega esto
                 className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
               />
             </div>
