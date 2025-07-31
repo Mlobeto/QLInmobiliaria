@@ -111,18 +111,24 @@ const PropiedadesPDF = ({ property }) => {
     doc.text(descripcionLines, 10, startYText + 108);
 
     // Línea separadora antes de highlights
-    doc.setDrawColor(0, 128, 0);
-    doc.line(10, startYText + 108, 200, startYText + 108);
+   const descripcionLines = splitText(property.description, 50);
+doc.text("Descripción:", 10, startYText + 100);
+doc.text(descripcionLines, 10, startYText + 108);
 
-    // Highlights en verde y negrita
-   doc.setFont("courier", "bold");
-    doc.setTextColor(0, 128, 0);
-    doc.setFontSize(13);
-    doc.text("Destacados:", 10, startYText + 124);
-    doc.setFont("courier", "normal");
-    doc.setFontSize(12);
-    const highlightsLines = splitText(property.highlights, 50);
-    doc.text(highlightsLines, 10, startYText + 132);
+// Línea separadora después de la descripción
+const descripcionEndY = startYText + 108 + (descripcionLines.length - 1) * 8;
+doc.setDrawColor(0, 128, 0);
+doc.line(10, descripcionEndY + 6, 200, descripcionEndY + 6);
+
+// Highlights en verde y negrita
+doc.setFont("courier", "bold");
+doc.setTextColor(0, 128, 0);
+doc.setFontSize(13);
+doc.text("Destacados:", 10, descripcionEndY + 22);
+doc.setFont("courier", "normal");
+doc.setFontSize(12);
+const highlightsLines = splitText(property.highlights, 50);
+doc.text(highlightsLines, 10, descripcionEndY + 30);
 
     doc.save(`Propiedad-${property.propertyId}.pdf`);
   };
