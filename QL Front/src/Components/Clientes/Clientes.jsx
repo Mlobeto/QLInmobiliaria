@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { createClient } from "../../redux/Actions/actions"; // Ajusta la ruta según tu estructura
+import { createClient } from "../../redux/Actions/actions";
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 
 const initialState = {
   cuil: "",
@@ -18,7 +19,7 @@ const CreateClientForm = () => {
   const dispatch = useDispatch();
   const [formData, setFormData] = useState(initialState);
 
-  const { loading, error, success } = useSelector((state) => state.clientCreate); // Ajusta el estado si es diferente
+  const { loading, error, success } = useSelector((state) => state.clientCreate);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -28,47 +29,65 @@ const CreateClientForm = () => {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    dispatch(createClient(formData))
-      .then(() => {
-        // Limpiar el formulario luego de crear el cliente
-        setFormData(initialState);
-        // Redirigir a /panelClientes después de la creación, si es necesario
-        if (success) {
-          navigate('/panelClientes');
-        }
-      })
-      .catch((error) => {
-        console.error("Error al crear el cliente:", error);
-      });
+
+    // Validación básica en el front
+    if (!/^\d{2}-\d{8}-\d$/.test(formData.cuil)) {
+      toast.error("El CUIL debe tener el formato XX-XXXXXXXX-X");
+      return;
+    }
+    if (!formData.name.trim()) {
+      toast.error("El nombre es obligatorio");
+      return;
+    }
+    if (!formData.direccion.trim()) {
+      toast.error("La dirección es obligatoria");
+      return;
+    }
+    if (!formData.ciudad.trim()) {
+      toast.error("La ciudad es obligatoria");
+      return;
+    }
+    if (!formData.provincia.trim()) {
+      toast.error("La provincia es obligatoria");
+      return;
+    }
+    if (!/^\d{10}$/.test(formData.mobilePhone)) {
+      toast.error("El teléfono móvil debe tener 10 dígitos");
+      return;
+    }
+
+    try {
+      await dispatch(createClient(formData));
+      toast.success("Cliente creado con éxito");
+      setFormData(initialState);
+      navigate('/panelClientes');
+    } catch (err) {
+      // Si el error viene del backend y es un array, muestra cada mensaje
+      if (Array.isArray(error)) {
+        error.forEach(msg => toast.error(msg));
+      } else if (error) {
+        toast.error(error);
+      } else {
+        toast.error("Error al crear el cliente");
+      }
+    }
   };
 
   return (
     <div className="max-w-md mx-auto p-6 bg-white rounded-lg shadow-md mt-40">
-      {/* Botón de volver */}
       <button
         onClick={() => navigate(-1)}
         className="mb-4 text-blue-500 hover:underline"
       >
         Volver
       </button>
-      
       <h1 className="text-2xl font-bold mb-6 text-center">Crear Cliente</h1>
-
-      {/* Mensajes de carga, error y éxito */}
-      {loading && <p className="text-blue-500 mb-4">Creando cliente...</p>}
-      {error && <p className="text-red-500 mb-4">{error}</p>}
-      {success && <p className="text-green-500 mb-4">Cliente creado con éxito</p>}
-
       <form onSubmit={handleSubmit}>
         {/* Campo CUIL */}
         <div className="mb-4">
-          <label
-            htmlFor="cuil"
-            className="block text-gray-700 font-medium mb-2"
-          >
+          <label htmlFor="cuil" className="block text-gray-700 font-medium mb-2">
             CUIL
           </label>
           <input
@@ -85,10 +104,7 @@ const CreateClientForm = () => {
 
         {/* Campo Nombre */}
         <div className="mb-4">
-          <label
-            htmlFor="name"
-            className="block text-gray-700 font-medium mb-2"
-          >
+          <label htmlFor="name" className="block text-gray-700 font-medium mb-2">
             Nombre
           </label>
           <input
@@ -102,13 +118,9 @@ const CreateClientForm = () => {
             required
           />
         </div>
-
         {/* Campo Dirección */}
         <div className="mb-4">
-          <label
-            htmlFor="direccion"
-            className="block text-gray-700 font-medium mb-2"
-          >
+          <label htmlFor="direccion" className="block text-gray-700 font-medium mb-2">
             Dirección
           </label>
           <input
@@ -121,13 +133,9 @@ const CreateClientForm = () => {
             required
           />
         </div>
-
         {/* Campo Ciudad */}
         <div className="mb-4">
-          <label
-            htmlFor="ciudad"
-            className="block text-gray-700 font-medium mb-2"
-          >
+          <label htmlFor="ciudad" className="block text-gray-700 font-medium mb-2">
             Ciudad
           </label>
           <input
@@ -140,13 +148,9 @@ const CreateClientForm = () => {
             required
           />
         </div>
-
         {/* Campo Provincia */}
         <div className="mb-4">
-          <label
-            htmlFor="provincia"
-            className="block text-gray-700 font-medium mb-2"
-          >
+          <label htmlFor="provincia" className="block text-gray-700 font-medium mb-2">
             Provincia
           </label>
           <input
@@ -159,13 +163,9 @@ const CreateClientForm = () => {
             required
           />
         </div>
-
         {/* Campo Email */}
         <div className="mb-4">
-          <label
-            htmlFor="email"
-            className="block text-gray-700 font-medium mb-2"
-          >
+          <label htmlFor="email" className="block text-gray-700 font-medium mb-2">
             Email
           </label>
           <input
@@ -178,13 +178,9 @@ const CreateClientForm = () => {
             placeholder="email@ejemplo.com"
           />
         </div>
-
         {/* Campo Teléfono Móvil */}
         <div className="mb-4">
-          <label
-            htmlFor="mobilePhone"
-            className="block text-gray-700 font-medium mb-2"
-          >
+          <label htmlFor="mobilePhone" className="block text-gray-700 font-medium mb-2">
             Teléfono Móvil
           </label>
           <input
@@ -198,7 +194,6 @@ const CreateClientForm = () => {
             required
           />
         </div>
-
         <button
           type="submit"
           className={`w-full text-white font-bold py-2 px-4 rounded-lg focus:outline-none ${
