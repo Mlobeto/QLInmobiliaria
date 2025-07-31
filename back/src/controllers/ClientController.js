@@ -3,11 +3,15 @@ const { Client, Lease, Property } = require('../data');
 // POST: Crear un cliente
 exports.createClient = async (req, res) => {
     try {
+        console.log("POST /client - Datos recibidos:", req.body);
         const newClient = await Client.create(req.body);
+        console.log("POST /client - Cliente creado:", newClient?.idClient);
         res.status(201).json(newClient);
     } catch (error) {
+        console.error("POST /client - Error al crear cliente:", error);
         if (error.name === 'SequelizeValidationError' || error.name === 'SequelizeUniqueConstraintError') {
             const validationErrors = error.errors.map(err => err.message);
+            console.error("POST /client - Errores de validación:", validationErrors);
             res.status(400).json({ error: 'Error de validación', details: validationErrors });
         } else {
             res.status(500).json({ error: 'Error al crear el cliente', details: error.message });
