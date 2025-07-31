@@ -1,3 +1,7 @@
+/* eslint-disable react/prop-types */
+
+import jsPDF from "jspdf";
+
 const PropiedadesPDF = ({ property }) => {
   const generatePdf = async () => {
     const doc = new jsPDF();
@@ -113,25 +117,5 @@ const PropiedadesPDF = ({ property }) => {
   );
 };
 
-import PropTypes from 'prop-types';
-
-PropiedadesPDF.propTypes = {
-  property: PropTypes.shape({
-    address: PropTypes.string.isRequired,
-    neighborhood: PropTypes.string,
-    city: PropTypes.string,
-    price: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-    type: PropTypes.string,
-    typeProperty: PropTypes.string,
-    rooms: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-    superficieCubierta: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-    superficieTotal: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-    bathrooms: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-    description: PropTypes.string,
-    highlights: PropTypes.string,
-    images: PropTypes.arrayOf(PropTypes.string),
-    propertyId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-  }).isRequired,
-};
-
 export default PropiedadesPDF;
+
