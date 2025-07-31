@@ -20,6 +20,7 @@ import PaymentReport from "./Components/Pagos/PaymentReport";
 import PanelInformes from "./Components/Admin/PanelInformes";
 import ContractAlerts from "./Components/Contratos/ContractAlerts";
 import ContratoAlquiler from "./Components/PdfTemplates/ContratoAlquiler";
+import ActualizarAlquileres from "./Components/Contratos/ActualizarAlquileres";
 
 function App() {
   return (
@@ -105,6 +106,14 @@ function App() {
         element={
           <ProtectedRoutes>
             <CreateLeaseForm />
+          </ProtectedRoutes>
+        }
+      />
+      <Route
+        path="/updateAlquiler"
+        element={
+          <ProtectedRoutes>
+            <ActualizarAlquileres />
           </ProtectedRoutes>
         }
       />

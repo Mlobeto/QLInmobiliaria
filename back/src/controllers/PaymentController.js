@@ -128,3 +128,39 @@ exports.getAllPayments = async (req, res) => {
     res.status(500).json({ error: 'Error al obtener los pagos', details: error.message });
   }
 };
+
+exports.getPaymentsByLease = async (req, res) => {
+  try {
+    const { leaseId } = req.params;
+
+    // Buscar el contrato
+    const lease = await Lease.findByPk(leaseId, {
+      include: [
+        {
+          model: PaymentReceipt,
+          required: false,
+          attributes: ['id', 'amount', 'paymentDate', 'periodMonth', 'periodYear'],
+        },
+      ],
+    });
+    if (!lease) {
+      return res.status(404).json({ error: 'Contrato no encontrado.' });
+    }
+
+    res.status(200).json({
+      message: 'Pagos encontrados.',
+      payments: lease.PaymentReceipts.map((payment) => ({
+        id: payment.id,
+        amount: payment.amount,
+        paymentDate: payment.paymentDate,
+        period: `${payment.periodMonth}/${payment.periodYear}`,
+      })),
+    });
+  } catch (error) {
+    console.error('Error al obtener pagos del contrato:', error);
+    res.status(500).json({
+      error: 'Error al obtener pagos del contrato.',
+      details: error.message,
+    });
+  }
+};

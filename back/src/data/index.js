@@ -60,7 +60,8 @@ const {
   Lease, 
   PaymentReceipt, 
   ClientProperty, 
-  SaleContract 
+  SaleContract,
+  RentUpdate 
 } = sequelize.models;
 
 // 1. Relaciones entre Client y Property a través de ClientProperty (many-to-many)
@@ -106,7 +107,7 @@ Lease.hasMany(PaymentReceipt, { foreignKey: 'leaseId' });
 PaymentReceipt.belongsTo(Client, { foreignKey: 'idClient' });
 Client.hasMany(PaymentReceipt, { foreignKey: 'idClient' });
 
-
+Lease.hasMany(RentUpdate, {foreignKey: "leaseId" });
 
 
 

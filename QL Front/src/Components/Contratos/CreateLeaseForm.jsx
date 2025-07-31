@@ -6,7 +6,8 @@ import {
   getPropertiesById,
   addPropertyToClientWithRole,
   getAllClients,
-  createGarantorsForLease, // <-- IMPORTAMOS LA ACCIÓN
+  createClient,
+  createGarantorsForLease,
 } from "../../redux/Actions/actions";
 import Listado from "../Propiedades/Listado";
 import Swal from "sweetalert2";
@@ -16,16 +17,12 @@ const CreateLeaseForm = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const property = useSelector((state) => state.property);
-  const [isLoading, setIsLoading] = useState(false);
   const clients = useSelector((state) => state.clients);
+  const [isLoading, setIsLoading] = useState(false);
   const [leaseCreated, setLeaseCreated] = useState(null);
-
-  // Estados locales para administrar la lista de clientes filtrada
   const [filteredClients, setFilteredClients] = useState([]);
   const [showClientList, setShowClientList] = useState(false);
   const [selectedClient, setSelectedClient] = useState(null);
-  const [pdfGenerated, setPdfGenerated] = useState(false);
-  const [pdfData, setPdfData] = useState(null);
 
   const [formData, setFormData] = useState({
     propertyId: "",
@@ -38,15 +35,15 @@ const CreateLeaseForm = () => {
     commission: "",
     totalMonths: "",
     inventory: "",
-    // Campos para garantes:
+    // Garantes
     guarantor1Name: "",
     guarantor1Cuil: "",
-    guarantor1Direccion: "", // <-- nuevo campo
+    guarantor1Direccion: "",
     guarantor1Description: "",
     guarantor1CertificationEntity: "",
     guarantor2Name: "",
     guarantor2Cuil: "",
-    guarantor2Direccion: "", // <-- nuevo campo
+    guarantor2Direccion: "",
     guarantor2Description: "",
     guarantor2CertificationEntity: "",
   });
@@ -55,7 +52,6 @@ const CreateLeaseForm = () => {
     dispatch(getAllClients());
   }, [dispatch]);
 
-  // Cuando se carga la propiedad (por ID), asignamos datos predefinidos al formulario
   useEffect(() => {
     if (property) {
       const hasActiveContract = property.Leases?.some((lease) => {
@@ -69,7 +65,6 @@ const CreateLeaseForm = () => {
           text: "Esta propiedad ya tiene un contrato activo",
           icon: "warning",
         });
-        // Limpiar el formulario
         setFormData((prevData) => ({
           ...prevData,
           propertyId: "",
@@ -93,23 +88,40 @@ const CreateLeaseForm = () => {
     }
   }, [property]);
 
-  // Al ingresar el ID, se dispara la acción para obtener la propiedad
-  const handleInputChange = async (e) => {
+  const handleInputChange = (e) => {
     const { name, value } = e.target;
+    setFormData((prevData) => ({
+      ...prevData,
+      [name]: value,
+    }));
 
-    // Manejo del campo propertyId
-    if (name === "propertyId" && value) {
+    // Filtrar clientes por nombre
+    if (name === "locatario") {
+      if (value.length > 2) {
+        const filtered = clients.filter((client) =>
+          client.name.toLowerCase().includes(value.toLowerCase())
+        );
+        setFilteredClients(filtered);
+        setShowClientList(true);
+      } else {
+        setFilteredClients([]);
+        setShowClientList(false);
+      }
+    }
+  };
+
+  const handlePropertyIdBlur = async (e) => {
+    const value = e.target.value;
+    if (value) {
       setIsLoading(true);
       try {
         const propertyResponse = await dispatch(getPropertiesById(value));
-
         if (propertyResponse && !propertyResponse.isAvailable) {
           await Swal.fire({
             title: "Propiedad No Disponible",
             text: "Esta propiedad no está disponible para alquilar",
             icon: "warning",
           });
-
           setFormData((prevData) => ({
             ...prevData,
             propertyId: "",
@@ -122,7 +134,6 @@ const CreateLeaseForm = () => {
           const owner = propertyResponse.Clients?.find(
             (client) => client.ClientProperty.role === "propietario"
           );
-
           setFormData((prevData) => ({
             ...prevData,
             propertyId: value,
@@ -147,41 +158,110 @@ const CreateLeaseForm = () => {
         setIsLoading(false);
       }
     }
-    // Manejo del campo locatario (inquilino)
-    else if (name === "locatario") {
-      setFormData((prevData) => ({
-        ...prevData,
-        [name]: value,
-        locatarioId: "", // Limpiar el ID cuando se escribe
-      }));
+  };
 
-      // Filtrar clientes si hay más de 2 caracteres
-      if (value.length > 2) {
-        const filtered = clients.filter((client) =>
-          client.name.toLowerCase().includes(value.toLowerCase())
-        );
-        setFilteredClients(filtered);
-        setShowClientList(true);
+  // Selección de cliente de la lista filtrada
+  const handleClientSelect = (client) => {
+    setSelectedClient(client);
+    setFormData((prevData) => ({
+      ...prevData,
+      locatario: client.name,
+      locatarioId: client.idClient,
+    }));
+    setShowClientList(false);
+  };
+
+  // Selección de propiedad desde el listado
+  const handlePropertySelect = (property) => {
+    if (!property.isAvailable) {
+      Swal.fire({
+        title: "Propiedad No Disponible",
+        text: "Esta propiedad no está disponible para alquilar",
+        icon: "warning",
+      });
+      return;
+    }
+    setFormData((prevData) => ({
+      ...prevData,
+      propertyId: property.propertyId,
+      locador:
+        property.Clients?.find(
+          (client) => client.ClientProperty.role === "propietario"
+        )?.name || "",
+      rentAmount: property.price,
+      commission: property.comision,
+      inventory: property.inventory,
+    }));
+  };
+
+  // Validar y crear cliente si no existe
+  const ensureTenantExists = async () => {
+    let tenantId = formData.locatarioId;
+    let tenantName = formData.locatario;
+
+    if (!tenantId && tenantName) {
+      // Buscar por nombre (puedes mejorar usando CUIL/email si lo tienes)
+      const existingClient = clients.find(
+        (client) => client.name.toLowerCase() === tenantName.toLowerCase()
+      );
+      if (existingClient) {
+        tenantId = existingClient.idClient;
       } else {
-        setFilteredClients([]);
-        setShowClientList(false);
+        // Popup para registrar cliente
+        const { value: clientData } = await Swal.fire({
+          title: "Registrar nuevo cliente",
+          html:
+            '<input id="swal-input-name" class="swal2-input" placeholder="Nombre">' +
+            '<input id="swal-input-cuil" class="swal2-input" placeholder="CUIL">' +
+            '<input id="swal-input-email" class="swal2-input" placeholder="Email">' +
+            '<input id="swal-input-direccion" class="swal2-input" placeholder="Dirección">' +
+            '<input id="swal-input-ciudad" class="swal2-input" placeholder="Ciudad">' +
+            '<input id="swal-input-provincia" class="swal2-input" placeholder="Provincia">' +
+            '<input id="swal-input-mobile" class="swal2-input" placeholder="Teléfono">',
+          focusConfirm: false,
+          showCancelButton: true,
+          preConfirm: () => {
+            return {
+              name: document.getElementById("swal-input-name").value,
+              cuil: document.getElementById("swal-input-cuil").value,
+              email: document.getElementById("swal-input-email").value,
+              direccion: document.getElementById("swal-input-direccion").value,
+              ciudad: document.getElementById("swal-input-ciudad").value,
+              provincia: document.getElementById("swal-input-provincia").value,
+              mobilePhone: document.getElementById("swal-input-mobile").value,
+            };
+          },
+        });
+
+        if (clientData && clientData.name && clientData.cuil && clientData.direccion && clientData.mobilePhone) {
+          const newClient = await dispatch(createClient(clientData));
+          // Si tu action retorna el nuevo cliente, usa su idClient
+          tenantId = newClient?.idClient || null;
+          setFormData((prevData) => ({
+            ...prevData,
+            locatario: clientData.name,
+            locatarioId: tenantId,
+          }));
+        } else {
+          await Swal.fire({
+            title: "Error",
+            text: "Debes completar los datos obligatorios del cliente.",
+            icon: "error",
+          });
+          return null;
+        }
       }
     }
-    // Para otros campos
-    else {
-      setFormData((prevData) => ({
-        ...prevData,
-        [name]: value,
-      }));
-    }
+    return tenantId;
   };
 
   // Enviar el formulario
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log("Datos del formulario al enviar:", formData);
+
     try {
-      // Validaciones iniciales
-      if (!formData.propertyId || !formData.locatarioId) {
+      if (!formData.propertyId || !formData.locatario) {
         await Swal.fire({
           title: "Error",
           text: "Se requiere seleccionar una propiedad y un inquilino",
@@ -190,11 +270,12 @@ const CreateLeaseForm = () => {
         return;
       }
 
-      // Verificar disponibilidad de la propiedad antes de continuar
-      const propertyResponse = await dispatch(
-        getPropertiesById(formData.propertyId)
-      );
+      // Validar y obtener tenantId
+      const tenantId = await ensureTenantExists();
+      if (!tenantId) return;
 
+      // Verificar disponibilidad de la propiedad antes de continuar
+      const propertyResponse = await dispatch(getPropertiesById(formData.propertyId));
       if (!propertyResponse || !propertyResponse.isAvailable) {
         await Swal.fire({
           title: "Propiedad No Disponible",
@@ -210,7 +291,6 @@ const CreateLeaseForm = () => {
         endDate.setMonth(endDate.getMonth() + lease.totalMonths);
         return endDate > new Date();
       });
-
       if (hasActiveContract) {
         await Swal.fire({
           title: "Error",
@@ -224,7 +304,6 @@ const CreateLeaseForm = () => {
       const landlordId = property.Clients?.find(
         (client) => client.ClientProperty.role === "propietario"
       )?.idClient;
-
       if (!landlordId) {
         await Swal.fire({
           title: "Error",
@@ -247,7 +326,7 @@ const CreateLeaseForm = () => {
       // Asignar rol de inquilino
       await dispatch(
         addPropertyToClientWithRole({
-          idClient: formData.locatarioId,
+          idClient: tenantId,
           propertyId: formData.propertyId,
           role: "inquilino",
         })
@@ -258,7 +337,7 @@ const CreateLeaseForm = () => {
         createLease({
           propertyId: parseInt(formData.propertyId),
           landlordId: parseInt(landlordId),
-          tenantId: parseInt(formData.locatarioId),
+          tenantId: parseInt(tenantId),
           startDate: formData.startDate,
           rentAmount: parseFloat(formData.rentAmount),
           updateFrequency: formData.updateFrequency,
@@ -268,92 +347,16 @@ const CreateLeaseForm = () => {
         })
       );
 
-      if (!leaseResponse || !leaseResponse.id) {
-        throw new Error("No se recibió respuesta válida al crear el contrato");
-      }
-
-      // Preparar y procesar datos de garantes
-      const getGuarantorDescription = (type, entity) => {
-        switch (type) {
-          case "certificacion":
-            return `Certificación de ingresos certificada por ${entity}`;
-          case "recibos":
-            return "Recibos de sueldo";
-          case "escritura":
-            return "Escritura de propiedad";
-          default:
-            return type;
-        }
-      };
-
-      // Preparar datos de garantes
-      const guarantors = [
-        {
-          name: formData.guarantor1Name,
-          cuil: formData.guarantor1Cuil,
-          address: formData.guarantor1Direccion,
-          description: getGuarantorDescription(
-            formData.guarantor1Description,
-            formData.guarantor1CertificationEntity
-          ),
-        },
-      ];
-
-      if (formData.guarantor2Name && formData.guarantor2Cuil) {
-        guarantors.push({
-          name: formData.guarantor2Name,
-          cuil: formData.guarantor2Cuil,
-          address: formData.guarantor2Direccion,
-          description: getGuarantorDescription(
-            formData.guarantor2Description,
-            formData.guarantor2CertificationEntity
-          ),
-        });
-      }
-
-      // Crear garantes
-      const garantorsResponse = await dispatch(
-        createGarantorsForLease(leaseResponse.id, guarantors)
-      );
-
-      console.log("Garantes creados:", garantorsResponse);
-
-      // Guarda los datos necesarios para el PDF
-      const pdfDataTemp = {
-        owner: property.Clients?.find(
-          (client) => client.ClientProperty.role === "propietario"
-        ),
-        tenant: selectedClient,
-        property: { ...property },
-        lease: { ...leaseResponse },
-        guarantors: garantorsResponse,
-      };
-
-      // Actualizar estado con el contrato y sus garantes
-      setLeaseCreated({
-        ...leaseResponse,
-        Garantors: garantorsResponse,
-      });
-
-      // Guarda los datos del PDF
-      setPdfData(pdfDataTemp);
+      setLeaseCreated(leaseResponse);
 
       await Swal.fire({
-        title: "¡Éxito!",
-        text: "Contrato creado correctamente y garantes asignados. El PDF se generará a continuación.",
+        title: "Contrato creado",
+        text: "El contrato se ha creado exitosamente.",
         icon: "success",
       });
 
-      // NO LIMPIAR EL FORMULARIO AQUÍ
-      // La limpieza se hace después de que el PDF se haya generado o mediante un botón
     } catch (error) {
-      console.error("Error detallado en handleSubmit:", {
-        message: error.message,
-        response: error.response?.data,
-        status: error.response?.status,
-        fullError: error,
-      });
-
+      console.error("Error detallado en handleSubmit:", error);
       await Swal.fire({
         title: "Error",
         text:
@@ -363,40 +366,6 @@ const CreateLeaseForm = () => {
         icon: "error",
       });
     }
-  };
-
-  // Selección de un cliente de la lista filtrada, guarda el nombre y ID
-  const handleClientSelect = (client) => {
-    setSelectedClient(client);
-    setFormData((prevData) => ({
-      ...prevData,
-      locatario: client.name,
-      locatarioId: client.idClient,
-    }));
-    setShowClientList(false);
-  };
-  // Selección de la propiedad desde la lista (Listado)
-  const handlePropertySelect = (property) => {
-    if (!property.isAvailable) {
-      Swal.fire({
-        title: "Propiedad No Disponible",
-        text: "Esta propiedad no está disponible para alquilar",
-        icon: "warning",
-      });
-      return;
-    }
-
-    setFormData((prevData) => ({
-      ...prevData,
-      propertyId: property.propertyId,
-      locador:
-        property.Clients?.find(
-          (client) => client.ClientProperty.role === "propietario"
-        )?.name || "",
-      rentAmount: property.price,
-      commission: property.comision,
-      inventory: property.inventory,
-    }));
   };
 
   return (
@@ -424,6 +393,7 @@ const CreateLeaseForm = () => {
                         name="propertyId"
                         value={formData.propertyId}
                         onChange={handleInputChange}
+                        onBlur={handlePropertyIdBlur}
                         className="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-lime-500 focus:border-lime-500"
                         required
                       />
@@ -567,8 +537,7 @@ const CreateLeaseForm = () => {
                       ></textarea>
                     </div>
 
-                    {/* Sección para los Garantes */}
-                    {/* Sección para los Garantes */}
+                    {/* Garantes */}
                     <div className="flex flex-col">
                       <label className="text-sm font-medium text-gray-700 mb-1">
                         Garante 1 (Obligatorio):
@@ -618,7 +587,6 @@ const CreateLeaseForm = () => {
                           Escritura de propiedad
                         </option>
                       </select>
-
                       {formData.guarantor1Description === "certificacion" && (
                         <input
                           type="text"
@@ -677,7 +645,6 @@ const CreateLeaseForm = () => {
                           Escritura de propiedad
                         </option>
                       </select>
-
                       {formData.guarantor2Description === "certificacion" && (
                         <input
                           type="text"
@@ -726,7 +693,6 @@ const CreateLeaseForm = () => {
                       <button
                         type="button"
                         onClick={() => {
-                          // Limpiar formulario después de descargar el PDF
                           setFormData({
                             propertyId: "",
                             locador: "",
@@ -750,7 +716,6 @@ const CreateLeaseForm = () => {
                             guarantor2CertificationEntity: "",
                           });
                           setLeaseCreated(null);
-                          setPdfData(null);
                           setFilteredClients([]);
                           setShowClientList(false);
                         }}

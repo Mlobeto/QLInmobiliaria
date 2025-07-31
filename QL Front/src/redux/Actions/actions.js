@@ -1,4 +1,3 @@
-
 import axios from 'axios';
 import Swal from "sweetalert2";
 
@@ -37,7 +36,9 @@ CREATE_PAYMENT_REQUEST,
   GET_LEASES_BY_CLIENT_REQUEST,
   GET_LEASES_BY_CLIENT_SUCCESS,
   GET_LEASES_BY_CLIENT_FAILURE,
-
+  GET_LEASE_REQUEST,
+  GET_LEASE_SUCCESS,
+  GET_LEASE_FAILURE,
   GET_ALL_PAYMENTS_REQUEST,
   GET_ALL_PAYMENTS_SUCCESS,
   GET_ALL_PAYMENTS_FAILURE,
@@ -47,7 +48,10 @@ CREATE_PAYMENT_REQUEST,
   CREATE_GUARANTORS_FAIL,
   GET_GUARANTORS_REQUEST,
   GET_GUARANTORS_SUCCESS,
-  GET_GUARANTORS_FAIL
+  GET_GUARANTORS_FAIL,
+  UPDATE_LEASE_RENT_REQUEST,
+  UPDATE_LEASE_RENT_SUCCESS,
+  UPDATE_LEASE_RENT_FAILURE,
 
 
 } from './actions-types'
@@ -498,5 +502,46 @@ export const getGarantorsByLeaseId = (leaseId) => async (dispatch) => {
         ? error.response.data.error
         : error.message,
     });
+  }
+};
+
+// Acción para obtener un contrato por leaseId
+export const getLeaseById = (leaseId) => async (dispatch) => {
+  try {
+    dispatch({ type: GET_LEASE_REQUEST });
+    const { data } = await axios.get(`/api/leases/${leaseId}`);
+    dispatch({ type: GET_LEASE_SUCCESS, payload: data });
+  } catch (error) {
+    dispatch({
+      type: GET_LEASE_FAILURE,
+      payload: error.response?.data?.message || "Error al obtener el contrato",
+    });
+  }
+};
+
+export const updateLeaseRentAmount = (leaseId, newRentAmount, updateDate, pdfData, fileName) => async (dispatch) => {
+  try {
+    dispatch({ type: UPDATE_LEASE_RENT_REQUEST });
+
+    const response = await axios.put(`/leases/${leaseId}/rent`, {
+      newRentAmount,
+      updateDate,
+      pdfData,
+      fileName,
+    });
+
+    dispatch({
+      type: UPDATE_LEASE_RENT_SUCCESS,
+      payload: response.data, // Datos del contrato actualizado
+    });
+
+    Swal.fire("Éxito", "El monto del alquiler se actualizó correctamente.", "success");
+  } catch (error) {
+    dispatch({
+      type: UPDATE_LEASE_RENT_FAILURE,
+      payload: error.response?.data?.message || "Error al actualizar el monto del alquiler",
+    });
+
+    Swal.fire("Error", error.response?.data?.message || "No se pudo actualizar el monto del alquiler.", "error");
   }
 };

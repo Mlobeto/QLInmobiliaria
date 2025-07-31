@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { getAllLeases } from "../../redux/Actions/actions";
 
-const getUpdateAlert = (lease) => {
+export const getUpdateAlert = (lease) => {
   const { startDate, updateFrequency, updatedAt } = lease;
   let updateIntervalMonths = 0;
   if (updateFrequency === "semestral") updateIntervalMonths = 6;

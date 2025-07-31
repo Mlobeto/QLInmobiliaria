@@ -3,20 +3,32 @@ const { Client, Property, ClientProperty } = require('../data');
 // POST: Asignar una propiedad a un cliente con rol
 exports.addPropertyToClientWithRole = async (req, res) => {
     try {
-        const { idClient, propertyId, role } = req.body;
+        const { idClient, propertyId, role, clientData } = req.body;
 
         // Validación de campos
-        if (!idClient || !propertyId || !role) {
+        if (!propertyId || !role) {
             return res.status(400).json({
                 error: 'Faltan datos requeridos',
-                details: 'Asegúrese de enviar el idClient del cliente, el ID de la propiedad y el rol.'
+                details: 'Asegúrese de enviar el ID de la propiedad y el rol.'
             });
         }
 
         // Buscar al cliente por su idClient
-        const client = await Client.findOne({ where: { idClient } });
+        let client = idClient ? await Client.findOne({ where: { idClient } }) : null;
+
+        // Si no existe, intenta crear el cliente si se envía clientData
         if (!client) {
-            return res.status(404).json({ error: 'Cliente no encontrado' });
+            if (!clientData) {
+                return res.status(400).json({ error: 'Cliente no encontrado y no se proporcionaron datos para crearlo.' });
+            }
+            try {
+                client = await Client.create(clientData);
+            } catch (error) {
+                return res.status(400).json({
+                    error: 'Error al crear el cliente',
+                    details: error.message
+                });
+            }
         }
 
         // Buscar la propiedad por ID
@@ -27,7 +39,7 @@ exports.addPropertyToClientWithRole = async (req, res) => {
 
         // Verificar si ya existe la relación entre el cliente y la propiedad
         const existingClientProperty = await ClientProperty.findOne({
-            where: { clientId: idClient, propertyId }
+            where: { clientId: client.idClient, propertyId }
         });
 
         if (existingClientProperty) {
