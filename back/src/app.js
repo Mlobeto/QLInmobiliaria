@@ -4,7 +4,8 @@ const morgan = require("morgan")
 const routes = require("./routes/index.js")
 
 const allowedOrigins = [
-    'http://localhost:5173', // Permitir localhost para desarrollo
+    'http://localhost:5173', 
+    'https://ql-inmobiliaria.vercel.app' // Permitir localhost para desarrollo
 ];
 
 const app = express()
