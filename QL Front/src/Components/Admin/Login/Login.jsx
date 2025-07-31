@@ -6,6 +6,7 @@ import { useNavigate, Link } from "react-router-dom";
 const LoginAdmin = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -14,9 +15,27 @@ const LoginAdmin = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const result = await dispatch(loginAdmin({ username, password }));
-    if (result && result.type === "LOGIN_SUCCESS") {
-      navigate("/panel");
+    
+    // Validación básica en el frontend
+    if (!username.trim()) {
+      return;
+    }
+    if (!password.trim()) {
+      return;
+    }
+
+    setIsLoading(true);
+    
+    try {
+      const result = await dispatch(loginAdmin({ username, password }));
+      if (result && result.type === "LOGIN_SUCCESS") {
+        navigate("/panel");
+      }
+      // Los errores se manejan automáticamente por el middleware de toast
+    } catch (err) {
+      console.error("Error en login:", err);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -38,7 +57,11 @@ const LoginAdmin = () => {
           <h2 className="text-2xl font-semibold text-gray-700 mb-6 text-center uppercase">
             Iniciar sesión
           </h2>
-          {error && <p className="text-red-500 text-center mb-4">{error}</p>}
+          
+          {/* Solo mostrar error si no usas toast middleware */}
+          {error && !isLoading && (
+            <p className="text-red-500 text-center mb-4">{error}</p>
+          )}
 
           <form onSubmit={handleSubmit}>
             <div className="mb-4">
@@ -54,7 +77,12 @@ const LoginAdmin = () => {
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 placeholder="Ingresa tu usuario"
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                autoComplete="username"
+                required
+                disabled={isLoading}
+                className={`shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline ${
+                  isLoading ? 'bg-gray-100 cursor-not-allowed' : ''
+                }`}
               />
             </div>
 
@@ -71,17 +99,36 @@ const LoginAdmin = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Ingresa tu contraseña"
-                autoComplete="current-password" // <-- agrega esto
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                autoComplete="current-password"
+                required
+                disabled={isLoading}
+                className={`shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline ${
+                  isLoading ? 'bg-gray-100 cursor-not-allowed' : ''
+                }`}
               />
             </div>
 
             <div className="flex items-center justify-between">
               <button
                 type="submit"
-                className="bg-lime-500 hover:bg-lime-600 text-black font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full"
+                disabled={isLoading || !username.trim() || !password.trim()}
+                className={`w-full font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition-colors ${
+                  isLoading || !username.trim() || !password.trim()
+                    ? "bg-gray-400 text-gray-700 cursor-not-allowed"
+                    : "bg-lime-500 hover:bg-lime-600 text-black"
+                }`}
               >
-                Iniciar sesión
+                {isLoading ? (
+                  <span className="flex items-center justify-center">
+                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-gray-700" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Iniciando sesión...
+                  </span>
+                ) : (
+                  "Iniciar sesión"
+                )}
               </button>
             </div>
           </form>
