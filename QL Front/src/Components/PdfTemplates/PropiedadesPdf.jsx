@@ -2,6 +2,20 @@
 
 import jsPDF from "jspdf";
 
+function splitText(text, maxLength = 50) {
+  if (!text) return ["N/A"];
+  const result = [];
+  let current = text;
+  while (current.length > maxLength) {
+    let idx = current.lastIndexOf(' ', maxLength);
+    if (idx === -1) idx = maxLength;
+    result.push(current.slice(0, idx));
+    current = current.slice(idx).trim();
+  }
+  if (current.length) result.push(current);
+  return result;
+}
+
 const PropiedadesPDF = ({ property }) => {
   const generatePdf = async () => {
     const doc = new jsPDF();
@@ -90,22 +104,25 @@ const PropiedadesPDF = ({ property }) => {
     doc.text(`Superficie Cubierta: ${property.superficieCubierta || "N/A"}`, 10, startYText + 76);
     doc.text(`Superficie Total: ${property.superficieTotal || "N/A"}`, 10, startYText + 84);
     doc.text(`Baños: ${property.bathrooms || "N/A"}`, 10, startYText + 92);
-    doc.text(`Descripción: ${property.description || "N/A"}`, 10, startYText + 100);
+    doc.setFont("courier", "normal");
+    doc.setFontSize(12);
+    const descripcionLines = splitText(property.description, 50);
+    doc.text("Descripción:", 10, startYText + 100);
+    doc.text(descripcionLines, 10, startYText + 108);
 
     // Línea separadora antes de highlights
     doc.setDrawColor(0, 128, 0);
     doc.line(10, startYText + 108, 200, startYText + 108);
 
     // Highlights en verde y negrita
-    doc.setFont("courier", "bold");
+   doc.setFont("courier", "bold");
     doc.setTextColor(0, 128, 0);
     doc.setFontSize(13);
-    doc.text(`Destacados:`, 10, startYText + 116);
+    doc.text("Destacados:", 10, startYText + 124);
     doc.setFont("courier", "normal");
     doc.setFontSize(12);
-    doc.text(`${property.highlights || "N/A"}`, 10, startYText + 124);
-
-    doc.setTextColor(0, 0, 0);
+    const highlightsLines = splitText(property.highlights, 50);
+    doc.text(highlightsLines, 10, startYText + 132);
 
     doc.save(`Propiedad-${property.propertyId}.pdf`);
   };
