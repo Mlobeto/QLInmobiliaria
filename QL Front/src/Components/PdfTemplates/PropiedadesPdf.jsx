@@ -1,51 +1,46 @@
-/* eslint-disable react/prop-types */
-
-import jsPDF from "jspdf";
-
 const PropiedadesPDF = ({ property }) => {
   const generatePdf = async () => {
     const doc = new jsPDF();
 
-    const logoUrl = '/assets/logoNegro.png'; // Asegúrate que la ruta sea correcta
+    // Minimalista: fuente courier
+    doc.setFont("courier");
+    doc.setFontSize(11);
+
+    const logoUrl = '/assets/logoNegro.png';
     doc.addImage(logoUrl, 'PNG', 10, 10, 40, 20);
 
-    doc.setFont("helvetica");
-    doc.setFontSize(10);
     doc.text("Av. Cuba Nº 50", 90, 18);
     doc.setFontSize(9);
     doc.text("Tel:3835 5036166", 90, 22);
 
-    const propertyType = property.type; // Asegúrate de que el campo tenga el nombre correcto
+    // Etiqueta tipo
     if (property.type === "venta") {
-      // Dibujar rectángulo rojo con texto blanco
-      doc.setFillColor(255, 0, 0); // Rojo
-      doc.rect(160, 15, 30, 10, "F"); // Rectángulo lleno en (x: 160, y: 18), ancho: 30, alto: 10
-      doc.setTextColor(255, 255, 255); // Texto blanco
+      doc.setFillColor(255, 0, 0);
+      doc.rect(160, 15, 30, 10, "F");
+      doc.setTextColor(255, 255, 255);
       doc.setFontSize(15);
-      doc.text("VENTA", 167, 22); // Texto en el rectángulo
-    } else if (propertyType === "alquiler") {
-      // Dibujar rectángulo verde con texto blanco
-      doc.setFillColor(0, 128, 0); // Verde
-      doc.rect(160, 15, 30, 10, "F"); // Rectángulo lleno en (x: 160, y: 18), ancho: 30, alto: 10
-      doc.setTextColor(255, 255, 255); // Texto blanco
+      doc.text("VENTA", 167, 22);
+    } else if (property.type === "alquiler") {
+      doc.setFillColor(0, 128, 0);
+      doc.rect(160, 15, 30, 10, "F");
+      doc.setTextColor(255, 255, 255);
       doc.setFontSize(9);
-      doc.text("ALQUILER", 167, 22); // Texto en el rectángulo
+      doc.text("ALQUILER", 167, 22);
     }
-  
-    doc.setTextColor(0, 0, 0);
 
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(11);
     doc.line(10, 27, 200, 27);
 
-    // Configuración inicial para imágenes
-    let xPosition = 10; // Posición inicial en el eje X
-    let yPosition = 30; // Posición inicial en el eje Y
-    const imageWidth = 60; // Ancho de cada imagen
-    const imageHeight = 40; // Alto de cada imagen
-    const spaceBetweenImages = 5; // Espacio entre imágenes
-    const pageWidth = 210; // Ancho de la página A4 en mm (en orientación vertical)
-    let rowsOfImages = 1; // Número de filas de imágenes
+    // Imágenes
+    let xPosition = 10;
+    let yPosition = 30;
+    const imageWidth = 60;
+    const imageHeight = 40;
+    const spaceBetweenImages = 5;
+    const pageWidth = 210;
+    let rowsOfImages = 1;
 
-    // Agregar imágenes desde las URLs
     if (property.images.length > 0) {
       for (let i = 0; i < property.images.length; i++) {
         const imageUrl = property.images[i];
@@ -60,20 +55,14 @@ const PropiedadesPDF = ({ property }) => {
               });
             });
 
-          // Agregar imagen al PDF
           doc.addImage(img, "JPEG", xPosition, yPosition, imageWidth, imageHeight);
-
-          // Incrementar posición X para la siguiente imagen
           xPosition += imageWidth + spaceBetweenImages;
-
-          // Verificar si excede el ancho de la página y mover a la siguiente fila
           if (xPosition + imageWidth > pageWidth) {
-            xPosition = 10; // Reiniciar posición X
-            yPosition += imageHeight + spaceBetweenImages; // Mover a la siguiente fila
-            rowsOfImages++; // Incrementar contador de filas
+            xPosition = 10;
+            yPosition += imageHeight + spaceBetweenImages;
+            rowsOfImages++;
           }
         } catch (err) {
-          console.error(`Error al cargar la imagen ${imageUrl}:`, err);
           doc.text(`Error al cargar la imagen: ${imageUrl}`, xPosition, yPosition);
           yPosition += 10;
         }
@@ -82,23 +71,38 @@ const PropiedadesPDF = ({ property }) => {
       doc.text("No hay imágenes disponibles", 10, 120);
     }
 
-    // Calcular posición inicial del texto en función de las filas de imágenes
+    // Texto principal
     const startYText = 10 + rowsOfImages * (imageHeight + spaceBetweenImages);
 
-    // Agregar líneas de texto comenzando desde la posición calculada
-    doc.text(`- Dirección: ${property.address}`, 10, startYText + 20);
-    doc.text(`- Barrio: ${property.neighborhood}`, 10, startYText + 30);
-    doc.text(`- Ciudad: ${property.city}`, 10, startYText + 40);
-    doc.text(`- Precio: $${property.price}`, 10, startYText + 50);
-    doc.text(`- Tipo: ${property.type}`, 10, startYText + 60);
-    doc.text(`- Tipo de Propiedad: ${property.typeProperty}`, 10, startYText + 70);
-    doc.text(`- Habitaciones: ${property.rooms || "N/A"}`, 10, startYText + 80);
-    doc.text(`- Superficie Cubierta: ${property.superficieCubierta || "N/A"}`, 10, startYText + 90);
-    doc.text(`- Superficie Total: ${property.SuperficieTotal || "N/A"}`, 10, startYText + 100);
-    doc.text(`- Baños: ${property.bathrooms || "N/A"}`, 10, startYText + 110);
-    doc.text(`- Descripción: ${property.description || "N/A"}`, 10, startYText + 120);
+    doc.setFont("courier", "normal");
+    doc.setFontSize(12);
+    doc.text(`Dirección: ${property.address}`, 10, startYText + 20);
+    doc.text(`Barrio: ${property.neighborhood}`, 10, startYText + 28);
+    doc.text(`Ciudad: ${property.city}`, 10, startYText + 36);
+    doc.text(`Precio: $${property.price}`, 10, startYText + 44);
+    doc.text(`Tipo: ${property.type}`, 10, startYText + 52);
+    doc.text(`Tipo de Propiedad: ${property.typeProperty}`, 10, startYText + 60);
+    doc.text(`Habitaciones: ${property.rooms || "N/A"}`, 10, startYText + 68);
+    doc.text(`Superficie Cubierta: ${property.superficieCubierta || "N/A"}`, 10, startYText + 76);
+    doc.text(`Superficie Total: ${property.superficieTotal || "N/A"}`, 10, startYText + 84);
+    doc.text(`Baños: ${property.bathrooms || "N/A"}`, 10, startYText + 92);
+    doc.text(`Descripción: ${property.description || "N/A"}`, 10, startYText + 100);
 
-    // Descargar el PDF
+    // Línea separadora antes de highlights
+    doc.setDrawColor(0, 128, 0);
+    doc.line(10, startYText + 108, 200, startYText + 108);
+
+    // Highlights en verde y negrita
+    doc.setFont("courier", "bold");
+    doc.setTextColor(0, 128, 0);
+    doc.setFontSize(13);
+    doc.text(`Destacados:`, 10, startYText + 116);
+    doc.setFont("courier", "normal");
+    doc.setFontSize(12);
+    doc.text(`${property.highlights || "N/A"}`, 10, startYText + 124);
+
+    doc.setTextColor(0, 0, 0);
+
     doc.save(`Propiedad-${property.propertyId}.pdf`);
   };
 
@@ -109,5 +113,25 @@ const PropiedadesPDF = ({ property }) => {
   );
 };
 
-export default PropiedadesPDF;
+import PropTypes from 'prop-types';
 
+PropiedadesPDF.propTypes = {
+  property: PropTypes.shape({
+    address: PropTypes.string.isRequired,
+    neighborhood: PropTypes.string,
+    city: PropTypes.string,
+    price: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    type: PropTypes.string,
+    typeProperty: PropTypes.string,
+    rooms: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    superficieCubierta: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    superficieTotal: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    bathrooms: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    description: PropTypes.string,
+    highlights: PropTypes.string,
+    images: PropTypes.arrayOf(PropTypes.string),
+    propertyId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  }).isRequired,
+};
+
+export default PropiedadesPDF;
