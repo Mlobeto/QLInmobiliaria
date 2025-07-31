@@ -6,7 +6,7 @@ require('dotenv').config();
 // Importa la función seed
 const seed = require('./src/scripts/seedData.js'); // Ajusta la ruta si es necesario
 
-conn.sync({ force: true }).then(async () => {
+conn.sync({ alter: true }).then(async () => {
   // Ejecuta el seed antes de levantar el servidor
 
 
