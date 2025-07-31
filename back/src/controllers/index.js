@@ -14,7 +14,8 @@ console.log('Contenido de la carpeta controllers:', require('fs').readdirSync('.
 
 module.exports = {
   register: catchedAsync(authController.register),  
-  login: catchedAsync(authController.login),
+  loginAdmin: catchedAsync(authController.loginAdmin),
+  verifyToken: catchedAsync(authController.verifyToken),
   getAllAdmins: catchedAsync(authController.getAllAdmins),
   editAdmin: catchedAsync(authController.editAdmin),
   deleteAdmin: catchedAsync(authController.deleteAdmin),

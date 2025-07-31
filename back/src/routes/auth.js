@@ -1,11 +1,11 @@
 const express = require('express');
-const { register, login, getAllAdmins, verifyToken, editAdmin, deleteAdmin } = require('../controllers/authController');
+const { register, loginAdmin, getAllAdmins, verifyToken, editAdmin, deleteAdmin } = require('../controllers/authController');
 const router = express.Router();
 
 
 router.post('/register', register);
 
-router.post('/login', login);
+router.post('/login', loginAdmin);
 
 router.get('/verify', verifyToken);
 

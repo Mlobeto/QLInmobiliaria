@@ -27,34 +27,44 @@ exports.register = async (req, res) => {
   };
 
 // Iniciar sesión (login)
-export const loginAdmin = (adminData) => async (dispatch) => {
-  dispatch({ type: LOGIN_REQUEST });
+exports.loginAdmin = async (req, res) => {
+  const { username, password } = req.body;
   
+  console.log('POST /auth/login - Datos recibidos:', { username, password: '***' });
+
   try {
-    console.log('Enviando datos de login:', adminData);
-    const response = await axios.post('/auth/login', adminData);
-    console.log('Respuesta del backend:', response.data);
+    const admin = await Admin.findOne({ where: { username } });
+    if (!admin) {
+      console.log('POST /auth/login - Usuario no encontrado:', username);
+      return res.status(404).json({ message: 'Usuario no encontrado' });
+    }
+
+    const isMatch = await bcrypt.compare(password, admin.password);
+    if (!isMatch) {
+      console.log('POST /auth/login - Credenciales inválidas para:', username);
+      return res.status(401).json({ message: 'Credenciales inválidas' });
+    }
+
+    const token = jwt.sign(
+      { id: admin.adminId, role: admin.role },
+      process.env.JWT_SECRET_KEY,
+      { expiresIn: '1h' }
+    );
+
+    console.log('POST /auth/login - Login exitoso para:', username, 'ID:', admin.adminId);
     
-    localStorage.setItem('token', response.data.token);
-    axios.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`;
-    
-    dispatch({
-      type: LOGIN_SUCCESS,
-      payload: {
-        token: response.data.token,
-        admin: response.data.admin,
-      },
+    res.status(200).json({ 
+      message: 'Inicio de sesión exitoso', 
+      token, 
+      admin: {
+        adminId: admin.adminId,
+        username: admin.username,
+        role: admin.role
+      }
     });
-    
-    return { type: "LOGIN_SUCCESS", success: true };
   } catch (error) {
-    console.error('Error en action login:', error);
-    dispatch({
-      type: LOGIN_FAIL,
-      payload: error.response?.data?.message || 'Error al iniciar sesión',
-    });
-    
-    return { type: "LOGIN_FAIL", success: false };
+    console.error('POST /auth/login - Error:', error);
+    res.status(500).json({ message: 'Error en el inicio de sesión', error: error.message });
   }
 };
 
@@ -64,6 +74,7 @@ exports.verifyToken = async (req, res) => {
     const token = req.headers.authorization?.split(' ')[1];
     
     if (!token) {
+      console.log('GET /auth/verify - No se proporcionó token');
       return res.status(401).json({ message: 'No se proporcionó token' });
     }
 
@@ -71,9 +82,12 @@ exports.verifyToken = async (req, res) => {
     const admin = await Admin.findByPk(decoded.id);
     
     if (!admin) {
+      console.log('GET /auth/verify - Admin no encontrado para token');
       return res.status(401).json({ message: 'Token inválido' });
     }
 
+    console.log('GET /auth/verify - Token válido para:', admin.username);
+    
     res.status(200).json({ 
       message: 'Token válido', 
       admin: {
@@ -83,6 +97,7 @@ exports.verifyToken = async (req, res) => {
       }
     });
   } catch (error) {
+    console.error('GET /auth/verify - Error:', error);
     res.status(401).json({ message: 'Token inválido', error: error.message });
   }
 };
