@@ -177,7 +177,7 @@ const ContratoAlquiler = ({ owner, tenant, property, lease, guarantors }) => {
     de la ciudad de ${tenant.ciudad}, en carácter de propietario junto con ${property.socio}, 
     en adelante denominados "LOS LOCADORES", por una parte, y por la otra el Sr/Sra ${tenant.name}, 
     CUIL ${tenant.cuil}, con domicilio en ${tenant.direccion}, ${tenant.ciudad}, ${tenant.provincia}, 
-    en adelante denominado "LOCATARIO", correo electrónico ${tenant.email}, télefono ${tenant.mobilephone}, convienen en celebrar el presente contrato de locación, 
+    en adelante denominado "LOCATARIO", correo electrónico ${tenant.email}, télefono ${tenant.mobilePhone}, convienen en celebrar el presente contrato de locación, 
     sujeto a las siguientes cláusulas y condiciones:`
       : `Entre el Sr/Sra. ${owner.name}, CUIL ${lease.Landlord.cuil}, con domicilio en ${lease.Landlord.direccion}, 
     de la ciudad de ${tenant.ciudad}, en adelante denominado "EL LOCADOR", por una parte, y por la otra 
@@ -384,6 +384,7 @@ ContratoAlquiler.propTypes = {
     cuil: PropTypes.string.isRequired,
     socio: PropTypes.string,
     provincia: PropTypes.string.isRequired,
+    
   }).isRequired,
   tenant: PropTypes.shape({
     name: PropTypes.string.isRequired,

@@ -29,7 +29,7 @@ const PanelContratos = () => {
       {/* Centro de la pantalla */}
       <div className="flex-grow flex flex-col justify-center items-center space-y-4 p-6">
         {/* Grid responsive para los botones */}
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 w-full">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 w-full">
           <Link
             to="/leaseList"
             className="w-full h-48 md:h-64 bg-lime-500 hover:bg-lime-600 text-black flex justify-center items-center rounded-lg shadow-lg text-xl md:text-2xl font-semibold transition duration-300 uppercase"
@@ -47,6 +47,12 @@ const PanelContratos = () => {
             className="w-full h-48 md:h-64 bg-lime-500 text-white flex justify-center items-center rounded-lg shadow-lg text-xl md:text-2xl font-semibold hover:bg-green-600 transition duration-300 uppercase"
           >
             Compra Venta
+          </Link>
+          <Link
+            to="/updateAlquiler"
+            className="w-full h-48 md:h-64 bg-lime-500 text-white flex justify-center items-center rounded-lg shadow-lg text-xl md:text-2xl font-semibold hover:bg-green-600 transition duration-300 uppercase"
+          >
+            Actualizar Contrato
           </Link>
         </div>
         

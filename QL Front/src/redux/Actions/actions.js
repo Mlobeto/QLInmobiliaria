@@ -1,4 +1,3 @@
-
 import axios from 'axios';
 import Swal from "sweetalert2";
 
@@ -37,7 +36,9 @@ CREATE_PAYMENT_REQUEST,
   GET_LEASES_BY_CLIENT_REQUEST,
   GET_LEASES_BY_CLIENT_SUCCESS,
   GET_LEASES_BY_CLIENT_FAILURE,
-
+  GET_LEASE_REQUEST,
+  GET_LEASE_SUCCESS,
+  GET_LEASE_FAILURE,
   GET_ALL_PAYMENTS_REQUEST,
   GET_ALL_PAYMENTS_SUCCESS,
   GET_ALL_PAYMENTS_FAILURE,
@@ -47,40 +48,49 @@ CREATE_PAYMENT_REQUEST,
   CREATE_GUARANTORS_FAIL,
   GET_GUARANTORS_REQUEST,
   GET_GUARANTORS_SUCCESS,
-  GET_GUARANTORS_FAIL
+  GET_GUARANTORS_FAIL,
+  UPDATE_LEASE_RENT_REQUEST,
+  UPDATE_LEASE_RENT_SUCCESS,
+  UPDATE_LEASE_RENT_FAILURE,
 
 
 } from './actions-types'
 
 export const registerAdmin = (adminData) => async (dispatch) => {
-    try {
-        const response = await axios.post('/auth/register', adminData);
-        dispatch({
-            type: REGISTER_SUCCESS,
-            payload: response.data
-        });
-    } catch (error) {
-        dispatch({
-            type: REGISTER_FAIL,
-            payload: error.response.data.message
-        });
-    }
+  try {
+    const response = await axios.post('/auth/register', adminData);
+    dispatch({
+      type: REGISTER_SUCCESS,
+      payload: response.data,
+    });
+  } catch (error) {
+    dispatch({
+      type: REGISTER_FAIL,
+      payload: error.response?.data?.message || 'Error al registrar administrador',
+    });
+  }
 };
 
-
 export const loginAdmin = (adminData) => async (dispatch) => {
-    try {
-        const response = await axios.post('/auth/login', adminData);
-        dispatch({
-            type: LOGIN_SUCCESS,
-            payload: response.data
-        });
-    } catch (error) {
-        dispatch({
-            type: LOGIN_FAIL,
-            payload: error.response.data.message
-        });
-    }
+  try {
+    const response = await axios.post('/auth/login', adminData);
+
+    // Guarda el token en el almacenamiento local
+    localStorage.setItem('token', response.data.token);
+
+    dispatch({
+      type: LOGIN_SUCCESS,
+      payload: {
+        token: response.data.token,
+        admin: response.data.admin, // Información del administrador
+      },
+    });
+  } catch (error) {
+    dispatch({
+      type: LOGIN_FAIL,
+      payload: error.response?.data?.message || 'Error al iniciar sesión',
+    });
+  }
 };
 
 
@@ -95,45 +105,31 @@ export const createClient = (clientData) => async (dispatch) => {
     });
 
     dispatch({ type: CREATE_CLIENT_SUCCESS });
-
-    // Mostrar alerta de éxito
-    Swal.fire({
-      title: "¡Éxito!",
-      text: "Cliente creado correctamente",
-      icon: "success",
-    });
   } catch (error) {
     const errorMessage = error.response?.data?.details || error.message;
     dispatch({ type: CREATE_CLIENT_FAILURE, payload: errorMessage });
-
-    // Mostrar alerta de error
-    Swal.fire({
-      title: "Error",
-      text: errorMessage,
-      icon: "error",
-    });
   }
 };
   
   
 
-  export const getAllClients = () => async (dispatch) => {
-    dispatch({ type: GET_ALL_CLIENT_REQUEST });
-  
-    try {
-      const response = await axios.get('/client');
-  
-      dispatch({
-        type: GET_ALL_CLIENT_SUCCESS,
-        payload: response.data, // Lista de clientes
-      });
-    } catch (error) {
-      dispatch({
-        type: GET_ALL_CLIENT_FAIL,
-        payload: error.response?.data?.message || error.message,
-      });
-    }
-  };
+export const getAllClients = () => async (dispatch) => {
+  dispatch({ type: GET_ALL_CLIENT_REQUEST });
+
+  try {
+    const response = await axios.get('/client');
+    dispatch({
+      type: GET_ALL_CLIENT_SUCCESS,
+      payload: response.data, // Lista de clientes
+    });
+  } catch (error) {
+    dispatch({
+      type: GET_ALL_CLIENT_FAIL,
+      payload: error.response?.data?.message || error.message,
+    });
+  }
+};
+
 
   export const getClientById = (idClient) => async (dispatch) => {
     dispatch({ type: GET_CLIENT_REQUEST });
@@ -197,49 +193,18 @@ export const createClient = (clientData) => async (dispatch) => {
     dispatch({ type: CREATE_PROPERTY_REQUEST });
   
     try {
-      console.log("Enviando datos de la propiedad:", propertyData); // Ver los datos enviados
-  
-      // Hacer la solicitud POST al backend
       const response = await axios.post(`/property`, propertyData, {
         headers: {
           "Content-Type": "application/json",
         },
       });
   
-      console.log("Respuesta del backend:", response.data); // Verifica que response.data tenga propertyId
-  
-      // Asegúrate de que response.data contenga propertyId
-      if (response.data && response.data.propertyId) {
-        dispatch({ type: CREATE_PROPERTY_SUCCESS, payload: response.data }); // Devuelve la respuesta al reducer
-      } else {
-        throw new Error("No se obtuvo el propertyId en la respuesta");
-      }
-  
-      // Mostrar alerta de éxito
-      Swal.fire({
-        title: "¡Éxito!",
-        text: "Propiedad creada correctamente",
-        icon: "success",
-      });
-  
-      // Devolver la respuesta para poder usarla en el siguiente paso
-      return response.data;
+      dispatch({ type: CREATE_PROPERTY_SUCCESS, payload: response.data });
     } catch (error) {
-      console.log("Error al crear propiedad:", error); // Maneja el error
-  
-      dispatch({ type: CREATE_PROPERTY_FAILURE, payload: error.message });
-  
-      // Mostrar alerta de error
-      const errorMessage =
-        error.response?.data?.message || "Ocurrió un error al crear la propiedad.";
-      Swal.fire({
-        title: "Error",
-        text: errorMessage,
-        icon: "error",
+      dispatch({
+        type: CREATE_PROPERTY_FAILURE,
+        payload: error.response?.data?.message || 'Error al crear la propiedad',
       });
-  
-      // Rechazar con el error para poder manejarlo en el componente
-      throw error;
     }
   };
   
@@ -537,5 +502,46 @@ export const getGarantorsByLeaseId = (leaseId) => async (dispatch) => {
         ? error.response.data.error
         : error.message,
     });
+  }
+};
+
+// Acción para obtener un contrato por leaseId
+export const getLeaseById = (leaseId) => async (dispatch) => {
+  try {
+    dispatch({ type: GET_LEASE_REQUEST });
+    const { data } = await axios.get(`/api/leases/${leaseId}`);
+    dispatch({ type: GET_LEASE_SUCCESS, payload: data });
+  } catch (error) {
+    dispatch({
+      type: GET_LEASE_FAILURE,
+      payload: error.response?.data?.message || "Error al obtener el contrato",
+    });
+  }
+};
+
+export const updateLeaseRentAmount = (leaseId, newRentAmount, updateDate, pdfData, fileName) => async (dispatch) => {
+  try {
+    dispatch({ type: UPDATE_LEASE_RENT_REQUEST });
+
+    const response = await axios.put(`/leases/${leaseId}/rent`, {
+      newRentAmount,
+      updateDate,
+      pdfData,
+      fileName,
+    });
+
+    dispatch({
+      type: UPDATE_LEASE_RENT_SUCCESS,
+      payload: response.data, // Datos del contrato actualizado
+    });
+
+    Swal.fire("Éxito", "El monto del alquiler se actualizó correctamente.", "success");
+  } catch (error) {
+    dispatch({
+      type: UPDATE_LEASE_RENT_FAILURE,
+      payload: error.response?.data?.message || "Error al actualizar el monto del alquiler",
+    });
+
+    Swal.fire("Error", error.response?.data?.message || "No se pudo actualizar el monto del alquiler.", "error");
   }
 };

@@ -1,5 +1,5 @@
 const express = require('express');
-const { createLease, getLeasesByIdClient, getAllLeases, terminateLease, savePdf } = require('../controllers');
+const { createLease, getLeasesByIdClient, getLeaseById, getAllLeases, terminateLease, savePdf, updateRentAmount } = require('../controllers');
 const router = express.Router();
 
 // Add logging middleware
@@ -18,6 +18,8 @@ router.post('/savePdf', savePdf);
 // GET routes
 router.get('/client/:idClient', getLeasesByIdClient);
 router.get('/all', getAllLeases);
-router.put('/:leaseId/terminate', terminateLease); // Changed to PUT for terminating
+router.put('/:id/terminate', terminateLease); // Changed to PUT for terminating
+router.get('/:id', getLeaseById); // Added route to get lease by ID
+router.put('/leases/:id/rent', updateRentAmount) 
 
 module.exports = router;

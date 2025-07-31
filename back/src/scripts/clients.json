@@ -1,0 +1,31 @@
+[
+     {
+    "cuil": "20-34567890-6",
+    "name": "Carlos López",
+    "email": "carlos.lopez@example.com",
+    "direccion": "San Martín 456",
+    "ciudad": "Mendoza",
+    "provincia": "Mendoza",
+    "mobilePhone": "2613456789"
+  },
+  {
+    "cuil": "27-23456769-7",
+    "name": "Ana Martínez",
+    "email": "ana.martinez@example.com",
+    "direccion": "Mitre 789",
+    "ciudad": "Salta",
+    "provincia": "Salta",
+    "mobilePhone": "3874567890"
+  },
+ 
+  {
+    "cuil": "27-23456789-1",
+    "name": "María González",
+    "email": "maria.gonzalez@example.com",
+    "direccion": "Calle Belgrano 234",
+    "ciudad": "Rosario",
+    "provincia": "Santa Fe",
+    "mobilePhone": "3412345678"
+  }
+  
+]

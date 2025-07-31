@@ -1,6 +1,7 @@
-const { Lease, Property, Client, ClientProperty, PaymentReceipt, Garantor } = require('../data');
+const { Lease, Property, Client, ClientProperty, PaymentReceipt, Garantor, RentUpdate } = require('../data');
 const fs = require('fs');
 const path = require('path');
+const { Op } = require('sequelize');
 
 // Function to decode base64 string to buffer
 function decodeBase64(dataString) {
@@ -88,7 +89,7 @@ exports.savePdf = async (req, res) => {
     });
   }
 };
-0
+
 
 exports.createLease = async (req, res) => {
   try {
@@ -211,12 +212,38 @@ exports.createLease = async (req, res) => {
 };
 
 
+// Endpoint para obtener un contrato por leaseId
+exports.getLeaseById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const lease = await Lease.findOne({ id }); 
+    include: [
+                Property,
+                { model: PaymentReceipt, required: false },
+                { model: Garantor, required: false },
+                { model: Client, as: 'Tenant', attributes: ['name'] } ,
+                { model: Client, as: 'Landlord', attributes: ['name'] }]
+
+    if (!lease) {
+      return res.status(404).json({ message: "Contrato no encontrado" });
+    }
+    res.json(lease);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error al obtener el contrato" });
+  }
+}
+
+
+
+
+
 exports.terminateLease = async (req, res) => {
     try {
-        const { leaseId } = req.params;
+        const { id } = req.params;
 
         // Buscar el contrato de alquiler
-        const lease = await Lease.findByPk(leaseId);
+        const lease = await Lease.findByPk(id);
         if (!lease) {
             return res.status(404).json({ error: 'Contrato de alquiler no encontrado' });
         }
@@ -243,16 +270,172 @@ exports.getAllLeases = async (req, res) => {
   try {
     const leases = await Lease.findAll({
       include: [
-                Property,
-                { model: PaymentReceipt, required: false },
-                { model: Garantor, required: false },
-                { model: Client, as: 'Tenant', attributes: ['name'] } ,
-                { model: Client, as: 'Landlord', attributes: ['name'] }
-            ],
+        Property,
+        { model: PaymentReceipt, required: false },
+        { model: Garantor, required: false },
+        { model: Client, as: 'Tenant', attributes: ['name'] },
+        { model: Client, as: 'Landlord', attributes: ['name'] }
+      ],
     });
-    res.status(200).json(leases);
+
+    const leasesWithNextUpdate = leases.map(lease => ({
+      ...lease.toJSON(),
+      nextUpdateDate: getNextUpdateDate(lease.startDate, lease.updateFrequency, lease.updatedAt)
+    }));
+
+    res.status(200).json(leasesWithNextUpdate); // <-- Devuelve los leases CON nextUpdateDate
   } catch (error) {
     console.error("Error al obtener contratos:", error);
     res.status(500).json({ error: "Error al obtener contratos", details: error.message });
+  }
+};
+
+exports.checkPendingPayments = async (req, res) => {
+  try {
+    const today = new Date();
+    const currentMonth = today.getMonth() + 1; // Mes actual (1-12)
+    const currentYear = today.getFullYear();
+
+    // Buscar contratos activos
+    const activeLeases = await Lease.findAll({
+      where: { status: { [Op.ne]: 'terminated' } }, // Contratos que no están terminados
+      include: [
+        {
+          model: PaymentReceipt,
+          required: false,
+          where: {
+            [Op.and]: [
+              { periodMonth: currentMonth },
+              { periodYear: currentYear },
+            ],
+          },
+        },
+        { model: Client, as: 'Tenant', attributes: ['name'] },
+        { model: Client, as: 'Landlord', attributes: ['name'] },
+      ],
+    });
+
+    // Filtrar contratos que no tienen pagos registrados para el mes actual
+    const pendingPayments = activeLeases.filter(
+      (lease) => lease.PaymentReceipts.length === 0
+    );
+
+    if (pendingPayments.length === 0) {
+      return res.status(200).json({ message: 'No hay pagos pendientes.' });
+    }
+
+    res.status(200).json({
+      message: 'Pagos pendientes encontrados.',
+      pendingPayments: pendingPayments.map((lease) => ({
+        leaseId: lease.id,
+        tenantName: lease.Tenant.name,
+        landlordName: lease.Landlord.name,
+        propertyId: lease.propertyId,
+        rentAmount: lease.rentAmount,
+      })),
+    });
+  } catch (error) {
+    console.error('Error al verificar pagos pendientes:', error);
+    res.status(500).json({
+      error: 'Error al verificar pagos pendientes.',
+      details: error.message,
+    });
+  }
+};
+
+function calculateUpdatePeriod(startDate, updateFrequency, updateDate) {
+  const start = new Date(startDate);
+  const update = new Date(updateDate);
+  let monthsSinceStart = (update.getFullYear() - start.getFullYear()) * 12;
+  monthsSinceStart -= start.getMonth();
+  monthsSinceStart += update.getMonth();
+
+  let period = '';
+  switch (updateFrequency) {
+      case 'semestral':
+          const semester = Math.floor(monthsSinceStart / 6) + 1;
+          period = `Semestre ${semester}`;
+          break;
+      case 'cuatrimestral':
+          const trimester = Math.floor(monthsSinceStart / 4) + 1;
+          period = `Cuatrimestre ${trimester}`;
+          break;
+      case 'anual':
+          const year = Math.floor(monthsSinceStart / 12) + 1;
+          period = `Año ${year}`;
+          break;
+      default:
+          period = 'Desconocido';
+  }
+  return period;
+}
+
+function getNextUpdateDate(startDate, updateFrequency, updatedAt) {
+  let freqMonths = 0;
+  if (updateFrequency === 'semestral') freqMonths = 6;
+  else if (updateFrequency === 'cuatrimestral') freqMonths = 4;
+  else if (updateFrequency === 'anual') freqMonths = 12;
+
+  const baseDate = updatedAt ? new Date(updatedAt) : new Date(startDate);
+  let nextUpdate = new Date(baseDate);
+
+  while (nextUpdate <= new Date()) {
+    nextUpdate.setMonth(nextUpdate.getMonth() + freqMonths);
+  }
+  return nextUpdate;
+}
+
+exports.updateRentAmount = async (req, res) => {
+  try {
+      const { id } = req.params;
+      const { newRentAmount, updateDate, pdfData, fileName } = req.body; // Recibe newRentAmount, updateDate, pdfData y fileName
+
+      if (!newRentAmount || !updateDate || !pdfData || !fileName) {
+          return res.status(400).json({ error: 'El nuevo monto de alquiler, la fecha de actualización, el PDF y el nombre del archivo son obligatorios.' });
+      }
+
+      const lease = await Lease.findByPk(id);
+
+      if (!lease) {
+          return res.status(404).json({ error: 'Contrato no encontrado.' });
+      }
+
+      const oldRentAmount = lease.rentAmount;
+
+      // Calcula el período de actualización
+      const period = calculateUpdatePeriod(lease.startDate, lease.updateFrequency, updateDate);
+
+      // Define the path where the PDF will be saved
+      const pdfDirectory = path.join(__dirname, '../../pdfs');
+      if (!fs.existsSync(pdfDirectory)) {
+          fs.mkdirSync(pdfDirectory, { recursive: true });
+      }
+      const filePath = path.join(pdfDirectory, fileName);
+
+      // Decode base64 string
+      const buffer = decodeBase64(pdfData);
+
+      // Guardar el PDF en el sistema de archivos
+      fs.writeFileSync(filePath, buffer);
+
+      // Crear el registro en el modelo RentUpdate
+      await RentUpdate.create({
+          leaseId: id,
+          updateDate: updateDate,
+          oldRentAmount: oldRentAmount,
+          newRentAmount: newRentAmount,
+          period: period,
+          pdfPath: filePath,
+      });
+
+      // Actualizar el monto del alquiler en el modelo Lease
+      lease.rentAmount = newRentAmount;
+      await lease.save();
+
+      res.status(200).json({ message: 'Monto de alquiler actualizado con éxito.', lease });
+
+  } catch (error) {
+      console.error('Error al actualizar el monto del alquiler:', error);
+      res.status(500).json({ error: 'Error al actualizar el monto del alquiler.', details: error.message });
   }
 };

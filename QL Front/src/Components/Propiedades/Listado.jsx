@@ -119,67 +119,72 @@ const Listado = () => {
           </tr>
         </thead>
         <tbody>
-          {paginatedProperties.map((property) => (
-            <tr key={property.propertyId} className="hover:bg-gray-100">
-              <td className="border px-4 py-2">{property.propertyId}</td>
-              <td className="border px-4 py-2">
-                {editingId === property.propertyId ? (
-                  <>
-                    <input
-                      className="border px-2 py-1"
-                      value={formData.address || ""}
-                      onChange={(e) => handleInputChange("address", e.target.value)}
-                    />
-                    {errors.address && <p className="text-red-500 text-sm">{errors.address}</p>}
-                  </>
-                ) : (
-                  property.address
-                )}
-              </td>
-              <td className="border px-4 py-2">
-                {editingId === property.propertyId ? (
-                  <>
-                    <input
-                      className="border px-2 py-1"
-                      value={formData.neighborhood || ""}
-                      onChange={(e) => handleInputChange("neighborhood", e.target.value)}
-                    />
-                    {errors.neighborhood && <p className="text-red-500 text-sm">{errors.neighborhood}</p>}
-                  </>
-                ) : (
-                  property.neighborhood
-                )}
-              </td>
-              <td className="border px-4 py-2">
-                {editingId === property.propertyId ? (
-                  <>
-                    <input
-                      className="border px-2 py-1"
-                      value={formData.price || ""}
-                      onChange={(e) => handleInputChange("price", e.target.value)}
-                    />
-                    {errors.price && <p className="text-red-500 text-sm">{errors.price}</p>}
-                  </>
-                ) : (
-                  `$${property.price}`
-                )}
-              </td>
-              <td className="border px-4 py-2">
-          {property.Clients.length > 0 ? (
-            property.Clients.map((client) => (
-              <div key={client.idClient}>
-                {client.name} ({client.ClientProperty.role})
-              </div>
-            ))
-          ) : (
-            <span>No asignado</span>
-          )}
-        </td>
-
-              <td className="border px-4 py-2 flex gap-2">
-                {editingId === property.propertyId ? (
-                  <>
-                    <button className="bg-blue-500 text-white px-3 py-1 rounded" onClick={handleSave}>
+  {paginatedProperties.map((property) => (
+    <tr
+      key={property.propertyId}
+      className="hover:bg-gray-100"
+      style={{
+        backgroundColor: property.isAvailable ? "#bbf7d0" : "#f87171" // verde si disponible, rojo si no
+      }}
+    >
+      <td className="border px-4 py-2">{property.propertyId}</td>
+      <td className="border px-4 py-2">
+        {editingId === property.propertyId ? (
+          <>
+            <input
+              className="border px-2 py-1"
+              value={formData.address || ""}
+              onChange={(e) => handleInputChange("address", e.target.value)}
+            />
+            {errors.address && <p className="text-red-500 text-sm">{errors.address}</p>}
+          </>
+        ) : (
+          property.address
+        )}
+      </td>
+      <td className="border px-4 py-2">
+        {editingId === property.propertyId ? (
+          <>
+            <input
+              className="border px-2 py-1"
+              value={formData.neighborhood || ""}
+              onChange={(e) => handleInputChange("neighborhood", e.target.value)}
+            />
+            {errors.neighborhood && <p className="text-red-500 text-sm">{errors.neighborhood}</p>}
+          </>
+        ) : (
+          property.neighborhood
+        )}
+      </td>
+      <td className="border px-4 py-2">
+        {editingId === property.propertyId ? (
+          <>
+            <input
+              className="border px-2 py-1"
+              value={formData.price || ""}
+              onChange={(e) => handleInputChange("price", e.target.value)}
+            />
+            {errors.price && <p className="text-red-500 text-sm">{errors.price}</p>}
+          </>
+        ) : (
+          `$${property.price}`
+        )}
+      </td>
+      <td className="border px-4 py-2">
+        {property.Clients.length > 0 ? (
+          property.Clients.map((client) => (
+            <div key={client.idClient}>
+              {client.name} ({client.ClientProperty.role})
+            </div>
+          ))
+        ) : (
+          <span>No asignado</span>
+        )}
+      </td>
+      <td className="border px-4 py-2 flex gap-2">
+        {editingId === property.propertyId ? (
+          <>
+            <button className="bg-blue-500 text-white px-3 py-1 rounded" onClick={handleSave}>
                       Guardar
                     </button>
                     <button

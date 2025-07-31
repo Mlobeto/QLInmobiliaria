@@ -4,21 +4,27 @@ import { getPaymentsByLeaseId } from '../../redux/Actions/actions';
 
 const PaymentList = () => {
   const dispatch = useDispatch();
-  // Supongamos que en el state los pagos están en state.payments o en state.paymentCreate (ajusta según corresponda)
   const payments = useSelector(state => state.payments) || [];
   const loading = useSelector(state => state.loading);
   const error = useSelector(state => state.error);
 
   // Estado para filtro: puede ser contrato (leaseId) o nombre de tenant.
   const [filter, setFilter] = useState('');
+  const [leaseIdInput, setLeaseIdInput] = useState('');
 
+  // Solo consulta pagos cuando leaseIdInput tiene valor
   useEffect(() => {
-    // Ejemplo: obtén los pagos para el contrato con id 1; luego se puede generalizar
-    dispatch(getPaymentsByLeaseId(1));
-  }, [dispatch]);
+    if (leaseIdInput) {
+      dispatch(getPaymentsByLeaseId(leaseIdInput));
+    }
+  }, [dispatch, leaseIdInput]);
 
   const handleFilterChange = (e) => {
     setFilter(e.target.value);
+  };
+
+  const handleLeaseIdChange = (e) => {
+    setLeaseIdInput(e.target.value);
   };
 
   const filteredPayments = payments.filter(payment =>
@@ -29,13 +35,20 @@ const PaymentList = () => {
   return (
     <div className="max-w-4xl mx-auto p-4">
       <h1 className="text-2xl font-bold mb-4">Listado de Pagos</h1>
-      <div className="mb-4">
+      <div className="mb-4 flex gap-2">
+        <input
+          type="number"
+          value={leaseIdInput}
+          onChange={handleLeaseIdChange}
+          placeholder="Buscar por ID de contrato"
+          className="border border-gray-300 rounded p-2 w-1/2"
+        />
         <input
           type="text"
           value={filter}
           onChange={handleFilterChange}
           placeholder="Filtrar por contrato o nombre del tenant"
-          className="border border-gray-300 rounded p-2 w-full"
+          className="border border-gray-300 rounded p-2 w-1/2"
         />
       </div>
 

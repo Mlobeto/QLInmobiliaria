@@ -1,0 +1,91 @@
+[
+  {
+    "address": "Av. Rivadavia 1234",
+    "neighborhood": "Caballito",
+    "socio": "InmoCaballito",
+    "city": "CABA",
+    "type": "alquiler",
+    "typeProperty": "departamento",
+    "price": 220000,
+    "rooms": 3,
+    "comision": 2.5,
+    "isAvailable": true,
+    "description": "Departamento de 3 ambientes con excelente iluminación, cocina separada y balcón al frente.",
+    "escritura": "escritura",
+    "images": [
+      "https://example.com/propiedad1_1.jpg",
+      "https://example.com/propiedad1_2.jpg"
+    ],
+    "bathrooms": 1,
+    "highlights": "A metros del subte A, bajas expensas, aire acondicionado incluido.",
+    "inventory": "- Cocina a gas\n- Termotanque eléctrico\n- 1 placard empotrado\n- Lámparas en todos los ambientes",
+    "superficieCubierta": "65 m²",
+    "superficieTotal": "70 m²"
+  },
+  {
+    "address": "Calle Las Heras 456",
+    "neighborhood": "Centro",
+    "socio": "InmoMendoza",
+    "city": "Mendoza",
+    "type": "venta",
+    "typeProperty": "casa",
+    "price": 72000,
+    "rooms": 4,
+    "comision": 3,
+    "isAvailable": true,
+    "description": "Casa en lote propio de 3 dormitorios, living comedor amplio, patio y cochera.",
+    "escritura": "prescripcion adjudicada",
+    "images": [
+      "https://example.com/propiedad2_1.jpg"
+    ],
+    "bathrooms": 2,
+    "highlights": "Ideal familia. Zona tranquila. Cercano a colegios y espacios verdes.",
+    "inventory": "- Termotanque 80L\n- Cocina de acero inoxidable\n- Mueble bajo mesada\n- Portón corredizo",
+    "superficieCubierta": "110 m²",
+    "superficieTotal": "200 m²"
+  },
+  {
+    "address": "Ruta 5 Km 12",
+    "neighborhood": "Zona Rural",
+    "socio": "Campos SRL",
+    "city": "Córdoba",
+    "type": "venta",
+    "typeProperty": "finca",
+    "price": 150000,
+    "rooms": 5,
+    "comision": 2,
+    "isAvailable": true,
+    "description": "Finca con casa principal, galpón y plantación de nogales en producción.",
+    "escritura": "posesion",
+    "images": [],
+    "bathrooms": 1,
+    "highlights": "Ideal emprendimiento agropecuario. Acceso desde ruta asfaltada.",
+    "inventory": "- Galpón de 60 m²\n- Sistema de riego por goteo\n- Casa con instalación eléctrica trifásica",
+    "superficieCubierta": "130 m²",
+    "superficieTotal": "4 ha",
+    "plantType": "nogales",
+    "plantQuantity": 320
+  },
+  {
+    "address": "San Martín 789",
+    "neighborhood": "Centro",
+    "socio": null,
+    "city": "San Juan",
+    "type": "alquiler",
+    "typeProperty": "local",
+    "price": 400000,
+    "rooms": 1,
+    "comision": 5,
+    "isAvailable": false,
+    "description": "Local comercial con vidriera a la calle, baño privado y entrepiso para depósito.",
+    "escritura": "escritura",
+    "images": [
+      "https://example.com/propiedad4_1.jpg"
+    ],
+    "bathrooms": 1,
+    "highlights": "Ideal rubro indumentaria, excelente visibilidad en zona de alto tránsito.",
+    "inventory": "- Aire acondicionado\n- Estanterías\n- Sistema de alarma",
+    "superficieCubierta": "40 m²",
+    "superficieTotal": "45 m²"
+  }
+]

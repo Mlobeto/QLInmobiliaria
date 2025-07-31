@@ -86,17 +86,17 @@ const PropiedadesPDF = ({ property }) => {
     const startYText = 10 + rowsOfImages * (imageHeight + spaceBetweenImages);
 
     // Agregar líneas de texto comenzando desde la posición calculada
-    doc.text(`- Dirección: ${property.address}`, 10, startYText + 10);
-    doc.text(`- Barrio: ${property.neighborhood}`, 10, startYText + 20);
-    doc.text(`- Ciudad: ${property.city}`, 10, startYText + 30);
-    doc.text(`- Precio: $${property.price}`, 10, startYText + 40);
-    doc.text(`- Tipo: ${property.type}`, 10, startYText + 50);
-    doc.text(`- Tipo de Propiedad: ${property.typeProperty}`, 10, startYText + 60);
-    doc.text(`- Habitaciones: ${property.rooms || "N/A"}`, 10, startYText + 70);
-    doc.text(`- Superficie Cubierta: ${property.superficieCubierta || "N/A"}`, 10, startYText + 80);
-    doc.text(`- Superficie Total: ${property.SuperficieTotal || "N/A"}`, 10, startYText + 90);
-    doc.text(`- Baños: ${property.bathrooms || "N/A"}`, 10, startYText + 100);
-    doc.text(`- Descripción: ${property.description || "N/A"}`, 10, startYText + 110);
+    doc.text(`- Dirección: ${property.address}`, 10, startYText + 20);
+    doc.text(`- Barrio: ${property.neighborhood}`, 10, startYText + 30);
+    doc.text(`- Ciudad: ${property.city}`, 10, startYText + 40);
+    doc.text(`- Precio: $${property.price}`, 10, startYText + 50);
+    doc.text(`- Tipo: ${property.type}`, 10, startYText + 60);
+    doc.text(`- Tipo de Propiedad: ${property.typeProperty}`, 10, startYText + 70);
+    doc.text(`- Habitaciones: ${property.rooms || "N/A"}`, 10, startYText + 80);
+    doc.text(`- Superficie Cubierta: ${property.superficieCubierta || "N/A"}`, 10, startYText + 90);
+    doc.text(`- Superficie Total: ${property.SuperficieTotal || "N/A"}`, 10, startYText + 100);
+    doc.text(`- Baños: ${property.bathrooms || "N/A"}`, 10, startYText + 110);
+    doc.text(`- Descripción: ${property.description || "N/A"}`, 10, startYText + 120);
 
     // Descargar el PDF
     doc.save(`Propiedad-${property.propertyId}.pdf`);

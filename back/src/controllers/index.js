@@ -7,7 +7,7 @@ const PropertyController = require ("./PropertyController")
 const garantorController = require ("./garantorController")
 const addPropertyToClientController = require('./addPropertyToClientController');
 const createSaleAuthorization = require('./createSaleAuthorization');
-const getAllLeases = require("./LeaseController");
+
 
 console.log('Ruta actual:', __dirname);
 console.log('Contenido de la carpeta controllers:', require('fs').readdirSync('./src/controllers'));
@@ -26,6 +26,9 @@ module.exports = {
   createLease: catchedAsync(LeaseController.createLease),
   savePdf: catchedAsync(LeaseController.savePdf),
   getLeasesByIdClient: catchedAsync(LeaseController.getLeasesByIdClient),
+  getLeaseById: catchedAsync(LeaseController.getLeaseById),
+  updateRentAmount: catchedAsync(LeaseController.updateRentAmount),
+  getPaymentsByLease:catchedAsync(LeaseController.getPaymentsByLease),
   terminateLease: catchedAsync(LeaseController.terminateLease),
   createPayment: catchedAsync(PaymentController.  createPayment) ,
   getPaymentsByIdClient: catchedAsync(PaymentController.getPaymentsByIdClient),

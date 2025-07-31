@@ -73,6 +73,12 @@ import {
   GET_GUARANTORS_REQUEST,
   GET_GUARANTORS_SUCCESS,
   GET_GUARANTORS_FAIL,
+  GET_LEASE_REQUEST,
+  GET_LEASE_SUCCESS,
+  GET_LEASE_FAILURE,
+  UPDATE_LEASE_RENT_REQUEST,
+  UPDATE_LEASE_RENT_SUCCESS,
+  UPDATE_LEASE_RENT_FAILURE
 
 
 } from "../Actions/actions-types";
@@ -551,6 +557,37 @@ const rootReducer = (state = initialState, action) => {
         loading: false,
         error: action.payload,
       };
+
+ 
+      case GET_LEASE_REQUEST:
+            return { ...state, loading: true, error: null };
+          case GET_LEASE_SUCCESS:
+            return { ...state, loading: false, lease: action.payload };
+          case GET_LEASE_FAILURE:
+            return { ...state, loading: false, error: action.payload };
+  
+            case UPDATE_LEASE_RENT_REQUEST:
+              return {
+                ...state,
+                loading: true,
+                error: null,
+              };
+            case UPDATE_LEASE_RENT_SUCCESS:
+              return {
+                ...state,
+                loading: false,
+                leases: state.leases.map((lease) =>
+                  lease.id === action.payload.lease.id ? action.payload.lease : lease
+                ),
+              };
+            case UPDATE_LEASE_RENT_FAILURE:
+              return {
+                ...state,
+                loading: false,
+                error: action.payload,
+              };
+          
+      
 
         
 
