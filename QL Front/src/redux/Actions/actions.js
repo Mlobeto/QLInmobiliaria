@@ -98,16 +98,18 @@ export const createClient = (clientData) => async (dispatch) => {
   dispatch({ type: CREATE_CLIENT_REQUEST });
 
   try {
-    await axios.post(`/client`, clientData, {
+    const response = await axios.post(`/client`, clientData, {
       headers: {
         "Content-Type": "application/json",
       },
     });
 
-    dispatch({ type: CREATE_CLIENT_SUCCESS });
+    dispatch({ type: CREATE_CLIENT_SUCCESS, payload: response.data });
+    return response.data; // Devuelve el cliente creado
   } catch (error) {
     const errorMessage = error.response?.data?.details || error.message;
     dispatch({ type: CREATE_CLIENT_FAILURE, payload: errorMessage });
+    throw errorMessage; // Lanza el error para que el componente lo maneje
   }
 };
   
