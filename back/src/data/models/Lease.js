@@ -3,13 +3,13 @@ const { DataTypes } = require("sequelize");
 module.exports = (sequelize) => {
   sequelize.define(
     "Lease",
-    { 
+    {
       propertyId: {
         type: DataTypes.INTEGER,
         allowNull: false,
         references: {
           model: "Property",
-          key: "propertyId",  // O el PK que uses en el modelo Property
+          key: "propertyId", // ✅ Esto está correcto según tu modelo Property
         },
       },
       landlordId: {
@@ -40,6 +40,10 @@ module.exports = (sequelize) => {
       },
       updateFrequency: {
         type: DataTypes.ENUM("semestral", "cuatrimestral", "anual"),
+        allowNull: true, // ← Agregar esta línea
+        validate: {
+          isIn: [["semestral", "cuatrimestral", "anual"]], // ← Validación adicional
+        },
       },
       commission: {
         type: DataTypes.DECIMAL,

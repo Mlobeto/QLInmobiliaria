@@ -71,7 +71,7 @@ Property.belongsToMany(Client, { through: ClientProperty, foreignKey: 'propertyI
 // 2. Relaciones para Lease
 // Relación con Property: Cada contrato (Lease) está asociado a una propiedad
 Lease.belongsTo(Property, { foreignKey: 'propertyId' });
-Property.hasOne(Lease, { foreignKey: 'propertyId' });
+Property.hasMany(Lease, { foreignKey: 'propertyId' }); // Una propiedad puede tener múltiples contratos
 
 // Relación del contrato con el propietario (landlord)
 // Se usa el alias "Landlord" para identificar al cliente que es propietario
