@@ -1,7 +1,7 @@
 const { DataTypes } = require("sequelize");
 
 module.exports = (sequelize) => {
-  sequelize.define(
+  return sequelize.define(
     "Property",
     {
       propertyId: {
@@ -18,10 +18,9 @@ module.exports = (sequelize) => {
         type: DataTypes.STRING,
       },
       socio:{
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-      
+        type: DataTypes.STRING,
+        allowNull: true,
+      },
       city: {
         type: DataTypes.STRING,
       },
@@ -46,30 +45,27 @@ module.exports = (sequelize) => {
         type: DataTypes.DECIMAL,
         allowNull: false,
         validate: {
-          min: 0, // Precio no puede ser negativo
+          min: 0,
         },
       },
       rooms: {
         type: DataTypes.INTEGER,
         validate: {
-          min: 0, // Número mínimo de habitaciones
+          min: 0,
         },
       },
-
       comision: {
         type: DataTypes.DECIMAL,
         allowNull: false,
         validate: {
-          min: 0, // No puede ser menor al 0%
-          max: 100, // No puede ser mayor al 100%
+          min: 0,
+          max: 100,
         },
       },
-
       isAvailable: {
         type: DataTypes.BOOLEAN,
-        defaultValue: true, // Por defecto, la propiedad está disponible
+        defaultValue: true,
       },
-
       description: {
         type: DataTypes.TEXT,
       },
@@ -82,7 +78,6 @@ module.exports = (sequelize) => {
         ),
         allowNull: false,
       },
-
       images: {
         type: DataTypes.ARRAY(DataTypes.STRING),
         defaultValue: [],
@@ -90,13 +85,13 @@ module.exports = (sequelize) => {
       },
       plantType: {
         type: DataTypes.STRING,
-        allowNull: true, // Solo aplicable para fincas
+        allowNull: true,
       },
       plantQuantity: {
         type: DataTypes.INTEGER,
-        allowNull: true, // Solo aplicable para fincas
+        allowNull: true,
         validate: {
-          min: 0, // No puede ser negativo
+          min: 0,
         },
       },
       bathrooms: {
@@ -113,16 +108,13 @@ module.exports = (sequelize) => {
         type: DataTypes.STRING,
         allowNull: true,
       },
-      
       superficieTotal:{
         type: DataTypes.STRING,
         allowNull: true,
       },
-      
-      
     },
     {
-      freezeTableName: true,
+      tableName: "Properties", // ← AGREGAR ESTA LÍNEA
       paranoid: true,
     }
   );
