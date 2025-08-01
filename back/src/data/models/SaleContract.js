@@ -31,7 +31,7 @@ module.exports = (sequelize) => {
       // Vendedor de la propiedad
       type: DataTypes.INTEGER,
       references: {
-        model: 'Client',
+        model: 'Clients',
         key:'idClient',
       },
       allowNull: false,
@@ -40,7 +40,7 @@ module.exports = (sequelize) => {
       // Comprador
       type: DataTypes.INTEGER,
       references: {
-        model: 'Client',
+        model: 'Clients',
         key:'idClient',
       },
       allowNull: false,
