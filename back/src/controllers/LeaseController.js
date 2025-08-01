@@ -303,13 +303,28 @@ exports.createLease = async (req, res) => {
     console.log('Tenant en BD (raw query):', rawTenantCheck);
 
     // Verificar si hay conflicto de constraints
-    const constraintProblems = constraintsQuery.filter(c => 
-      c.foreign_table_name !== 'Clients' || c.foreign_column_name !== 'idClient'
+    const constraintProblems = constraintsQuery.filter(c => {
+      // Verificar si apunta a tablas incorrectas o hay duplicados
+      if (c.column_name === 'landlordId' || c.column_name === 'tenantId') {
+        return c.foreign_table_name !== 'Clients' || c.foreign_column_name !== 'idClient';
+      }
+      if (c.column_name === 'propertyId') {
+        // Aceptar tanto 'Property' como 'Properties' pero verificar que la tabla tenga datos
+        return !['Property', 'Properties'].includes(c.foreign_table_name) || c.foreign_column_name !== 'propertyId';
+      }
+      return false;
+    });
+
+    // También verificar si hay constraints duplicados
+    const constraintNames = constraintsQuery.map(c => c.constraint_name);
+    const duplicatedConstraints = constraintNames.filter((name, index) => 
+      constraintNames.indexOf(name) !== index
     );
-    
-    if (constraintProblems.length > 0) {
+
+    if (constraintProblems.length > 0 || duplicatedConstraints.length > 0) {
       console.log('=== PROBLEMA DE CONSTRAINTS DETECTADO ===');
       console.log('Constraints problemáticos:', constraintProblems);
+      console.log('Constraints duplicados:', duplicatedConstraints);
       
       // Intentar arreglar los constraints automáticamente
       try {
@@ -360,6 +375,51 @@ exports.createLease = async (req, res) => {
     });
 
     console.log('=== CONTRATO CREADO EXITOSAMENTE ===');
+
+    // Intentar asignar rol de inquilino automáticamente (opcional)
+    try {
+      console.log('Verificando rol de inquilino automático...');
+      
+      const existingTenantRole = await ClientProperty.findOne({
+        where: { 
+          clientId: parsedData.tenantId, 
+          propertyId: parsedData.propertyId, 
+          role: 'inquilino' 
+        }
+      });
+
+      if (!existingTenantRole) {
+        console.log('Creando rol de inquilino automáticamente...');
+        await ClientProperty.create({
+          clientId: parsedData.tenantId,
+          propertyId: parsedData.propertyId,
+          role: 'inquilino'
+        });
+        console.log('✅ Rol de inquilino asignado exitosamente');
+      } else {
+        console.log('ℹ️ El inquilino ya tiene rol asignado para esta propiedad');
+      }
+    } catch (roleError) {
+      console.warn('⚠️ Warning: No se pudo asignar rol de inquilino automáticamente:', roleError.message);
+      // No hacemos throw del error - es solo una advertencia
+      // El contrato ya se creó exitosamente, esto es opcional
+    }
+
+    // Verificar todos los roles actuales para debugging
+    try {
+      const allRoles = await ClientProperty.findAll({
+        where: { propertyId: parsedData.propertyId },
+        include: [{ model: Client, attributes: ['name', 'idClient'] }]
+      });
+      console.log('Todos los roles para la propiedad después del contrato:', allRoles.map(r => ({
+        clientId: r.Client.idClient,
+        clientName: r.Client.name,
+        role: r.role
+      })));
+    } catch (debugError) {
+      console.warn('Error obteniendo roles para debugging:', debugError.message);
+    }
+
     res.status(201).json(fullLease);
 
   } catch (error) {
@@ -390,6 +450,15 @@ exports.createLease = async (req, res) => {
       } else if (error.constraint && error.constraint.includes('property')) {
         fieldName = 'propiedad';
         suggestion = 'Verifica que el ID de la propiedad sea correcto y que la propiedad exista en la base de datos.';
+      } else if (error.parent?.detail && error.parent.detail.includes('propertyId')) {
+        fieldName = 'propiedad';
+        suggestion = 'La propiedad especificada no existe en la tabla correcta. Se detectaron tablas duplicadas de Properties.';
+      } else if (error.parent?.detail && error.parent.detail.includes('landlordId')) {
+        fieldName = 'propietario';
+        suggestion = 'El propietario especificado no existe en la tabla correcta.';
+      } else if (error.parent?.detail && error.parent.detail.includes('tenantId')) {
+        fieldName = 'inquilino';
+        suggestion = 'El inquilino especificado no existe en la tabla correcta.';
       }
       
       return res.status(400).json({ 

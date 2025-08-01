@@ -6,17 +6,17 @@ import {
   getLeaseById,
   updateLeaseRentAmount,
 } from "../../redux/Actions/actions";
-import ContratoAlquiler from "../PdfTemplates/ContratoAlquiler"; // Asegúrate de que la ruta sea correcta
-import html2pdf from "html2pdf.js"; // Instala esta biblioteca si no la tienes
+import ContratoAlquiler from "../PdfTemplates/ContratoAlquiler";
+import html2pdf from "html2pdf.js";
 import ActualizarAlquileres from "./ActualizarAlquileres";
 import { getUpdateAlert } from "./ContractAlerts";
 
 const EstadoContratos = () => {
   const dispatch = useDispatch();
-  const { leases, loading, error } = useSelector((state) => state);
+  const { leases, lease, loading, error } = useSelector((state) => state); // ← Agregar 'lease' al useSelector
   const [editingLeaseId, setEditingLeaseId] = useState(null);
   const [editedLease, setEditedLease] = useState({});
-  const [selectedLease, setSelectedLease] = useState(null); // Nuevo estado
+  const [selectedLease, setSelectedLease] = useState(null);
 
   useEffect(() => {
     console.log("Leases en componente:", leases);
@@ -37,42 +37,53 @@ const EstadoContratos = () => {
   };
 
   const handleSaveClick = (leaseId) => {
-    // Aquí podrías despachar una acción para actualizar el contrato
     console.log("Guardando contrato", leaseId, editedLease);
     dispatch(updateLeaseRentAmount(leaseId, editedLease.rentAmount));
-    // Luego de salvar, salen del modo edición:
     setEditingLeaseId(null);
   };
 
-  const handleDownloadClick = async (leaseId) => {
-    await dispatch(getLeaseById(leaseId)); // Obtener el contrato actualizado
-    const lease = store.getState().lease; // Asegúrate de acceder al estado correcto
+ const handleDownloadClick = async (leaseId) => {
+  try {
+    await dispatch(getLeaseById(leaseId));
+    
+    setTimeout(() => {
+      const currentLease = lease;
+      
+      if (!currentLease) {
+        console.error('No se pudo obtener el contrato');
+        return;
+      }
 
-    const element = document.createElement("div");
-    document.body.appendChild(element);
+      console.log('Generando PDF para contrato:', currentLease);
 
-    const root = ReactDOM.createRoot(element);
-    root.render(<ContratoAlquiler lease={lease} />);
+      // Crear el componente y generar automáticamente
+      const element = document.createElement("div");
+      document.body.appendChild(element);
 
-    html2pdf()
-      .from(element)
-      .save(`Contrato_${leaseId}.pdf`)
-      .then(() => {
+      const root = ReactDOM.createRoot(element);
+      root.render(<ContratoAlquiler lease={currentLease} autoGenerate={true} />);
+
+      // Limpiar después de un momento
+      setTimeout(() => {
         root.unmount();
         document.body.removeChild(element);
-      });
-  };
+      }, 1000);
+      
+    }, 100);
+    
+  } catch (error) {
+    console.error('Error obteniendo contrato:', error);
+  }
+};
 
   const handleSelectLease = (lease) => {
     setSelectedLease(lease);
   };
 
   const handleUpdateLease = async (id, rentAmount, pdfData, fileName) => {
-    // Aquí llamas a tu acción de Redux para actualizar el contrato
-    // Asegúrate de que tu acción pueda manejar la subida del PDF
     console.log("Actualizando contrato", id, rentAmount, pdfData, fileName);
     // await dispatch(updateLease(id, rentAmount, pdfData, fileName));
-    setSelectedLease(null); // Limpiar selección después de actualizar
+    setSelectedLease(null);
   };
 
   return (
@@ -84,7 +95,6 @@ const EstadoContratos = () => {
         <table className="min-w-full bg-white shadow rounded-lg">
           <thead className="bg-blue-600 text-white">
             <tr>
-              {/* Ahora la primera columna muestra el nombre del inquilino */}
               <th className="py-2 px-4">Inquilino</th>
               <th className="py-2 px-4">Propiedad</th>
               <th className="py-2 px-4">Propietario</th>
@@ -94,7 +104,7 @@ const EstadoContratos = () => {
               <th className="py-2 px-4">Próxima Actualización</th>
               <th className="py-2 px-4">Meses Totales</th>
               <th className="py-2 px-4">Acciones</th>
-              <th className="py-2 px-4">Seleccionar</th> {/* Nueva columna */}
+              <th className="py-2 px-4">Seleccionar</th>
             </tr>
           </thead>
           <tbody>
@@ -106,11 +116,9 @@ const EstadoContratos = () => {
                     key={lease.leaseId || lease.id}
                     className="border-b hover:bg-gray-100 transition"
                   >
-                    {/* Mostrar el nombre del inquilino obtenido de Tenant */}
                     <td className="py-2 px-4">
                       {lease.Tenant ? lease.Tenant.name : lease.tenantId}
                     </td>
-                    {/* Mostrar la dirección de la propiedad */}
                     <td className="py-2 px-4">
                       {editingLeaseId === (lease.leaseId || lease.id) ? (
                         <input
@@ -139,7 +147,6 @@ const EstadoContratos = () => {
                         lease.landlordId
                       )}
                     </td>
-                    {/* Se añade una columna extra para mostrar el id del contrato */}
                     <td className="py-2 px-4">{lease.leaseId || lease.id}</td>
                     <td className="py-2 px-4">
                       {editingLeaseId === (lease.leaseId || lease.id) ? (
@@ -179,9 +186,9 @@ const EstadoContratos = () => {
                           const nextUpdate = new Date(lease.nextUpdateDate);
                           const diffDays =
                             (nextUpdate - new Date()) / (1000 * 60 * 60 * 24);
-                          if (diffDays < 0) return "#f87171"; // rojo: vencida
-                          if (diffDays >= 15) return "#fde68a"; // amarillo: próxima
-                          return "#bbf7d0"; // verde: lejos
+                          if (diffDays < 0) return "#f87171";
+                          if (diffDays >= 15) return "#fde68a";
+                          return "#bbf7d0";
                         })(),
                       }}
                     >
@@ -235,8 +242,7 @@ const EstadoContratos = () => {
                       >
                         Seleccionar
                       </button>
-                    </td>{" "}
-                    {/* Nueva celda */}
+                    </td>
                   </tr>
                 );
               })}

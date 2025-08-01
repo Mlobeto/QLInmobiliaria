@@ -593,7 +593,7 @@ export const getGarantorsByLeaseId = (leaseId) => async (dispatch) => {
 export const getLeaseById = (leaseId) => async (dispatch) => {
   try {
     dispatch({ type: GET_LEASE_REQUEST });
-    const { data } = await axios.get(`/api/leases/${leaseId}`);
+    const { data } = await axios.get(`/lease/${leaseId}`);
     dispatch({ type: GET_LEASE_SUCCESS, payload: data });
   } catch (error) {
     dispatch({
@@ -607,7 +607,7 @@ export const updateLeaseRentAmount = (leaseId, newRentAmount, updateDate, pdfDat
   try {
     dispatch({ type: UPDATE_LEASE_RENT_REQUEST });
 
-    const response = await axios.put(`/leases/${leaseId}/rent`, {
+    const response = await axios.put(`/lease/${leaseId}/rent`, {
       newRentAmount,
       updateDate,
       pdfData,
