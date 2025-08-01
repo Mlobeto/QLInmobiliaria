@@ -24,7 +24,7 @@ function isValidCuil(value) {
 }
 
 module.exports = (sequelize) => {
-  sequelize.define(
+  return sequelize.define(
     "Client",
     {
       idClient: {
@@ -50,24 +50,21 @@ module.exports = (sequelize) => {
         type: DataTypes.STRING,
         unique: true,
         validate: {
-          isEmail: true, // Valida que sea un email válido
+          isEmail: true,
         },
       },
 
       direccion: {
         type: DataTypes.STRING,
-       allowNull:  true
-        
+        allowNull: true
       },
       ciudad: {
         type: DataTypes.STRING,
-       allowNull:  true
-        
+        allowNull: true
       },
       provincia: {
         type: DataTypes.STRING,
-       allowNull:  true
-        
+        allowNull: true
       },
       
       mobilePhone: {
@@ -79,9 +76,8 @@ module.exports = (sequelize) => {
       },
     },
     {
+      tableName: "Clients", // ← AGREGAR ESTA LÍNEA
       paranoid: true,
-
-      
     }
   );
 };
