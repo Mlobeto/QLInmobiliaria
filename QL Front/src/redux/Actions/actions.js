@@ -376,7 +376,6 @@ export const createLease = (leaseData) => async (dispatch) => {
   try {
     console.log("Enviando datos del contrato:", leaseData);
 
-    // Se realiza la solicitud POST al endpoint /lease
     const response = await axios.post(`/lease`, leaseData, {
       headers: { "Content-Type": "application/json" },
     });
@@ -385,23 +384,72 @@ export const createLease = (leaseData) => async (dispatch) => {
 
     dispatch({ type: CREATE_LEASE_SUCCESS, payload: response.data });
 
-    return response.data; // Asegúrate de retornar la respuesta
+    return { success: true, data: response.data };
   } catch (error) {
-    console.log("Error al crear el contrato:", error);
+    console.error("Error completo al crear el contrato:", error);
+    console.error("Error response:", error.response);
+    console.error("Error request:", error.request);
 
-    dispatch({ type: CREATE_LEASE_FAILURE, payload: error.message });
+    // Extraer mensaje de error más específico
+    let errorMessage = "Ocurrió un error al crear el contrato.";
+    let errorDetails = "";
+    let serverError = "";
 
-    const errorMessage =
-      error.response?.data?.message ||
-      error.response?.data?.error ||
-      "Ocurrió un error al crear el contrato.";
-    Swal.fire({
-      title: "Error",
-      text: errorMessage,
-      icon: "error",
+    if (error.response) {
+      // Error del servidor (4xx, 5xx)
+      const status = error.response.status;
+      const data = error.response.data;
+      
+      console.error("Respuesta del servidor:", {
+        status,
+        statusText: error.response.statusText,
+        data
+      });
+
+      if (status === 500) {
+        errorMessage = "Error interno del servidor";
+        serverError = data?.error || data?.message || "Error interno del servidor";
+        errorDetails = data?.details || "El servidor encontró un error inesperado";
+      } else if (status === 400) {
+        errorMessage = "Error en los datos enviados";
+        serverError = data?.error || data?.message || "Datos inválidos";
+        errorDetails = data?.details || "Verifica que todos los campos sean correctos";
+      } else if (status === 404) {
+        errorMessage = "Recurso no encontrado";
+        serverError = data?.error || data?.message || "Recurso no encontrado";
+        errorDetails = data?.details || "El endpoint o recurso solicitado no existe";
+      } else {
+        errorMessage = `Error ${status}`;
+        serverError = data?.error || data?.message || error.response.statusText;
+        errorDetails = data?.details || "";
+      }
+    } else if (error.request) {
+      // Error de red
+      errorMessage = "Error de conexión";
+      serverError = "No se pudo conectar con el servidor";
+      errorDetails = "Verifica tu conexión a internet o que el servidor esté disponible";
+    } else {
+      // Error de configuración
+      errorMessage = "Error de configuración";
+      serverError = error.message;
+      errorDetails = "Error en la configuración de la petición";
+    }
+
+    const fullErrorMessage = `${errorMessage}: ${serverError}${errorDetails ? `\n\nDetalles: ${errorDetails}` : ''}`;
+
+    dispatch({ 
+      type: CREATE_LEASE_FAILURE, 
+      payload: fullErrorMessage 
     });
 
-    throw error; // Asegúrate de lanzar el error
+    return { 
+      success: false, 
+      error: errorMessage,
+      serverError: serverError,
+      details: errorDetails,
+      fullError: fullErrorMessage,
+      status: error.response?.status || null
+    };
   }
 };
 

@@ -256,117 +256,239 @@ const CreateLeaseForm = () => {
   };
 
   // Enviar el formulario
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    console.log("Datos del formulario al enviar:", formData);
+  // Enviar el formulario
+// Modificar la función handleSubmit:
 
-    try {
-      if (!formData.propertyId || !formData.locatario) {
-        await Swal.fire({
-          title: "Error",
-          text: "Se requiere seleccionar una propiedad y un inquilino",
-          icon: "error",
-        });
-        return;
-      }
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  console.log("Datos del formulario al enviar:", formData);
 
-      // Validar y obtener tenantId
-      const tenantId = await ensureTenantExists();
-      if (!tenantId) return;
-
-      // Verificar disponibilidad de la propiedad antes de continuar
-      const propertyResponse = await dispatch(getPropertiesById(formData.propertyId));
-      if (!propertyResponse || !propertyResponse.isAvailable) {
-        await Swal.fire({
-          title: "Propiedad No Disponible",
-          text: "Esta propiedad no está disponible para alquilar",
-          icon: "warning",
-        });
-        return;
-      }
-
-      // Validación de contrato activo
-      const hasActiveContract = property.Leases?.some((lease) => {
-        const endDate = new Date(lease.startDate);
-        endDate.setMonth(endDate.getMonth() + lease.totalMonths);
-        return endDate > new Date();
-      });
-      if (hasActiveContract) {
-        await Swal.fire({
-          title: "Error",
-          text: "Esta propiedad ya no está disponible",
-          icon: "error",
-        });
-        return;
-      }
-
-      // Validación del propietario
-      const landlordId = property.Clients?.find(
-        (client) => client.ClientProperty.role === "propietario"
-      )?.idClient;
-      if (!landlordId) {
-        await Swal.fire({
-          title: "Error",
-          text: "No se encontró el propietario de la propiedad",
-          icon: "error",
-        });
-        return;
-      }
-
-      // Validar garantes
-      if (!formData.guarantor1Name || !formData.guarantor1Cuil) {
-        await Swal.fire({
-          title: "Error",
-          text: "El primer garante es obligatorio",
-          icon: "error",
-        });
-        return;
-      }
-
-      // Asignar rol de inquilino
-      await dispatch(
-        addPropertyToClientWithRole({
-          idClient: tenantId,
-          propertyId: formData.propertyId,
-          role: "inquilino",
-        })
-      );
-
-      // Crear contrato
-      const leaseResponse = await dispatch(
-        createLease({
-          propertyId: parseInt(formData.propertyId),
-          landlordId: parseInt(landlordId),
-          tenantId: parseInt(tenantId),
-          startDate: formData.startDate,
-          rentAmount: parseFloat(formData.rentAmount),
-          updateFrequency: formData.updateFrequency,
-          commission: parseFloat(formData.commission) || 0,
-          totalMonths: parseInt(formData.totalMonths),
-          inventory: formData.inventory,
-        })
-      );
-
-      setLeaseCreated(leaseResponse);
-
+  try {
+    if (!formData.propertyId || !formData.locatario) {
       await Swal.fire({
-        title: "Contrato creado",
-        text: "El contrato se ha creado exitosamente.",
-        icon: "success",
-      });
-
-    } catch (error) {
-      console.error("Error detallado en handleSubmit:", error);
-      await Swal.fire({
-        title: "Error",
-        text:
-          error.response?.data?.error ||
-          error.message ||
-          "Error al crear el contrato",
+        title: "Error de Validación",
+        text: "Se requiere seleccionar una propiedad y un inquilino",
         icon: "error",
       });
+      return;
     }
-  };
+
+    // Validar y obtener tenantId
+    const tenantId = await ensureTenantExists();
+    if (!tenantId) return;
+
+    // Verificar disponibilidad de la propiedad antes de continuar
+    const propertyResponse = await dispatch(getPropertiesById(formData.propertyId));
+    if (!propertyResponse || !propertyResponse.isAvailable) {
+      await Swal.fire({
+        title: "Propiedad No Disponible",
+        text: "Esta propiedad no está disponible para alquilar",
+        icon: "warning",
+      });
+      return;
+    }
+
+    // Validación de contrato activo
+    const hasActiveContract = property.Leases?.some((lease) => {
+      const endDate = new Date(lease.startDate);
+      endDate.setMonth(endDate.getMonth() + lease.totalMonths);
+      return endDate > new Date();
+    });
+    if (hasActiveContract) {
+      await Swal.fire({
+        title: "Error",
+        text: "Esta propiedad ya no está disponible",
+        icon: "error",
+      });
+      return;
+    }
+
+    // Validación del propietario
+    const landlordId = property.Clients?.find(
+      (client) => client.ClientProperty.role === "propietario"
+    )?.idClient;
+    if (!landlordId) {
+      await Swal.fire({
+        title: "Error",
+        text: "No se encontró el propietario de la propiedad",
+        icon: "error",
+      });
+      return;
+    }
+
+    // Validar garantes
+    if (!formData.guarantor1Name || !formData.guarantor1Cuil) {
+      await Swal.fire({
+        title: "Error de Validación",
+        text: "El primer garante es obligatorio (nombre y CUIL)",
+        icon: "error",
+      });
+      return;
+    }
+
+    console.log("=== DEBUG FINAL ANTES DE ENVIAR ===");
+    console.log("FormData completo:", formData);
+    console.log("Property object:", property);
+    console.log("SelectedClient:", selectedClient);
+    console.log("LandlordId que se va a enviar:", parseInt(landlordId));
+    console.log("TenantId que se va a enviar:", parseInt(tenantId));
+    console.log("Property.Clients:", property.Clients);
+    console.log("Propietario encontrado:", property.Clients?.find(
+      (client) => client.ClientProperty.role === "propietario"
+    ));
+    console.log("=====================================");
+
+    // PRIMERO: Crear contrato (SIN asignar rol todavía)
+    const leaseResult = await dispatch(
+      createLease({
+        propertyId: parseInt(formData.propertyId),
+        landlordId: parseInt(landlordId),
+        tenantId: parseInt(tenantId),
+        startDate: formData.startDate,
+        rentAmount: parseFloat(formData.rentAmount),
+        updateFrequency: formData.updateFrequency,
+        commission: parseFloat(formData.commission) || 0,
+        totalMonths: parseInt(formData.totalMonths),
+        inventory: formData.inventory,
+      })
+    );
+
+    // Verificar si el contrato se creó exitosamente
+    if (leaseResult.success) {
+  // AHORA SÍ: Asignar rol de inquilino DESPUÉS del éxito del contrato
+  try {
+    const roleResult = await dispatch(
+      addPropertyToClientWithRole({
+        idClient: tenantId,
+        propertyId: formData.propertyId,
+        role: "inquilino",
+      })
+    );
+    
+    if (roleResult.success !== false) {
+      console.log("Rol de inquilino asignado exitosamente");
+    } else {
+      console.warn("Advertencia: El contrato se creó pero hubo un problema asignando el rol:", roleResult);
+    }
+  } catch (roleError) {
+    console.warn("Error al asignar rol de inquilino (contrato ya creado):", roleError);
+    // El contrato ya se creó, así que solo logueamos la advertencia
+    await Swal.fire({
+      title: "Contrato Creado con Advertencia",
+      html: `
+        <div style="text-align: left;">
+          <p>✅ <strong>El contrato se creó exitosamente</strong></p>
+          <p>⚠️ Hubo un problema menor asignando el rol de inquilino</p>
+          <p style="margin-top: 10px; font-size: 14px; color: #666;">
+            <em>Esto no afecta la validez del contrato. Puedes continuar normalmente.</em>
+          </p>
+        </div>
+      `,
+      icon: "warning",
+      confirmButtonText: "Entendido"
+    });
+  }
+
+  setLeaseCreated(leaseResult.data);
+
+  await Swal.fire({
+    title: "¡Éxito!",
+    text: "El contrato se ha creado exitosamente.",
+    icon: "success",
+    timer: 3000,
+    showConfirmButton: false
+  });
+} else {
+      // Manejar error específico basado en el status
+      let alertConfig = {
+        icon: "error",
+        confirmButtonText: "Entendido",
+        width: 700
+      };
+
+      if (leaseResult.status === 500) {
+        alertConfig.title = "Error del Servidor";
+        alertConfig.html = `
+          <div style="text-align: left; font-family: Arial, sans-serif;">
+            <div style="background-color: #fee; padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #dc2626;">
+              <h4 style="margin: 0 0 10px 0; color: #dc2626;">🚨 Error Interno del Servidor</h4>
+              <p style="margin: 5px 0;"><strong>Problema:</strong> ${leaseResult.serverError}</p>
+              <p style="margin: 5px 0;"><strong>Detalles:</strong> ${leaseResult.details}</p>
+            </div>
+            <div style="background-color: #f8f9fa; padding: 10px; border-radius: 5px;">
+              <h5 style="margin: 0 0 8px 0;">📋 Datos enviados:</h5>
+              <ul style="margin: 0; padding-left: 20px; font-size: 12px;">
+                <li>ID Propiedad: ${formData.propertyId}</li>
+                <li>Propietario: ${formData.locador}</li>
+                <li>Inquilino: ${formData.locatario}</li>
+                <li>Fecha inicio: ${formData.startDate}</li>
+                <li>Monto: $${formData.rentAmount}</li>
+                <li>Duración: ${formData.totalMonths} meses</li>
+              </ul>
+            </div>
+            <p style="margin-top: 15px; font-size: 14px; color: #666;">
+              <em>💡 Sugerencia: Contacta al administrador del sistema o intenta nuevamente en unos minutos.</em>
+            </p>
+          </div>
+        `;
+      } else if (leaseResult.status === 400) {
+        alertConfig.title = "Error en los Datos";
+        alertConfig.html = `
+          <div style="text-align: left; font-family: Arial, sans-serif;">
+            <div style="background-color: #fef3cd; padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #f59e0b;">
+              <h4 style="margin: 0 0 10px 0; color: #f59e0b;">⚠️ Datos Inválidos</h4>
+              <p style="margin: 5px 0;"><strong>Error:</strong> ${leaseResult.serverError}</p>
+              <p style="margin: 5px 0;"><strong>Detalles:</strong> ${leaseResult.details}</p>
+            </div>
+            <p style="margin-top: 15px; font-size: 14px; color: #666;">
+              <em>💡 Revisa que todos los campos estén completos y sean válidos.</em>
+            </p>
+          </div>
+        `;
+      } else {
+        alertConfig.title = "Error al Crear Contrato";
+        alertConfig.html = `
+          <div style="text-align: left; font-family: Arial, sans-serif;">
+            <div style="background-color: #fee; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+              <p style="margin: 5px 0;"><strong>Error:</strong> ${leaseResult.error}</p>
+              <p style="margin: 5px 0;"><strong>Servidor:</strong> ${leaseResult.serverError}</p>
+              ${leaseResult.details ? `<p style="margin: 5px 0;"><strong>Detalles:</strong> ${leaseResult.details}</p>` : ''}
+              ${leaseResult.status ? `<p style="margin: 5px 0;"><strong>Código:</strong> ${leaseResult.status}</p>` : ''}
+            </div>
+          </div>
+        `;
+      }
+
+      await Swal.fire(alertConfig);
+    }
+
+  } catch (error) {
+    console.error("Error detallado en handleSubmit:", error);
+    
+    // Error inesperado
+    await Swal.fire({
+      title: "Error Inesperado",
+      html: `
+        <div style="text-align: left; font-family: Arial, sans-serif;">
+          <div style="background-color: #fee; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+            <h4 style="margin: 0 0 10px 0; color: #dc2626;">🚨 Error Inesperado</h4>
+            <p>Ocurrió un error inesperado al procesar el contrato.</p>
+            <p><strong>Error:</strong> ${error.message || 'Error desconocido'}</p>
+          </div>
+          <div style="background-color: #f8f9fa; padding: 10px; border-radius: 5px; margin-top: 10px;">
+            <p style="margin: 0; font-size: 14px; color: #666;">
+              <em>Por favor, verifica los datos e intenta nuevamente. Si el problema persiste, contacta al soporte técnico.</em>
+            </p>
+          </div>
+        </div>
+      `,
+      icon: "error",
+      confirmButtonText: "Entendido",
+      width: 600
+    });
+  }
+};
+
 
   return (
     <div className="min-h-screen bg-gray-100 py-6 flex flex-col justify-center sm:py-12">

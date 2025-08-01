@@ -122,7 +122,7 @@ exports.createLease = async (req, res) => {
       tenantId: parseInt(tenantId),
       startDate: new Date(startDate),
       rentAmount: parseFloat(rentAmount),
-      updateFrequency,  // ENUM, se asume válido
+      updateFrequency,
       commission: commission ? parseFloat(commission) : null,
       totalMonths: parseInt(totalMonths),
       inventory
@@ -130,32 +130,90 @@ exports.createLease = async (req, res) => {
 
     console.log('CreateLease - Parsed data:', parsedData);
 
+    // ===== DEBUGGING DETALLADO =====
+    console.log('=== VERIFICACIÓN DE IDS ===');
+    console.log('landlordId recibido:', landlordId, 'tipo:', typeof landlordId);
+    console.log('tenantId recibido:', tenantId, 'tipo:', typeof tenantId);
+    console.log('propertyId recibido:', propertyId, 'tipo:', typeof propertyId);
+    console.log('landlordId parseado:', parsedData.landlordId, 'tipo:', typeof parsedData.landlordId);
+    console.log('tenantId parseado:', parsedData.tenantId, 'tipo:', typeof parsedData.tenantId);
+
     // Verificar existencia y disponibilidad de la propiedad
     const property = await Property.findByPk(parsedData.propertyId);
+    console.log('Property found:', property ? `ID: ${property.id}, Available: ${property.isAvailable}` : 'NO ENCONTRADA');
+    
     if (!property) {
-      return res.status(404).json({ error: 'Propiedad no encontrada' });
+      return res.status(404).json({ 
+        error: 'Propiedad no encontrada',
+        details: `No existe una propiedad con ID ${parsedData.propertyId}`
+      });
     }
     if (!property.isAvailable) {
-      return res.status(400).json({ error: 'La propiedad ya no está disponible' });
+      return res.status(400).json({ 
+        error: 'La propiedad ya no está disponible',
+        details: `La propiedad ${parsedData.propertyId} está marcada como no disponible`
+      });
     }
 
-    // Verificar que el landlord existe y tiene rol de propietario para esa propiedad
+    // Verificar que el landlord existe
+    console.log('Buscando landlord con ID:', parsedData.landlordId);
     const landlord = await Client.findByPk(parsedData.landlordId);
+    console.log('Landlord found:', landlord ? `ID: ${landlord.idClient}, Name: ${landlord.name}` : 'NO ENCONTRADO');
+    
     if (!landlord) {
-      return res.status(404).json({ error: 'Propietario no encontrado' });
+      // Listar todos los clientes para debugging
+      const allClients = await Client.findAll({ attributes: ['idClient', 'name'] });
+      console.log('Todos los clientes en la BD:', allClients.map(c => `ID: ${c.idClient}, Name: ${c.name}`));
+      
+      return res.status(404).json({ 
+        error: 'Propietario no encontrado',
+        details: `No existe un cliente con ID ${parsedData.landlordId}. Clientes disponibles: ${allClients.map(c => `${c.name} (ID: ${c.idClient})`).join(', ')}`
+      });
     }
+
+    // Verificar rol de propietario
+    console.log('Verificando rol de propietario para clientId:', parsedData.landlordId, 'propertyId:', parsedData.propertyId);
     const ownerRole = await ClientProperty.findOne({ 
       where: { clientId: parsedData.landlordId, propertyId: parsedData.propertyId, role: 'propietario' }
     });
+    console.log('Owner role found:', ownerRole ? 'SÍ' : 'NO');
+    
     if (!ownerRole) {
-      return res.status(400).json({ error: 'El cliente no tiene rol de propietario para esta propiedad' });
+      // Listar todas las relaciones para debugging
+      const allRelations = await ClientProperty.findAll({ 
+        where: { propertyId: parsedData.propertyId },
+        include: [{ model: Client, attributes: ['idClient', 'name'] }]
+      });
+      console.log('Relaciones para la propiedad:', allRelations.map(r => `Client: ${r.Client.name} (ID: ${r.Client.idClient}), Role: ${r.role}`));
+      
+      return res.status(400).json({ 
+        error: 'El cliente no tiene rol de propietario para esta propiedad',
+        details: `El cliente ${landlord.name} (ID: ${parsedData.landlordId}) no tiene rol de propietario para la propiedad ${parsedData.propertyId}. Relaciones existentes: ${allRelations.map(r => `${r.Client.name} (${r.role})`).join(', ')}`
+      });
     }
 
-    // Verificar que el tenant exista (opcional validar rol si fuera necesario)
+    // Verificar que el tenant exista
+    console.log('Buscando tenant con ID:', parsedData.tenantId);
     const tenant = await Client.findByPk(parsedData.tenantId);
+    console.log('Tenant found:', tenant ? `ID: ${tenant.idClient}, Name: ${tenant.name}` : 'NO ENCONTRADO');
+    
     if (!tenant) {
-      return res.status(404).json({ error: 'Inquilino no encontrado' });
+      return res.status(404).json({ 
+        error: 'Inquilino no encontrado',
+        details: `No existe un cliente con ID ${parsedData.tenantId}`
+      });
     }
+
+    // Verificar que no sea el mismo cliente
+    if (parsedData.landlordId === parsedData.tenantId) {
+      return res.status(400).json({ 
+        error: 'Conflicto de roles',
+        details: 'El propietario y el inquilino no pueden ser la misma persona'
+      });
+    }
+
+    console.log('=== TODOS LOS DATOS VERIFICADOS - CREANDO CONTRATO ===');
+    console.log('Datos finales para crear:', parsedData);
 
     // Crear el contrato
     const newLease = await Lease.create(parsedData);
@@ -178,6 +236,23 @@ exports.createLease = async (req, res) => {
     res.status(201).json(fullLease);
   } catch (error) {
     console.error('CreateLease Error:', error);
+    console.error('Error stack:', error.stack);
+    
+    // Si es un error de constraint de foreign key, dar más detalles
+    if (error.name === 'SequelizeForeignKeyConstraintError') {
+      console.error('Foreign Key Error Details:', {
+        table: error.table,
+        constraint: error.constraint,
+        fields: error.fields,
+        value: error.value
+      });
+      
+      return res.status(400).json({ 
+        error: 'Error de referencia de datos',
+        details: `El ${error.constraint.includes('landlord') ? 'propietario' : 'inquilino'} con ID ${error.value} no existe en la base de datos. Constraint: ${error.constraint}`
+      });
+    }
+    
     res.status(500).json({ 
       error: 'Error al crear el contrato de alquiler', 
       details: error.message 
