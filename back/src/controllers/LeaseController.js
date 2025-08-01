@@ -236,7 +236,34 @@ const rawClientCheck = await Client.sequelize.query(
 );
 console.log('Cliente en BD (raw query):', rawClientCheck);
 console.log('===================================');
+console.log('=== DEBUGGING NOMBRES DE TABLA ===');
+console.log('Client model tableName:', Client.tableName);
+console.log('Client model name:', Client.name);
+console.log('Lease model tableName:', Lease.tableName);
 
+// Verificar qué tablas existen realmente
+const tablesQuery = await Client.sequelize.query(
+  "SELECT tablename FROM pg_tables WHERE schemaname = 'public' ORDER BY tablename",
+  { type: Client.sequelize.QueryTypes.SELECT }
+);
+console.log('Todas las tablas en PostgreSQL:', tablesQuery.map(t => t.tablename));
+
+// Verificar constraints específicos de Leases
+const constraintsQuery = await Client.sequelize.query(
+  `SELECT 
+    tc.constraint_name, 
+    tc.table_name, 
+    kcu.column_name,
+    ccu.table_name AS foreign_table_name,
+    ccu.column_name AS foreign_column_name 
+   FROM information_schema.table_constraints AS tc 
+   JOIN information_schema.key_column_usage AS kcu ON tc.constraint_name = kcu.constraint_name
+   JOIN information_schema.constraint_column_usage AS ccu ON ccu.constraint_name = tc.constraint_name
+   WHERE tc.constraint_type = 'FOREIGN KEY' AND tc.table_name = 'Leases'`,
+  { type: Client.sequelize.QueryTypes.SELECT }
+);
+console.log('Foreign key constraints de Leases:', constraintsQuery);
+console.log('=====================================');
     const newLease = await Lease.create(parsedData);
     console.log('New Lease created:', newLease);
 
