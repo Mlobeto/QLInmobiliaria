@@ -215,7 +215,28 @@ exports.createLease = async (req, res) => {
     console.log('=== TODOS LOS DATOS VERIFICADOS - CREANDO CONTRATO ===');
     console.log('Datos finales para crear:', parsedData);
 
-    // Crear el contrato
+    console.log('=== DEBUGGING TABLA CLIENT ===');
+console.log('Modelo Client tableName:', Client.tableName);
+console.log('Modelo Lease tableName:', Lease.tableName);
+
+// Verificar directamente en la base de datos
+const rawClientQuery = await Client.sequelize.query(
+  "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' AND table_name LIKE '%client%' OR table_name LIKE '%Client%'",
+  { type: Client.sequelize.QueryTypes.SELECT }
+);
+console.log('Tablas que contienen "client":', rawClientQuery);
+
+// Verificar que el cliente realmente existe en la BD
+const rawClientCheck = await Client.sequelize.query(
+  'SELECT * FROM "Clients" WHERE "idClient" = :id',
+  { 
+    replacements: { id: parsedData.landlordId },
+    type: Client.sequelize.QueryTypes.SELECT 
+  }
+);
+console.log('Cliente en BD (raw query):', rawClientCheck);
+console.log('===================================');
+
     const newLease = await Lease.create(parsedData);
     console.log('New Lease created:', newLease);
 
@@ -261,29 +282,32 @@ exports.createLease = async (req, res) => {
 };
 
 
-  exports.getLeasesByIdClient = async (req, res) => {
-    try {
-        const { idClient } = req.params;
+exports.getLeaseById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const lease = await Lease.findByPk(id, {
+      include: [
+        Property,
+        { model: PaymentReceipt, required: false },
+        { model: Garantor, required: false },
+        { model: Client, as: 'Tenant', attributes: ['name'] },
+        { model: Client, as: 'Landlord', attributes: ['name'] }
+      ]
+    });
 
-        const leases = await Lease.findAll({
-            where: { tenantId: idClient },
-            include: [
-                Property,
-                { model: PaymentReceipt, required: false },
-                { model: Garantor, required: false },
-                { model: Client, as: 'Tenant', attributes: ['name'] } ,
-                { model: Client, as: 'Landlord', attributes: ['name'] }
-            ],
-        });
-
-        if (!leases.length) {
-            return res.status(404).json({ error: 'No se encontraron contratos para este cliente' });
-        }
-
-        res.status(200).json(leases);
-    } catch (error) {
-        res.status(500).json({ error: 'Error al obtener contratos', details: error.message });
+    if (!lease) {
+      return res.status(404).json({ message: "Contrato no encontrado" });
     }
+    
+    res.json(lease);
+  } catch (error) {
+    console.error('Error en getLeaseById:', error);
+    res.status(500).json({ 
+      message: "Error al obtener el contrato",
+      details: error.message 
+    });
+  }
 };
 
 
