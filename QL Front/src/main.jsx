@@ -8,8 +8,8 @@ import { Provider } from "react-redux";
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-axios.defaults.baseURL = "http://localhost:3001";
-// axios.defaults.baseURL = "https://qlinmobiliaria.onrender.com";
+//axios.defaults.baseURL = "http://localhost:3001";
+axios.defaults.baseURL = "https://qlinmobiliaria.onrender.com";
 
 
 
