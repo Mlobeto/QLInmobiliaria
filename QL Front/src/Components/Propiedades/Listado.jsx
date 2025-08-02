@@ -1,8 +1,11 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { getAllProperties, updateProperty, deleteProperty } from "../../redux/Actions/actions";
+import {
+  getAllProperties,
+  updateProperty,
+  deleteProperty,
+} from "../../redux/Actions/actions";
 import PropiedadesPDF from "../PdfTemplates/PropiedadesPdf";
-
 
 const Listado = () => {
   const dispatch = useDispatch();
@@ -44,7 +47,7 @@ const Listado = () => {
     setCurrentPage(1); // Resetear la página a 1 cuando se cambie la búsqueda
   };
 
-  // Validar campos
+  // Validar campos - AGREGADO VALIDACIÓN PARA SOCIO
   const validateField = (field, value) => {
     let error = "";
     if (field === "address" && (!value || value.length < 5)) {
@@ -53,8 +56,14 @@ const Listado = () => {
     if (field === "neighborhood" && (!value || value.length < 3)) {
       error = "El barrio debe tener al menos 3 caracteres.";
     }
-    if (field === "price" && (!value || isNaN(Number(value)) || Number(value) <= 0)) {
+    if (
+      field === "price" &&
+      (!value || isNaN(Number(value)) || Number(value) <= 0)
+    ) {
       error = "El precio debe ser un número mayor a 0.";
+    }
+    if (field === "socio" && value && value.length < 3) {
+      error = "El nombre del socio debe tener al menos 3 caracteres.";
     }
     return error;
   };
@@ -89,11 +98,13 @@ const Listado = () => {
     dispatch(deleteProperty(propertyId));
   };
 
-  if (loading) return <div className="text-center py-4">Cargando propiedades...</div>;
-  if (error) return <div className="text-center text-red-500">Error: {error}</div>;
+  if (loading)
+    return <div className="text-center py-4">Cargando propiedades...</div>;
+  if (error)
+    return <div className="text-center text-red-500">Error: {error}</div>;
 
   return (
-    <div className="container mx-auto p-4  mt-20">
+    <div className="container mx-auto p-4 mt-20">
       <h1 className="text-2xl font-bold mb-4">Lista de Propiedades</h1>
 
       {/* Campo de búsqueda */}
@@ -114,77 +125,121 @@ const Listado = () => {
             <th className="border px-4 py-2">Dirección</th>
             <th className="border px-4 py-2">Barrio</th>
             <th className="border px-4 py-2">Precio</th>
-            <th className="border px-4 py-2">Clientes</th> 
+            <th className="border px-4 py-2">Socio</th> 
+            <th className="border px-4 py-2">Clientes</th>
             <th className="border px-4 py-2">Acciones</th>
           </tr>
         </thead>
         <tbody>
-  {paginatedProperties.map((property) => (
-    <tr
-      key={property.propertyId}
-      className="hover:bg-gray-100"
-      style={{
-        backgroundColor: property.isAvailable ? "#bbf7d0" : "#f87171" // verde si disponible, rojo si no
-      }}
-    >
-      <td className="border px-4 py-2">{property.propertyId}</td>
-      <td className="border px-4 py-2">
-        {editingId === property.propertyId ? (
-          <>
-            <input
-              className="border px-2 py-1"
-              value={formData.address || ""}
-              onChange={(e) => handleInputChange("address", e.target.value)}
-            />
-            {errors.address && <p className="text-red-500 text-sm">{errors.address}</p>}
-          </>
-        ) : (
-          property.address
-        )}
-      </td>
-      <td className="border px-4 py-2">
-        {editingId === property.propertyId ? (
-          <>
-            <input
-              className="border px-2 py-1"
-              value={formData.neighborhood || ""}
-              onChange={(e) => handleInputChange("neighborhood", e.target.value)}
-            />
-            {errors.neighborhood && <p className="text-red-500 text-sm">{errors.neighborhood}</p>}
-          </>
-        ) : (
-          property.neighborhood
-        )}
-      </td>
-      <td className="border px-4 py-2">
-        {editingId === property.propertyId ? (
-          <>
-            <input
-              className="border px-2 py-1"
-              value={formData.price || ""}
-              onChange={(e) => handleInputChange("price", e.target.value)}
-            />
-            {errors.price && <p className="text-red-500 text-sm">{errors.price}</p>}
-          </>
-        ) : (
-          `$${property.price}`
-        )}
-      </td>
-      <td className="border px-4 py-2">
-        {property.Clients.length > 0 ? (
-          property.Clients.map((client) => (
-            <div key={client.idClient}>
-              {client.name} ({client.ClientProperty.role})
-            </div>
-          ))
-        ) : (
-          <span>No asignado</span>
-        )}
-      </td>
-      <td className="border px-4 py-2 flex gap-2">
-        {editingId === property.propertyId ? (
-          <>
-            <button className="bg-blue-500 text-white px-3 py-1 rounded" onClick={handleSave}>
+          {paginatedProperties.map((property) => (
+            <tr
+              key={property.propertyId}
+              className="hover:bg-gray-100"
+              style={{
+                backgroundColor: property.isAvailable ? "#bbf7d0" : "#f87171", // verde si disponible, rojo si no
+              }}
+            >
+              <td className="border px-4 py-2">{property.propertyId}</td>
+              <td className="border px-4 py-2">
+                {editingId === property.propertyId ? (
+                  <>
+                    <input
+                      className="border px-2 py-1"
+                      value={formData.address || ""}
+                      onChange={(e) =>
+                        handleInputChange("address", e.target.value)
+                      }
+                    />
+                    {errors.address && (
+                      <p className="text-red-500 text-sm">{errors.address}</p>
+                    )}
+                  </>
+                ) : (
+                  property.address
+                )}
+              </td>
+              <td className="border px-4 py-2">
+                {editingId === property.propertyId ? (
+                  <>
+                    <input
+                      className="border px-2 py-1"
+                      value={formData.neighborhood || ""}
+                      onChange={(e) =>
+                        handleInputChange("neighborhood", e.target.value)
+                      }
+                    />
+                    {errors.neighborhood && (
+                      <p className="text-red-500 text-sm">
+                        {errors.neighborhood}
+                      </p>
+                    )}
+                  </>
+                ) : (
+                  property.neighborhood
+                )}
+              </td>
+              <td className="border px-4 py-2">
+                {editingId === property.propertyId ? (
+                  <>
+                    <input
+                      className="border px-2 py-1"
+                      value={formData.price || ""}
+                      onChange={(e) =>
+                        handleInputChange("price", e.target.value)
+                      }
+                    />
+                    {errors.price && (
+                      <p className="text-red-500 text-sm">{errors.price}</p>
+                    )}
+                  </>
+                ) : (
+                  `$${property.price}`
+                )}
+              </td>
+              {/* NUEVA CELDA PARA SOCIO */}
+              <td className="border px-4 py-2">
+                {editingId === property.propertyId ? (
+                  <>
+                    <input
+                      className="border px-2 py-1 w-full"
+                      placeholder="Nombre del socio (opcional)"
+                      value={formData.socio || ""}
+                      onChange={(e) =>
+                        handleInputChange("socio", e.target.value)
+                      }
+                    />
+                    {errors.socio && (
+                      <p className="text-red-500 text-sm">{errors.socio}</p>
+                    )}
+                  </>
+                ) : (
+                  <span
+                    className={
+                      property.socio ? "text-gray-800" : "text-gray-400 italic"
+                    }
+                  >
+                    {property.socio || "Sin socio"}
+                  </span>
+                )}
+              </td>
+              <td className="border px-4 py-2">
+                {property.Clients && property.Clients.length > 0 ? (
+                  property.Clients.map((client) => (
+                    <div key={client.idClient}>
+                      {client.name} ({client.ClientProperty.role})
+                    </div>
+                  ))
+                ) : (
+                  <span>No asignado</span>
+                )}
+              </td>
+              <td className="border px-4 py-2 flex gap-2">
+                {editingId === property.propertyId ? (
+                  <>
+                    <button
+                      className="bg-blue-500 text-white px-3 py-1 rounded"
+                      onClick={handleSave}
+                    >
                       Guardar
                     </button>
                     <button
@@ -241,9 +296,3 @@ const Listado = () => {
 };
 
 export default Listado;
-
-
-
-
-
-

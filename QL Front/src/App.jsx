@@ -1,7 +1,7 @@
 import { Routes, Route } from "react-router-dom";
 import { useEffect } from "react";
 import { useDispatch } from "react-redux";
-import { verifyToken } from "./redux/Actions/actions"; // Asegúrate de tener esta action
+import { verifyToken } from "./redux/Actions/actions";
 import Landing from "./Components/Landing";
 import Panel from "./Components/Admin/Panel";
 import Clientes from "./Components/Clientes/Clientes";
@@ -25,11 +25,13 @@ import ContractAlerts from "./Components/Contratos/ContractAlerts";
 import ContratoAlquiler from "./Components/PdfTemplates/ContratoAlquiler";
 import ActualizarAlquileres from "./Components/Contratos/ActualizarAlquileres";
 
+// 🆕 Crear un wrapper para manejar el PDF con datos
+import PDFContractWrapper from "./Components/PdfTemplates/PDFContractWrapper";
+
 function App() {
   const dispatch = useDispatch();
 
   useEffect(() => {
-    // Verifica si hay un token guardado al cargar la aplicación
     const token = localStorage.getItem('token');
     if (token) {
       dispatch(verifyToken());
@@ -162,14 +164,28 @@ function App() {
           </ProtectedRoutes>
         }
       />
+      
+      {/* 🔧 Rutas PDF mejoradas */}
+      {/* Ruta específica para PDF con ID de contrato */}
+      <Route
+        path="/pdf/:leaseId"
+        element={
+          <ProtectedRoutes>
+            <PDFContractWrapper />
+          </ProtectedRoutes>
+        }
+      />
+      
+      {/* Ruta genérica para PDF (redirige o muestra error) */}
       <Route
         path="/pdf"
         element={
           <ProtectedRoutes>
-            <ContratoAlquiler />
+            <PDFContractWrapper />
           </ProtectedRoutes>
         }
       />
+      
       <Route
         path="/paymentList"
         element={

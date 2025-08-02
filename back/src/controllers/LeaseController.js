@@ -550,6 +550,8 @@ exports.terminateLease = async (req, res) => {
     }
 };
 
+
+
 exports.getAllLeases = async (req, res) => {
   try {
     const leases = await Lease.findAll({
@@ -558,16 +560,52 @@ exports.getAllLeases = async (req, res) => {
         { model: PaymentReceipt, required: false },
         { model: Garantor, required: false },
         { model: Client, as: 'Tenant', attributes: ['name'] },
-        { model: Client, as: 'Landlord', attributes: ['name'] }
+        { model: Client, as: 'Landlord', attributes: ['name'] },
+        { model: RentUpdate, required: false, order: [['updateDate', 'DESC']] }
       ],
     });
 
-    const leasesWithNextUpdate = leases.map(lease => ({
-      ...lease.toJSON(),
-      nextUpdateDate: getNextUpdateDate(lease.startDate, lease.updateFrequency, lease.updatedAt)
-    }));
+    const leasesWithUpdateInfo = leases.map(lease => {
+      const start = new Date(lease.startDate);
+      const now = new Date();
+      
+      // Calcular meses desde el inicio
+      const monthsSinceStart = (now.getFullYear() - start.getFullYear()) * 12 + 
+                              (now.getMonth() - start.getMonth());
+      
+      // Determinar frecuencia en meses
+      let freqMonths = 0;
+      if (lease.updateFrequency === 'semestral') freqMonths = 6;
+      else if (lease.updateFrequency === 'cuatrimestral') freqMonths = 4;
+      else if (lease.updateFrequency === 'anual') freqMonths = 12;
+      
+      // Verificar si necesita actualización
+      const shouldUpdate = monthsSinceStart >= freqMonths;
+      
+      // Calcular próxima fecha de actualización
+      const periodsElapsed = Math.floor(monthsSinceStart / freqMonths);
+      const nextUpdate = new Date(start);
+      nextUpdate.setMonth(nextUpdate.getMonth() + (periodsElapsed + 1) * freqMonths);
+      
+      // Verificar si ya tiene actualizaciones registradas
+      const lastUpdate = lease.RentUpdates && lease.RentUpdates.length > 0 
+        ? lease.RentUpdates[0] 
+        : null;
+      
+      return {
+        ...lease.toJSON(),
+        updateInfo: {
+          monthsSinceStart,
+          shouldUpdate,
+          lastUpdateDate: lastUpdate ? lastUpdate.updateDate : null,
+          nextUpdateDate: nextUpdate,
+          periodsElapsed,
+          hasUpdates: lease.RentUpdates && lease.RentUpdates.length > 0
+        }
+      };
+    });
 
-    res.status(200).json(leasesWithNextUpdate);
+    res.status(200).json(leasesWithUpdateInfo);
   } catch (error) {
     console.error("Error al obtener contratos:", error);
     res.status(500).json({ error: "Error al obtener contratos", details: error.message });
@@ -630,27 +668,35 @@ exports.checkPendingPayments = async (req, res) => {
 function calculateUpdatePeriod(startDate, updateFrequency, updateDate) {
   const start = new Date(startDate);
   const update = new Date(updateDate);
-  let monthsSinceStart = (update.getFullYear() - start.getFullYear()) * 12;
-  monthsSinceStart -= start.getMonth();
-  monthsSinceStart += update.getMonth();
+  
+  // CORREGIDO: Cálculo más preciso de meses
+  let monthsDiff = (update.getFullYear() - start.getFullYear()) * 12;
+  monthsDiff += update.getMonth() - start.getMonth();
+  
+  // Ajustar si el día de actualización es antes del día de inicio
+  if (update.getDate() < start.getDate()) {
+    monthsDiff--;
+  }
 
   let period = '';
   switch (updateFrequency) {
       case 'semestral':
-          const semester = Math.floor(monthsSinceStart / 6) + 1;
+          const semester = Math.floor(monthsDiff / 6) + 1;
           period = `Semestre ${semester}`;
           break;
       case 'cuatrimestral':
-          const trimester = Math.floor(monthsSinceStart / 4) + 1;
-          period = `Cuatrimestre ${trimester}`;
+          const cuatrimestre = Math.floor(monthsDiff / 4) + 1;
+          period = `Cuatrimestre ${cuatrimestre}`;
           break;
       case 'anual':
-          const year = Math.floor(monthsSinceStart / 12) + 1;
+          const year = Math.floor(monthsDiff / 12) + 1;
           period = `Año ${year}`;
           break;
       default:
           period = 'Desconocido';
   }
+  
+  console.log(`Período calculado: ${period} (${monthsDiff} meses desde inicio)`);
   return period;
 }
 
@@ -660,13 +706,47 @@ function getNextUpdateDate(startDate, updateFrequency, updatedAt) {
   else if (updateFrequency === 'cuatrimestral') freqMonths = 4;
   else if (updateFrequency === 'anual') freqMonths = 12;
 
-  const baseDate = updatedAt ? new Date(updatedAt) : new Date(startDate);
-  let nextUpdate = new Date(baseDate);
-
-  while (nextUpdate <= new Date()) {
-    nextUpdate.setMonth(nextUpdate.getMonth() + freqMonths);
-  }
+  const start = new Date(startDate);
+  const now = new Date();
+  
+  // Calcular cuántos períodos han pasado desde el inicio
+  const monthsSinceStart = (now.getFullYear() - start.getFullYear()) * 12 + 
+                          (now.getMonth() - start.getMonth());
+  
+  // Calcular cuántos períodos de actualización deberían haber ocurrido
+  const periodsElapsed = Math.floor(monthsSinceStart / freqMonths);
+  
+  // La próxima actualización es: start + (períodos + 1) * freqMonths
+  const nextUpdate = new Date(start);
+  nextUpdate.setMonth(nextUpdate.getMonth() + (periodsElapsed + 1) * freqMonths);
+  
+  console.log(`Contrato iniciado: ${start.toLocaleDateString()}`);
+  console.log(`Meses desde inicio: ${monthsSinceStart}`);
+  console.log(`Períodos transcurridos: ${periodsElapsed}`);
+  console.log(`Próxima actualización: ${nextUpdate.toLocaleDateString()}`);
+  
   return nextUpdate;
+}
+
+function needsUpdate(startDate, updateFrequency) {
+  let freqMonths = 0;
+  if (updateFrequency === 'semestral') freqMonths = 6;
+  else if (updateFrequency === 'cuatrimestral') freqMonths = 4;
+  else if (updateFrequency === 'anual') freqMonths = 12;
+
+  const start = new Date(startDate);
+  const now = new Date();
+  
+  // Calcular meses transcurridos desde el inicio
+  const monthsSinceStart = (now.getFullYear() - start.getFullYear()) * 12 + 
+                          (now.getMonth() - start.getMonth());
+  
+  // Verificar si han pasado suficientes meses para una actualización
+  const shouldUpdate = monthsSinceStart >= freqMonths && (monthsSinceStart % freqMonths === 0 || monthsSinceStart > freqMonths);
+  
+  console.log(`Contrato ${startDate}: ${monthsSinceStart} meses, frecuencia: ${freqMonths}, necesita actualización: ${shouldUpdate}`);
+  
+  return shouldUpdate;
 }
 
 exports.updateRentAmount = async (req, res) => {
@@ -722,4 +802,701 @@ exports.updateRentAmount = async (req, res) => {
       console.error('Error al actualizar el monto del alquiler:', error);
       res.status(500).json({ error: 'Error al actualizar el monto del alquiler.', details: error.message });
   }
+};
+
+// Función para crear actualizaciones de testing con fechas anteriores
+const createTestRentUpdate = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { testDate, newRentAmount } = req.body;
+
+    console.log(`[TEST] Creando actualización de prueba para lease ${id}`);
+    
+    const lease = await Lease.findByPk(id);
+    if (!lease) {
+      return res.status(404).json({ message: 'Contrato no encontrado' });
+    }
+
+    // Crear una actualización con fecha de prueba en el pasado
+    const testUpdate = await RentUpdate.create({
+      leaseId: id,
+      previousAmount: lease.rentAmount,
+      newAmount: newRentAmount || lease.rentAmount * 1.1, // 10% más si no se especifica
+      updateDate: new Date(testDate),
+      updateReason: 'Test con fecha anterior',
+      createdAt: new Date(testDate),
+      updatedAt: new Date(testDate)
+    });
+
+    // Actualizar el contrato con la nueva fecha
+    await lease.update({
+      rentAmount: testUpdate.newAmount,
+      updatedAt: new Date(testDate)
+    });
+
+    console.log(`[TEST] Actualización creada exitosamente:`, testUpdate.toJSON());
+
+    res.json({
+      message: 'Actualización de prueba creada exitosamente',
+      testUpdate,
+      nextUpdateDate: getNextUpdateDate(lease.startDate, lease.updateFrequency, testDate)
+    });
+
+  } catch (error) {
+    console.error('Error en createTestRentUpdate:', error);
+    res.status(500).json({ message: 'Error al crear actualización de prueba', error: error.message });
+  }
+};
+
+// Función para debuggear las alertas de contratos
+const debugLeaseAlerts = async (req, res) => {
+  try {
+    console.log('[DEBUG] Iniciando debug de alertas de contratos');
+    
+    // Duplicar EXACTAMENTE el código de getAllLeases
+    const leases = await Lease.findAll({
+      include: [
+        { model: Property },
+        { model: PaymentReceipt, required: false },
+        { model: Garantor, required: false },
+        { model: Client, as: 'Tenant', attributes: ['name'] },
+        { model: Client, as: 'Landlord', attributes: ['name'] }
+      ],
+    });
+
+    const leasesWithNextUpdate = leases.map(lease => ({
+      ...lease.toJSON(),
+      nextUpdateDate: getNextUpdateDate(lease.startDate, lease.updateFrequency, lease.updatedAt)
+    }));
+
+    // Calcular información de debug adicional
+    const now = new Date();
+    const debugInfo = leasesWithNextUpdate.map(lease => {
+      const nextUpdate = new Date(lease.nextUpdateDate);
+      const daysUntilUpdate = Math.ceil((nextUpdate - now) / (1000 * 60 * 60 * 24));
+      const shouldAlert = daysUntilUpdate <= 30 && daysUntilUpdate >= 0;
+
+      return {
+        leaseId: lease.id,
+        tenant: lease.Tenant?.name,
+        landlord: lease.Landlord?.name,
+        property: lease.Property?.address,
+        startDate: lease.startDate,
+        updateFrequency: lease.updateFrequency,
+        currentRent: lease.rentAmount,
+        lastUpdateDate: lease.updatedAt || 'Nunca actualizado',
+        nextUpdateDate: lease.nextUpdateDate,
+        daysUntilUpdate,
+        shouldAlert
+      };
+    });
+
+    console.log('[DEBUG] Información completa de alertas:', debugInfo);
+
+    res.json({
+      message: 'Debug de alertas completado',
+      currentDate: now.toLocaleDateString(),
+      totalLeases: leases.length,
+      alertCount: debugInfo.filter(info => info.shouldAlert).length,
+      debugInfo
+    });
+
+  } catch (error) {
+    console.error('Error en debugLeaseAlerts:', error);
+    res.status(500).json({ message: 'Error al debuggear alertas', error: error.message });
+  }
+};
+
+
+
+exports.getLeasesPendingUpdate = async (req, res) => {
+  try {
+    console.log('🔍 Buscando contratos que necesitan actualización...');
+    
+    // 🔧 Definir 'now' al inicio de la función
+    const now = new Date();
+    
+    const leases = await Lease.findAll({
+      where: { status: 'active' },
+      include: [
+        { model: Property },
+        { model: Client, as: 'Tenant', attributes: ['name'] },
+        { model: Client, as: 'Landlord', attributes: ['name'] },
+        { model: RentUpdate, required: false, order: [['updateDate', 'DESC']] }
+      ],
+    });
+
+    console.log(`📋 Encontrados ${leases.length} contratos activos`);
+
+    const pendingUpdates = leases.filter(lease => {
+      const start = new Date(lease.startDate);
+      // Removed 'const now = new Date();' from here since it's already defined above
+      
+      const monthsSinceStart = (now.getFullYear() - start.getFullYear()) * 12 + 
+                              (now.getMonth() - start.getMonth());
+      
+      let freqMonths = 0;
+      if (lease.updateFrequency === 'semestral') freqMonths = 6;
+      else if (lease.updateFrequency === 'cuatrimestral') freqMonths = 4;
+      else if (lease.updateFrequency === 'anual') freqMonths = 12;
+      
+      const shouldUpdate = monthsSinceStart >= freqMonths;
+      
+      const lastUpdate = lease.RentUpdates && lease.RentUpdates.length > 0 
+        ? lease.RentUpdates[0] 
+        : null;
+      
+      console.log(`Contrato ${lease.id}: ${monthsSinceStart} meses, frecuencia: ${freqMonths}, necesita actualización: ${shouldUpdate}`);
+        
+      if (lastUpdate) {
+        const lastUpdateDate = new Date(lastUpdate.updateDate);
+        const monthsSinceLastUpdate = (now.getFullYear() - lastUpdateDate.getFullYear()) * 12 + 
+                                     (now.getMonth() - lastUpdateDate.getMonth());
+        
+        console.log(`  - Última actualización hace ${monthsSinceLastUpdate} meses`);
+        return shouldUpdate && monthsSinceLastUpdate >= freqMonths;
+      }
+      
+      return shouldUpdate;
+    });
+
+    const detailedPendingUpdates = pendingUpdates.map(lease => {
+      const start = new Date(lease.startDate);
+      // Removed 'const now = new Date();' from here since it's already defined above
+      
+      const monthsSinceStart = (now.getFullYear() - start.getFullYear()) * 12 + 
+                              (now.getMonth() - start.getMonth());
+      
+      let freqMonths = 0;
+      if (lease.updateFrequency === 'semestral') freqMonths = 6;
+      else if (lease.updateFrequency === 'cuatrimestral') freqMonths = 4;
+      else if (lease.updateFrequency === 'anual') freqMonths = 12;
+      
+      const periodsOverdue = Math.floor(monthsSinceStart / freqMonths);
+      const monthsOverdue = monthsSinceStart - (periodsOverdue * freqMonths);
+      
+      return {
+        id: lease.id,
+        property: lease.Property.address,
+        tenant: lease.Tenant.name,
+        landlord: lease.Landlord.name,
+        currentRent: lease.rentAmount,
+        updateFrequency: lease.updateFrequency,
+        startDate: lease.startDate,
+        monthsSinceStart,
+        periodsOverdue,
+        monthsOverdue,
+        urgency: monthsOverdue > 6 ? 'high' : monthsOverdue > 3 ? 'medium' : 'low',
+        lastUpdate: lease.RentUpdates && lease.RentUpdates.length > 0 
+          ? lease.RentUpdates[0].updateDate 
+          : null
+      };
+    });
+
+    // Ordenar por urgencia (más meses de retraso primero)
+    detailedPendingUpdates.sort((a, b) => b.monthsSinceStart - a.monthsSinceStart);
+
+    console.log(`🎯 ${pendingUpdates.length} contratos necesitan actualización`);
+
+    // 🔧 Ahora 'now' está disponible aquí
+    res.status(200).json({
+      message: 'Contratos pendientes de actualización obtenidos exitosamente',
+      count: pendingUpdates.length,
+      currentDate: now.toLocaleDateString('es-AR'),
+      pendingUpdates: detailedPendingUpdates
+    });
+  } catch (error) {
+    console.error("Error al obtener contratos pendientes:", error);
+    res.status(500).json({ error: "Error al obtener contratos pendientes", details: error.message });
+  }
+};
+
+exports.getLeaseUpdateHistory = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    console.log(`📊 Obteniendo historial de actualizaciones para contrato ${id}`);
+    
+    // Verificar que el contrato existe
+    const lease = await Lease.findByPk(id, {
+      include: [
+        { model: Property, attributes: ['address'] },
+        { model: Client, as: 'Tenant', attributes: ['name'] },
+        { model: Client, as: 'Landlord', attributes: ['name'] }
+      ]
+    });
+    
+    if (!lease) {
+      return res.status(404).json({ 
+        error: 'Contrato no encontrado',
+        details: `No existe un contrato con ID ${id}`
+      });
+    }
+    
+    // Obtener todas las actualizaciones del contrato
+    const updates = await RentUpdate.findAll({
+      where: { leaseId: id },
+      order: [['updateDate', 'DESC']] // Más recientes primero
+    });
+    
+    // Calcular estadísticas del historial
+    const totalUpdates = updates.length;
+    const firstUpdate = updates.length > 0 ? updates[updates.length - 1] : null;
+    const lastUpdate = updates.length > 0 ? updates[0] : null;
+    
+    let totalIncrease = 0;
+    let averageIncrease = 0;
+    
+    if (updates.length > 0) {
+      const initialAmount = firstUpdate.oldRentAmount || lease.rentAmount;
+      const currentAmount = lease.rentAmount;
+      totalIncrease = ((currentAmount - initialAmount) / initialAmount) * 100;
+      
+      // Calcular incremento promedio por actualización
+      const increments = updates.map(update => {
+        const oldAmount = update.oldRentAmount || 0;
+        const newAmount = update.newRentAmount || 0;
+        return oldAmount > 0 ? ((newAmount - oldAmount) / oldAmount) * 100 : 0;
+      });
+      averageIncrease = increments.reduce((sum, inc) => sum + inc, 0) / increments.length;
+    }
+    
+    console.log(`✅ Historial obtenido: ${totalUpdates} actualizaciones`);
+    
+    res.status(200).json({
+      message: 'Historial de actualizaciones obtenido exitosamente',
+      lease: {
+        id: lease.id,
+        property: lease.Property.address,
+        tenant: lease.Tenant.name,
+        landlord: lease.Landlord.name,
+        currentRent: lease.rentAmount,
+        startDate: lease.startDate,
+        updateFrequency: lease.updateFrequency
+      },
+      statistics: {
+        totalUpdates,
+        totalIncreasePercentage: totalIncrease.toFixed(2),
+        averageIncreasePercentage: averageIncrease.toFixed(2),
+        firstUpdateDate: firstUpdate ? firstUpdate.updateDate : null,
+        lastUpdateDate: lastUpdate ? lastUpdate.updateDate : null
+      },
+      updates: updates.map(update => ({
+        id: update.id,
+        updateDate: update.updateDate,
+        oldAmount: update.oldRentAmount,
+        newAmount: update.newRentAmount,
+        increaseAmount: update.newRentAmount - update.oldRentAmount,
+        increasePercentage: update.oldRentAmount > 0 
+          ? (((update.newRentAmount - update.oldRentAmount) / update.oldRentAmount) * 100).toFixed(2)
+          : 0,
+        period: update.period,
+        pdfPath: update.pdfPath,
+        createdAt: update.createdAt
+      }))
+    });
+    
+  } catch (error) {
+    console.error("Error al obtener historial de actualizaciones:", error);
+    res.status(500).json({ 
+      error: "Error al obtener historial de actualizaciones", 
+      details: error.message 
+    });
+  }
+};
+
+// 🆕 2. Actualización rápida con porcentaje predeterminado
+exports.quickUpdateLeaseRent = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { percentage, reason, updateDate } = req.body;
+    
+    console.log(`⚡ Actualizando rápidamente contrato ${id} con ${percentage}% de aumento`);
+    
+    if (!percentage || !reason) {
+      return res.status(400).json({ 
+        error: 'Datos incompletos',
+        details: 'El porcentaje y la razón son obligatorios'
+      });
+    }
+    
+    const lease = await Lease.findByPk(id, {
+      include: [
+        { model: Property, attributes: ['address'] },
+        { model: Client, as: 'Tenant', attributes: ['name'] },
+        { model: Client, as: 'Landlord', attributes: ['name'] }
+      ]
+    });
+    
+    if (!lease) {
+      return res.status(404).json({ 
+        error: 'Contrato no encontrado',
+        details: `No existe un contrato con ID ${id}`
+      });
+    }
+    
+    // Calcular nuevo monto
+    const oldAmount = parseFloat(lease.rentAmount);
+    const increaseAmount = (oldAmount * parseFloat(percentage)) / 100;
+    const newAmount = oldAmount + increaseAmount;
+    
+    // Calcular período
+    const period = calculateUpdatePeriod(
+      lease.startDate, 
+      lease.updateFrequency, 
+      updateDate || new Date()
+    );
+    
+    // Crear registro de actualización
+    const rentUpdate = await RentUpdate.create({
+      leaseId: id,
+      updateDate: updateDate || new Date(),
+      oldRentAmount: oldAmount,
+      newRentAmount: newAmount,
+      period: period,
+      pdfPath: null // Se puede agregar después si es necesario
+    });
+    
+    // Actualizar el contrato
+    await lease.update({ rentAmount: newAmount });
+    
+    console.log(`✅ Actualización rápida completada: $${oldAmount} → $${newAmount}`);
+    
+    res.status(200).json({
+      message: 'Actualización rápida completada exitosamente',
+      update: {
+        id: rentUpdate.id,
+        lease: {
+          id: lease.id,
+          property: lease.Property.address,
+          tenant: lease.Tenant.name,
+          landlord: lease.Landlord.name
+        },
+        oldAmount,
+        newAmount,
+        increaseAmount,
+        increasePercentage: percentage,
+        reason,
+        period,
+        updateDate: rentUpdate.updateDate
+      }
+    });
+    
+  } catch (error) {
+    console.error("Error en actualización rápida:", error);
+    res.status(500).json({ 
+      error: "Error en actualización rápida", 
+      details: error.message 
+    });
+  }
+};
+
+// 🆕 3. Actualización masiva de múltiples contratos
+exports.bulkUpdateLeases = async (req, res) => {
+  try {
+    const { contracts } = req.body;
+    
+    console.log(`📦 Iniciando actualización masiva de ${contracts.length} contratos`);
+    
+    if (!contracts || !Array.isArray(contracts) || contracts.length === 0) {
+      return res.status(400).json({ 
+        error: 'Datos inválidos',
+        details: 'Se requiere un array de contratos para actualizar'
+      });
+    }
+    
+    const results = {
+      successful: [],
+      failed: [],
+      summary: {
+        totalProcessed: contracts.length,
+        successful: 0,
+        failed: 0
+      }
+    };
+    
+    for (const contractData of contracts) {
+      try {
+        const { leaseId, percentage, reason, updateDate } = contractData;
+        
+        console.log(`🔄 Procesando contrato ${leaseId}...`);
+        
+        const lease = await Lease.findByPk(leaseId);
+        if (!lease) {
+          throw new Error(`Contrato ${leaseId} no encontrado`);
+        }
+        
+        // Calcular nuevo monto
+        const oldAmount = parseFloat(lease.rentAmount);
+        const increaseAmount = (oldAmount * parseFloat(percentage)) / 100;
+        const newAmount = oldAmount + increaseAmount;
+        
+        // Calcular período
+        const period = calculateUpdatePeriod(
+          lease.startDate, 
+          lease.updateFrequency, 
+          updateDate || new Date()
+        );
+        
+        // Crear registro de actualización
+        const rentUpdate = await RentUpdate.create({
+          leaseId,
+          updateDate: updateDate || new Date(),
+          oldRentAmount: oldAmount,
+          newRentAmount: newAmount,
+          period: period,
+          pdfPath: null
+        });
+        
+        // Actualizar el contrato
+        await lease.update({ rentAmount: newAmount });
+        
+        results.successful.push({
+          leaseId,
+          oldAmount,
+          newAmount,
+          increasePercentage: percentage,
+          updateId: rentUpdate.id,
+          reason
+        });
+        
+        console.log(`✅ Contrato ${leaseId} actualizado exitosamente`);
+        
+      } catch (error) {
+        console.error(`❌ Error procesando contrato ${contractData.leaseId}:`, error.message);
+        
+        results.failed.push({
+          leaseId: contractData.leaseId,
+          error: error.message,
+          reason: contractData.reason
+        });
+      }
+    }
+    
+    results.summary.successful = results.successful.length;
+    results.summary.failed = results.failed.length;
+    
+    console.log(`📊 Actualización masiva completada: ${results.summary.successful} exitosos, ${results.summary.failed} fallidos`);
+    
+    const statusCode = results.summary.failed === 0 ? 200 : 207; // 207 = Multi-Status
+    
+    res.status(statusCode).json({
+      message: 'Actualización masiva completada',
+      results
+    });
+    
+  } catch (error) {
+    console.error("Error en actualización masiva:", error);
+    res.status(500).json({ 
+      error: "Error en actualización masiva", 
+      details: error.message 
+    });
+  }
+};
+
+// 🆕 4. Obtener estadísticas de actualizaciones
+exports.getUpdateStatistics = async (req, res) => {
+  try {
+    console.log('📈 Generando estadísticas de actualizaciones...');
+    
+    // Obtener todos los contratos activos
+    const totalActiveLeases = await Lease.count({ where: { status: 'active' } });
+    
+    // Obtener contratos que necesitan actualización
+    const pendingResponse = await exports.getLeasesPendingUpdate({ query: {} }, {
+      status: () => ({ json: (data) => data })
+    });
+    const pendingCount = pendingResponse.count || 0;
+    
+    // Estadísticas de actualizaciones realizadas este año
+    const currentYear = new Date().getFullYear();
+    const updatesThisYear = await RentUpdate.findAll({
+      where: {
+        updateDate: {
+          [Op.gte]: new Date(`${currentYear}-01-01`),
+          [Op.lte]: new Date(`${currentYear}-12-31`)
+        }
+      },
+      include: [{
+        model: Lease,
+        include: [
+          { model: Property, attributes: ['address'] },
+          { model: Client, as: 'Tenant', attributes: ['name'] }
+        ]
+      }]
+    });
+    
+    // Calcular estadísticas de incrementos
+    const increments = updatesThisYear.map(update => {
+      const oldAmount = update.oldRentAmount || 0;
+      const newAmount = update.newRentAmount || 0;
+      return oldAmount > 0 ? ((newAmount - oldAmount) / oldAmount) * 100 : 0;
+    });
+    
+    const averageIncrease = increments.length > 0 
+      ? increments.reduce((sum, inc) => sum + inc, 0) / increments.length 
+      : 0;
+    
+    const maxIncrease = increments.length > 0 ? Math.max(...increments) : 0;
+    const minIncrease = increments.length > 0 ? Math.min(...increments) : 0;
+    
+    // Estadísticas por frecuencia de actualización
+    const byFrequency = await Lease.findAll({
+      attributes: [
+        'updateFrequency',
+        [Lease.sequelize.fn('COUNT', Lease.sequelize.col('id')), 'count']
+      ],
+      where: { status: 'active' },
+      group: ['updateFrequency'],
+      raw: true
+    });
+    
+    // Últimas actualizaciones
+    const recentUpdates = await RentUpdate.findAll({
+      limit: 10,
+      order: [['updateDate', 'DESC']],
+      include: [{
+        model: Lease,
+        include: [
+          { model: Property, attributes: ['address'] },
+          { model: Client, as: 'Tenant', attributes: ['name'] },
+          { model: Client, as: 'Landlord', attributes: ['name'] }
+        ]
+      }]
+    });
+    
+    console.log('✅ Estadísticas generadas exitosamente');
+    
+    res.status(200).json({
+      message: 'Estadísticas de actualizaciones obtenidas exitosamente',
+      statistics: {
+        general: {
+          totalActiveLeases,
+          pendingUpdates: pendingCount,
+          updatesThisYear: updatesThisYear.length,
+          complianceRate: totalActiveLeases > 0 
+            ? (((totalActiveLeases - pendingCount) / totalActiveLeases) * 100).toFixed(2)
+            : 0
+        },
+        increments: {
+          averageIncrease: averageIncrease.toFixed(2),
+          maxIncrease: maxIncrease.toFixed(2),
+          minIncrease: minIncrease.toFixed(2),
+          totalIncrementsProcessed: increments.length
+        },
+        byFrequency: byFrequency.reduce((acc, item) => {
+          acc[item.updateFrequency] = parseInt(item.count);
+          return acc;
+        }, {}),
+        recentActivity: recentUpdates.map(update => ({
+          id: update.id,
+          date: update.updateDate,
+          property: update.Lease.Property.address,
+          tenant: update.Lease.Tenant.name,
+          landlord: update.Lease.Landlord.name,
+          oldAmount: update.oldRentAmount,
+          newAmount: update.newRentAmount,
+          increasePercentage: update.oldRentAmount > 0 
+            ? (((update.newRentAmount - update.oldRentAmount) / update.oldRentAmount) * 100).toFixed(2)
+            : 0
+        }))
+      }
+    });
+    
+  } catch (error) {
+    console.error("Error al obtener estadísticas:", error);
+    res.status(500).json({ 
+      error: "Error al obtener estadísticas", 
+      details: error.message 
+    });
+  }
+};
+
+// 🆕 5. Endpoint para obtener contratos próximos a vencer
+exports.getExpiringLeases = async (req, res) => {
+  try {
+    const { months = 3 } = req.query; // Por defecto, mostrar los que vencen en 3 meses
+    
+    console.log(`⏰ Buscando contratos que vencen en los próximos ${months} meses...`);
+    
+    const now = new Date();
+    const futureDate = new Date();
+    futureDate.setMonth(futureDate.getMonth() + parseInt(months));
+    
+    const leases = await Lease.findAll({
+      where: { status: 'active' },
+      include: [
+        { model: Property, attributes: ['address'] },
+        { model: Client, as: 'Tenant', attributes: ['name'] },
+        { model: Client, as: 'Landlord', attributes: ['name'] }
+      ]
+    });
+    
+    const expiringLeases = leases.filter(lease => {
+      const startDate = new Date(lease.startDate);
+      const endDate = new Date(startDate);
+      endDate.setMonth(endDate.getMonth() + lease.totalMonths);
+      
+      return endDate >= now && endDate <= futureDate;
+    }).map(lease => {
+      const startDate = new Date(lease.startDate);
+      const endDate = new Date(startDate);
+      endDate.setMonth(endDate.getMonth() + lease.totalMonths);
+      
+      const daysUntilExpiry = Math.ceil((endDate - now) / (1000 * 60 * 60 * 24));
+      
+      return {
+        id: lease.id,
+        property: lease.Property.address,
+        tenant: lease.Tenant.name,
+        landlord: lease.Landlord.name,
+        startDate: lease.startDate,
+        endDate: endDate,
+        daysUntilExpiry,
+        totalMonths: lease.totalMonths,
+        currentRent: lease.rentAmount,
+        urgency: daysUntilExpiry <= 30 ? 'high' : daysUntilExpiry <= 60 ? 'medium' : 'low'
+      };
+    });
+    
+    // Ordenar por fecha de vencimiento (más próximos primero)
+    expiringLeases.sort((a, b) => a.daysUntilExpiry - b.daysUntilExpiry);
+    
+    console.log(`✅ Encontrados ${expiringLeases.length} contratos próximos a vencer`);
+    
+    res.status(200).json({
+      message: 'Contratos próximos a vencer obtenidos exitosamente',
+      timeframe: `${months} meses`,
+      count: expiringLeases.length,
+      expiringLeases
+    });
+    
+  } catch (error) {
+    console.error("Error al obtener contratos próximos a vencer:", error);
+    res.status(500).json({ 
+      error: "Error al obtener contratos próximos a vencer", 
+      details: error.message 
+    });
+  }
+};
+
+module.exports = {
+  createLease: exports.createLease,
+  getAllLeases: exports.getAllLeases,
+  getLeasesPendingUpdate: exports.getLeasesPendingUpdate,
+  getLeaseUpdateHistory: exports.getLeaseUpdateHistory, // 🆕
+  quickUpdateLeaseRent: exports.quickUpdateLeaseRent, // 🆕
+  bulkUpdateLeases: exports.bulkUpdateLeases, // 🆕
+  getUpdateStatistics: exports.getUpdateStatistics, // 🆕
+  getExpiringLeases: exports.getExpiringLeases, // 🆕
+  getLeaseById: exports.getLeaseById,
+  terminateLease: exports.terminateLease,
+  checkPendingPayments: exports.checkPendingPayments,
+  
+  updateRentAmount: exports.updateRentAmount,
+  savePdf: exports.savePdf,
+  fixForeignKeyConstraints,
+  createTestRentUpdate,
+  debugLeaseAlerts,
+  needsUpdate,
 };

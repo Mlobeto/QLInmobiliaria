@@ -8,7 +8,8 @@ const seed = require('./src/scripts/seedData.js'); // Ajusta la ruta si es neces
 
 conn.sync({ alter: true }).then(async () => {
   // Ejecuta el seed antes de levantar el servidor
-
+  
+  //await seed();
 
   app.listen(PORT, () => {
     console.log(`🚀 listening on port: ${PORT} 🚀`);

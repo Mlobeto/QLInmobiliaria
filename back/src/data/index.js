@@ -11,20 +11,20 @@ const {
   DB_DEPLOY
   } = require('../config/envs');
 //-------------------------------- CONFIGURACION PARA TRABAJAR LOCALMENTE-----------------------------------
-// const sequelize = new Sequelize(
-//   `postgresql://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}`,
-//   {
-//     logging: false, // set to console.log to see the raw SQL queries
-//     native: false,  // lets Sequelize know we can use pg-native for ~30% more speed
-//     timezone: '-03:00', // Configura la zona horaria GMT-3 (Argentina)
-//   }
-// );
+const sequelize = new Sequelize(
+  `postgresql://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}`,
+  {
+    logging: false, // set to console.log to see the raw SQL queries
+    native: false,  // lets Sequelize know we can use pg-native for ~30% more speed
+    timezone: '-03:00', // Configura la zona horaria GMT-3 (Argentina)
+  }
+);
 //-------------------------------------CONFIGURACION PARA EL DEPLOY---------------------------------------------------------------------
-const sequelize = new Sequelize(DB_DEPLOY, {
-  logging: false, 
-  native: false,  
-  timezone: '-03:00', 
-});
+// const sequelize = new Sequelize(DB_DEPLOY, {
+//   logging: false, 
+//   native: false,  
+//   timezone: '-03:00', 
+// });
 
 const basename = path.basename(__filename);
 
@@ -68,14 +68,29 @@ const {
 Client.belongsToMany(Property, { 
   through: ClientProperty, 
   foreignKey: 'clientId',
-  otherKey: 'propertyId',
-  tableName: 'Properties' // ← Especificar tabla explícitamente
+  otherKey: 'propertyId'
 });
 Property.belongsToMany(Client, { 
   through: ClientProperty, 
   foreignKey: 'propertyId',
-  otherKey: 'clientId',
-  tableName: 'Clients' // ← Especificar tabla explícitamente
+  otherKey: 'clientId'
+});
+
+ClientProperty.belongsTo(Client, {
+  foreignKey: 'clientId',
+  targetKey: 'idClient'
+});
+ClientProperty.belongsTo(Property, {
+  foreignKey: 'propertyId', 
+  targetKey: 'propertyId'
+});
+Client.hasMany(ClientProperty, {
+  foreignKey: 'clientId',
+  sourceKey: 'idClient'
+});
+Property.hasMany(ClientProperty, {
+  foreignKey: 'propertyId',
+  sourceKey: 'propertyId'
 });
 
 // 2. Relaciones para Lease

@@ -48,6 +48,25 @@ module.exports = {
   getAllProperties: catchedAsync(PropertyController.getAllProperties),
   getPropertyById: catchedAsync(PropertyController.getPropertyById),
   createSaleAuthorization: catchedAsync(createSaleAuthorization.createSaleAuthorization),
+  
+  // Lease Controller functions
+  createLease: catchedAsync(LeaseController.createLease),
   getAllLeases: catchedAsync(LeaseController.getAllLeases),
+  getLeaseById: catchedAsync(LeaseController.getLeaseById),
+  terminateLease: catchedAsync(LeaseController.terminateLease),
+  checkPendingPayments: catchedAsync(LeaseController.checkPendingPayments),
+  updateRentAmount: catchedAsync(LeaseController.updateRentAmount),
+  savePdf: catchedAsync(LeaseController.savePdf),
+  fixForeignKeyConstraints: catchedAsync(LeaseController.fixForeignKeyConstraints),
+  createTestRentUpdate: catchedAsync(LeaseController.createTestRentUpdate),
+  debugLeaseAlerts: catchedAsync(LeaseController.debugLeaseAlerts),
+  getLeasesPendingUpdate: catchedAsync(LeaseController.getLeasesPendingUpdate),
+  getLeaseUpdateHistory: catchedAsync(LeaseController.getLeaseUpdateHistory), 
+  getExpiringLeases: catchedAsync(LeaseController.getExpiringLeases),
   getAllPayments: catchedAsync(PaymentController.getAllPayments),
+  getPaymentsByIdClient: catchedAsync(PaymentController.getPaymentsByIdClient),
+  getAllPayments: catchedAsync(PaymentController.getAllPayments),
+  quickUpdateLeaseRent: catchedAsync(LeaseController.quickUpdateLeaseRent),
+  getUpdateStatistics: catchedAsync(LeaseController.getUpdateStatistics),
+  bulkUpdateLeases: catchedAsync(LeaseController.bulkUpdateLeases)
 };
