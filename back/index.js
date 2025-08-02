@@ -6,10 +6,10 @@ require('dotenv').config();
 // Importa la función seed
 const seed = require('./src/scripts/seedData.js'); // Ajusta la ruta si es necesario
 
-conn.sync({ alter: true }).then(async () => {
+conn.sync({ force: true }).then(async () => {
   // Ejecuta el seed antes de levantar el servidor
   
-  //await seed();
+  await seed();
 
   app.listen(PORT, () => {
     console.log(`🚀 listening on port: ${PORT} 🚀`);
