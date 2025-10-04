@@ -1,7 +1,4 @@
 import { Routes, Route } from "react-router-dom";
-import { useEffect } from "react";
-import { useDispatch } from "react-redux";
-import { verifyToken } from "./redux/Actions/actions";
 import Landing from "./Components/Landing";
 import Panel from "./Components/Admin/Panel";
 import Clientes from "./Components/Clientes/Clientes";
@@ -12,204 +9,183 @@ import PanelContratos from "./Components/Admin/PanelContratos";
 import PanelPropiedades from "./Components/Admin/PanelPropiedades";
 import ListadoDeClientes from "./Components/Clientes/ListadoDeClientes";
 import Listado from "./Components/Propiedades/Listado";
-import FiltroPropiedades from "./Components/Propiedades/FiltroPropiedades";
+import FiltroPropiedades from "./Components/Propiedades/FiltroPropiedades"
 import LoginAdmin from "./Components/Admin/Login/Login";
-import CreateLeaseForm from "./Components/Contratos/CreateLeaseForm";
-import CompraVenta from "./Components/Contratos/CompraVenta";
+// eslint-disable-next-line no-unused-vars
 import ProtectedRoutes from "./utils/ProtectedRoutes";
 import PaymentForm from "./Components/Pagos/PaymentForm";
+
 import PaymentList from "./Components/Pagos/PaymentList";
 import PaymentReport from "./Components/Pagos/PaymentReport";
 import PanelInformes from "./Components/Admin/PanelInformes";
 import ContractAlerts from "./Components/Contratos/ContractAlerts";
 import ContratoAlquiler from "./Components/PdfTemplates/ContratoAlquiler";
-import ActualizarAlquileres from "./Components/Contratos/ActualizarAlquileres";
-
-// 🆕 Crear un wrapper para manejar el PDF con datos
-import PDFContractWrapper from "./Components/PdfTemplates/PDFContractWrapper";
 
 function App() {
-  const dispatch = useDispatch();
-
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      dispatch(verifyToken());
-    }
-  }, [dispatch]);
-
   return (
     <Routes>
       <Route path="/" element={<Landing />} />
-      <Route path="/login" element={<LoginAdmin />} />
-
-      {/* Rutas protegidas */}
+      {/* Ruta protegida: solo los administradores pueden ver el Panel */}
       <Route
         path="/panel"
         element={
-          <ProtectedRoutes>
-            <Panel />
-          </ProtectedRoutes>
+          //  <ProtectedRoutes>
+          <Panel />
+          //  </ProtectedRoutes>
         }
       />
-      <Route
+       <Route
         path="/panelClientes"
         element={
-          <ProtectedRoutes>
-            <PanelClientes />
-          </ProtectedRoutes>
+          //  <ProtectedRoutes>
+          <PanelClientes />
+          //  </ProtectedRoutes>
         }
       />
       <Route
         path="/listadoClientes"
         element={
-          <ProtectedRoutes>
-            <ListadoDeClientes />
-          </ProtectedRoutes>
+          //  <ProtectedRoutes>
+          <ListadoDeClientes />
+          //  </ProtectedRoutes>
         }
       />
       <Route
         path="/panelContratos"
         element={
-          <ProtectedRoutes>
-            <PanelContratos />
-          </ProtectedRoutes>
+          //  <ProtectedRoutes>
+          <PanelContratos />
+          //  </ProtectedRoutes>
         }
       />
-      <Route
+
+<Route
         path="/panelPropiedades"
         element={
-          <ProtectedRoutes>
-            <PanelPropiedades />
-          </ProtectedRoutes>
+          //  <ProtectedRoutes>
+          <PanelPropiedades />
+          //  </ProtectedRoutes>
         }
       />
-      <Route
+
+<Route
         path="/PanelInformes"
         element={
-          <ProtectedRoutes>
-            <PanelInformes />
-          </ProtectedRoutes>
+          //  <ProtectedRoutes>
+          <PanelInformes />
+          //  </ProtectedRoutes>
         }
       />
-      <Route
+
+
+<Route
         path="/listadoDePropiedades"
         element={
-          <ProtectedRoutes>
-            <Listado />
-          </ProtectedRoutes>
+          //  <ProtectedRoutes>
+          <Listado />
+          //  </ProtectedRoutes>
         }
       />
-      <Route
+
+<Route
         path="/filtro"
         element={
-          <ProtectedRoutes>
-            <FiltroPropiedades />
-          </ProtectedRoutes>
+          //  <ProtectedRoutes>
+          <FiltroPropiedades />
+          //  </ProtectedRoutes>
         }
       />
+
+
       <Route
         path="/cliente"
         element={
-          <ProtectedRoutes>
-            <Clientes />
-          </ProtectedRoutes>
+          //  <ProtectedRoutes>
+          <Clientes />
+          //  </ProtectedRoutes>
         }
       />
       <Route
         path="/contratoAlquiler"
         element={
-          <ProtectedRoutes>
-            <CreateLeaseForm />
-          </ProtectedRoutes>
+          //  <ProtectedRoutes>
+          <Listado mode="lease" />
+          //  </ProtectedRoutes>
         }
       />
-      <Route
-        path="/updateAlquiler"
-        element={
-          <ProtectedRoutes>
-            <ActualizarAlquileres />
-          </ProtectedRoutes>
-        }
-      />
+      
       <Route
         path="/sale"
         element={
-          <ProtectedRoutes>
-            <CompraVenta />
-          </ProtectedRoutes>
+          //  <ProtectedRoutes>
+          <Listado mode="sale" />
+          //  </ProtectedRoutes>
         }
       />
+
       <Route
         path="/cargarPropiedad"
         element={
-          <ProtectedRoutes>
-            <Propiedades />
-          </ProtectedRoutes>
+          //  <ProtectedRoutes>
+          <Propiedades />
+          //  </ProtectedRoutes>
         }
       />
       <Route
         path="/create-payment"
         element={
-          <ProtectedRoutes>
-            <PaymentForm />
-          </ProtectedRoutes>
+          //  <ProtectedRoutes>
+          <PaymentForm />
+          //  </ProtectedRoutes>
         }
       />
-      <Route
+      
+<Route
         path="/leaseList"
         element={
-          <ProtectedRoutes>
-            <EstadoContratos />
-          </ProtectedRoutes>
+          //  <ProtectedRoutes>
+          <EstadoContratos />
+          //  </ProtectedRoutes>
         }
       />
-      
-      {/* 🔧 Rutas PDF mejoradas */}
-      {/* Ruta específica para PDF con ID de contrato */}
-      <Route
-        path="/pdf/:leaseId"
-        element={
-          <ProtectedRoutes>
-            <PDFContractWrapper />
-          </ProtectedRoutes>
-        }
-      />
-      
-      {/* Ruta genérica para PDF (redirige o muestra error) */}
       <Route
         path="/pdf"
         element={
-          <ProtectedRoutes>
-            <PDFContractWrapper />
-          </ProtectedRoutes>
+          //  <ProtectedRoutes>
+          <ContratoAlquiler />
+          //  </ProtectedRoutes>
         }
       />
-      
-      <Route
+
+<Route
         path="/paymentList"
         element={
-          <ProtectedRoutes>
-            <PaymentList />
-          </ProtectedRoutes>
+          //  <ProtectedRoutes>
+          <PaymentList />
+          //  </ProtectedRoutes>
         }
       />
-      <Route
+
+<Route
         path="/reportes"
         element={
-          <ProtectedRoutes>
-            <PaymentReport />
-          </ProtectedRoutes>
+          //  <ProtectedRoutes>
+          <PaymentReport />
+          //  </ProtectedRoutes>
         }
       />
-      <Route
+
+<Route
         path="/alertas"
         element={
-          <ProtectedRoutes>
-            <ContractAlerts />
-          </ProtectedRoutes>
+          //  <ProtectedRoutes>
+          <ContractAlerts />
+          //  </ProtectedRoutes>
         }
       />
+
+
+      <Route path="/login" element={<LoginAdmin />} />
     </Routes>
   );
 }

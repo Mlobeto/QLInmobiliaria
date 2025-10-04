@@ -1,157 +1,45 @@
 import { useEffect, useState } from "react";
-import ReactDOM from "react-dom";
 import { useSelector, useDispatch } from "react-redux";
+import { useNavigate, useLocation } from "react-router-dom";
+import PropTypes from 'prop-types';
+import { getAllLeases } from "../../redux/Actions/actions";
+import CreateLeaseForm from "./CreateLeaseForm";
+import CompraVenta from "./CompraVenta";
 import {
-  getAllLeases,
-  getLeaseById,
-  updateLeaseRentAmount,
-} from "../../redux/Actions/actions";
-import ContratoAlquiler from "../PdfTemplates/ContratoAlquiler";
-import ActualizarAlquileres from "./ActualizarAlquileres";
-
-const calculateNextUpdateDate = (lease) => {
-  try {
-    if (!lease.startDate || !lease.updateFrequency) {
-      return null;
-    }
-
-    const startDate = new Date(lease.startDate);
-    if (isNaN(startDate.getTime())) {
-      return null;
-    }
-
-    let nextUpdate = new Date(startDate);
-    
-    // Calcular la próxima actualización basada en la frecuencia
-    switch (lease.updateFrequency) {
-      case 'mensual':
-        nextUpdate.setMonth(nextUpdate.getMonth() + 1);
-        break;
-      case 'trimestral':
-        nextUpdate.setMonth(nextUpdate.getMonth() + 3);
-        break;
-      case 'semestral':
-        nextUpdate.setMonth(nextUpdate.getMonth() + 6);
-        break;
-      case 'anual':
-        nextUpdate.setFullYear(nextUpdate.getFullYear() + 1);
-        break;
-      case 'bimestral':
-        nextUpdate.setMonth(nextUpdate.getMonth() + 2);
-        break;
-      default:
-        // Si no hay frecuencia específica, asumir anual
-        nextUpdate.setFullYear(nextUpdate.getFullYear() + 1);
-        break;
-    }
-
-    return nextUpdate;
-  } catch (error) {
-    console.error('Error calculando próxima actualización:', error);
-    return null;
-  }
-};
-
-// 🔧 Función helper para calcular días restantes
-const calculateDaysUntilUpdate = (nextUpdateDate) => {
-  try {
-    if (!nextUpdateDate || isNaN(nextUpdateDate.getTime())) {
-      return { days: null, status: 'Sin fecha' };
-    }
-
-    const today = new Date();
-    today.setHours(0, 0, 0, 0); // Normalizar a medianoche
-    
-    const updateDate = new Date(nextUpdateDate);
-    updateDate.setHours(0, 0, 0, 0); // Normalizar a medianoche
-    
-    const diffTime = updateDate - today;
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
-    let status = '';
-    if (diffDays < 0) {
-      status = `${Math.abs(diffDays)} días vencido`;
-    } else if (diffDays === 0) {
-      status = '¡Vence hoy!';
-    } else if (diffDays <= 7) {
-      status = `¡${diffDays} días restantes!`;
-    } else if (diffDays <= 15) {
-      status = `${diffDays} días restantes`;
-    } else if (diffDays <= 30) {
-      status = `${diffDays} días restantes`;
-    } else {
-      status = `${diffDays} días restantes`;
-    }
-    
-    return { days: diffDays, status };
-  } catch (error) {
-    console.error('Error calculando días restantes:', error);
-    return { days: null, status: 'Error en cálculo' };
-  }
-};
-
-// 🔧 Función helper para obtener colores basados en días restantes
-const getUpdateColors = (days) => {
-  if (days === null) {
-    return {
-      bgColor: '#f3f4f6', // Gris claro
-      textColor: '#6b7280' // Gris
-    };
-  }
-  
-  if (days < 0) {
-    return {
-      bgColor: '#fee2e2', // Rojo claro
-      textColor: '#991b1b' // Rojo oscuro
-    };
-  } else if (days <= 7) {
-    return {
-      bgColor: '#fef3c7', // Amarillo claro
-      textColor: '#92400e' // Amarillo oscuro
-    };
-  } else if (days <= 15) {
-    return {
-      bgColor: '#fde68a', // Amarillo
-      textColor: '#92400e'
-    };
-  } else if (days <= 30) {
-    return {
-      bgColor: '#fed7aa', // Naranja claro
-      textColor: '#9a3412'
-    };
-  } else {
-    return {
-      bgColor: '#bbf7d0', // Verde claro
-      textColor: '#065f46' // Verde oscuro
-    };
-  }
-};
-
-const EstadoContratos = () => {
+  IoArrowBackOutline,
+  IoHomeOutline,
+  IoDocumentTextOutline,
+  IoPencilOutline,
+  IoSaveOutline,
+  IoPersonOutline,
+  IoBusinessOutline,
+  IoCalendarOutline,
+  IoCashOutline,
+  IoTimeOutline,
+  IoClipboardOutline,
+  IoCheckmarkCircleOutline,
+  IoCloseCircleOutline,
+  IoAddOutline,
+  IoKeyOutline
+} from 'react-icons/io5';const EstadoContratos = ({ onLeaseSelect }) => {
   const dispatch = useDispatch();
-  const { leases, lease, loading, error } = useSelector((state) => state);
+  const navigate = useNavigate();
+  const location = useLocation();
+  // Selectores optimizados
+  const leases = useSelector((state) => state.leases);
+  const loading = useSelector((state) => state.loading);
+  const error = useSelector((state) => state.error);
   const [editingLeaseId, setEditingLeaseId] = useState(null);
   const [editedLease, setEditedLease] = useState({});
-  const [selectedLease, setSelectedLease] = useState(null);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showSaleModal, setShowSaleModal] = useState(false);
+
+  // Detectar el contexto basado en la URL
+  const isLeaseContext = location.pathname === '/contratoAlquiler';
+  const isSaleContext = location.pathname === '/sale';
 
   useEffect(() => {
     console.log("Leases en componente:", leases);
-    // 🔧 Debug mejorado: mostrar cálculo de fechas para cada contrato
-    if (leases && leases.length > 0) {
-      leases.forEach(lease => {
-        console.log(`=== Contrato ${lease.id || lease.leaseId} ===`);
-        console.log(`  - Fecha inicio: ${lease.startDate}`);
-        console.log(`  - Frecuencia: ${lease.updateFrequency}`);
-        console.log(`  - NextUpdateDate original: ${lease.nextUpdateDate}`);
-        
-        const calculatedNext = calculateNextUpdateDate(lease);
-        console.log(`  - NextUpdateDate calculada: ${calculatedNext}`);
-        
-        const { days, status } = calculateDaysUntilUpdate(calculatedNext);
-        console.log(`  - Días restantes: ${days}`);
-        console.log(`  - Status: ${status}`);
-      });
-    }
   }, [leases]);
 
   useEffect(() => {
@@ -169,338 +57,424 @@ const EstadoContratos = () => {
   };
 
   const handleSaveClick = (leaseId) => {
+    // Aquí podrías despachar una acción para actualizar el contrato
     console.log("Guardando contrato", leaseId, editedLease);
-    dispatch(updateLeaseRentAmount(leaseId, editedLease.rentAmount));
+    // Luego de salvar, salen del modo edición:
     setEditingLeaseId(null);
   };
 
-  const handleDownloadClick = async (leaseId) => {
-    try {
-      await dispatch(getLeaseById(leaseId));
-      
-      setTimeout(() => {
-        const currentLease = lease;
-        
-        if (!currentLease) {
-          console.error('No se pudo obtener el contrato');
-          return;
-        }
-
-        console.log('Generando PDF para contrato:', currentLease);
-
-        // Crear el componente y generar automáticamente
-        const element = document.createElement("div");
-        document.body.appendChild(element);
-
-        const root = ReactDOM.createRoot(element);
-        root.render(<ContratoAlquiler lease={currentLease} autoGenerate={true} />);
-
-        // Limpiar después de un momento
-        setTimeout(() => {
-          root.unmount();
-          document.body.removeChild(element);
-        }, 1000);
-        
-      }, 100);
-      
-    } catch (error) {
-      console.error('Error obteniendo contrato:', error);
-    }
+  const handleCancelEdit = () => {
+    setEditingLeaseId(null);
+    setEditedLease({});
   };
 
-  const handleSelectLease = (lease) => {
-    setSelectedLease(lease);
-  };
-
-  const handleUpdateLease = async (id, rentAmount, pdfData, fileName) => {
-    console.log("Actualizando contrato", id, rentAmount, pdfData, fileName);
-    // await dispatch(updateLease(id, rentAmount, pdfData, fileName));
-    setSelectedLease(null);
-  };
-
+  if (loading) {
     return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-4">Estado de Contratos</h1>
-      
-      {loading && (
-        <div className="flex justify-center items-center py-8">
-          <div className="text-blue-600">Cargando contratos...</div>
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+          <p className="text-slate-400">Cargando contratos...</p>
         </div>
-      )}
-      
-      {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-          Error: {error}
-        </div>
-      )}
-      
-      {/* Debug info mejorado */}
-      {leases && leases.length > 0 && (
-        <div className="mb-4 p-3 bg-gray-100 rounded text-sm">
-          <strong>Debug Info:</strong> {leases.length} contrato(s) cargado(s). 
-          Fecha actual: {new Date().toLocaleDateString()}
-        </div>
-      )}
+      </div>
+    );
+  }
 
-      {/* Tabla de contratos */}
-      {leases && leases.length > 0 ? (
-        <div className="overflow-x-auto">
-          <table className="min-w-full bg-white shadow rounded-lg">
-            <thead className="bg-blue-600 text-white">
-              <tr>
-                <th className="py-3 px-4 text-left">Inquilino</th>
-                <th className="py-3 px-4 text-left">Propiedad</th>
-                <th className="py-3 px-4 text-left">Propietario</th>
-                <th className="py-3 px-4 text-left">ID Contrato</th>
-                <th className="py-3 px-4 text-left">Fecha Inicio</th>
-                <th className="py-3 px-4 text-left">Monto</th>
-                <th className="py-3 px-4 text-left">Próxima Actualización</th>
-                <th className="py-3 px-4 text-left">Meses Totales</th>
-                <th className="py-3 px-4 text-center">Acciones</th>
-                <th className="py-3 px-4 text-center">Seleccionar</th>
-              </tr>
-            </thead>
-            <tbody>
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
+        <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-6 text-center max-w-md">
+          <IoCloseCircleOutline className="w-12 h-12 text-red-400 mx-auto mb-3" />
+          <p className="text-red-400 text-lg font-medium">Error al cargar contratos</p>
+          <p className="text-red-300 text-sm mt-2">{error}</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+      {/* Header */}
+      <div className="w-full bg-white/10 backdrop-blur-md border-b border-white/20 p-4 shadow-lg">
+        <div className="max-w-7xl mx-auto flex justify-between items-center">
+          <div className="flex items-center space-x-4">
+            <button 
+              onClick={() => navigate(-1)} 
+              className="text-white hover:text-blue-300 transition-colors duration-300 flex items-center space-x-2 px-3 py-2 rounded-lg bg-blue-500/20 hover:bg-blue-500/30 border border-blue-400/30"
+            >
+              <IoArrowBackOutline className="w-5 h-5" />
+              <span className="hidden sm:inline">Volver</span>
+            </button>
+            
+            {/* Breadcrumb */}
+            <nav className="flex items-center space-x-2 text-slate-300">
+              <button onClick={() => navigate('/panel')} className="hover:text-white transition-colors">
+                <IoHomeOutline className="w-4 h-4" />
+              </button>
+              <span>/</span>
+              <button onClick={() => navigate('/panelContratos')} className="hover:text-white transition-colors">
+                Contratos
+              </button>
+              <span>/</span>
+              <span className="text-white font-medium">Listado de Contratos</span>
+            </nav>
+          </div>
+          
+          {/* Botón para crear nuevo contrato según el contexto */}
+          {(isLeaseContext || isSaleContext) && (
+            <button
+              onClick={() => {
+                if (isLeaseContext) setShowCreateModal(true);
+                if (isSaleContext) setShowSaleModal(true);
+              }}
+              className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-lg font-medium transition-all duration-300 hover:scale-[1.02]"
+            >
+              <IoAddOutline className="w-5 h-5" />
+              <span className="hidden sm:inline">
+                {isLeaseContext ? 'Nuevo Contrato' : 'Nueva Compraventa'}
+              </span>
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Header principal */}
+      <div className="relative overflow-hidden bg-gradient-to-r from-slate-900/50 to-slate-800/50 backdrop-blur-sm border-b border-white/10">
+        <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:60px_60px]" />
+        <div className="relative max-w-7xl mx-auto px-6 py-8">
+          <div className="text-center">
+            <div className="flex items-center justify-center mb-4">
+              <IoDocumentTextOutline className="w-8 h-8 text-blue-400 mr-3" />
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent">
+                Estado de Contratos
+              </h1>
+            </div>
+            <p className="text-slate-400 text-lg max-w-2xl mx-auto">
+              Gestiona y edita la información de todos los contratos de alquiler
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Contenido principal */}
+      <div className="max-w-7xl mx-auto px-6 py-8">
+        {!leases || leases.length === 0 ? (
+          <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-12 text-center">
+            <IoClipboardOutline className="w-16 h-16 text-amber-400 mx-auto mb-4" />
+            <p className="text-amber-400 text-xl font-medium mb-2">No hay contratos registrados</p>
+            <p className="text-slate-400">Comienza creando tu primer contrato de alquiler</p>
+          </div>
+        ) : (
+          /* Grid de contratos modernizado */
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h3 className="text-xl font-semibold text-white">
+                Contratos encontrados: {leases.length}
+              </h3>
+            </div>
+            
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
               {leases.map((lease) => {
-                console.log("Procesando contrato:", lease);
-                
-                // 🔧 Cálculo mejorado de la próxima actualización
-                const nextUpdateDate = lease.nextUpdateDate 
-                  ? new Date(lease.nextUpdateDate)
-                  : calculateNextUpdateDate(lease);
-                
-                const { days, status } = calculateDaysUntilUpdate(nextUpdateDate);
-                const { bgColor, textColor } = getUpdateColors(days);
+                const isEditing = editingLeaseId === (lease.leaseId || lease.id);
+                const displayLease = isEditing ? editedLease : lease;
                 
                 return (
-                  <tr
+                  <div
                     key={lease.leaseId || lease.id}
-                    className="border-b hover:bg-gray-50 transition-colors"
+                    className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 hover:border-white/20 transition-all duration-300"
                   >
-                   <td className="py-3 px-4">
-                      <div className="font-medium text-gray-900">
-                        {lease.Tenant ? lease.Tenant.name : `ID: ${lease.tenantId}`}
-                      </div>
-                    </td>
-                    
-                    <td className="py-3 px-4">
-                      {editingLeaseId === (lease.leaseId || lease.id) ? (
-                        <input
-                          name="propertyId"
-                          value={editedLease.propertyId || ""}
-                          onChange={handleInputChange}
-                          className="border rounded p-2 w-full"
-                          placeholder="ID Propiedad"
-                        />
-                      ) : (
+                    {/* Header del contrato */}
+                    <div className="flex items-center justify-between mb-6">
+                      <div className="flex items-center space-x-3">
+                        <div className="p-2 bg-blue-500/20 rounded-lg">
+                          <IoDocumentTextOutline className="w-5 h-5 text-blue-400" />
+                        </div>
                         <div>
-                          {lease.Property ? (
-                            <div>
-                              <div className="font-medium">{lease.Property.address}</div>
-                              <div className="text-sm text-gray-500">
-                                {lease.Property.neighborhood}
-                              </div>
-                            </div>
-                          ) : (
-                            <span className="text-gray-500">ID: {lease.propertyId}</span>
-                          )}
+                          <h4 className="text-white font-semibold">
+                            Contrato #{lease.leaseId || lease.id}
+                          </h4>
+                          <p className="text-slate-400 text-sm">ID: {lease.leaseId || lease.id}</p>
                         </div>
-                      )}
-                    </td>
-                    
-                    <td className="py-3 px-4">
-                      {editingLeaseId === (lease.leaseId || lease.id) ? (
-                        <input
-                          name="landlordId"
-                          value={editedLease.landlordId || ""}
-                          onChange={handleInputChange}
-                          className="border rounded p-2 w-full"
-                          placeholder="ID Propietario"
-                        />
-                      ) : (
-                        <div className="font-medium text-gray-900">
-                          {lease.Landlord && lease.Landlord.name ? 
-                            lease.Landlord.name : 
-                            `ID: ${lease.landlordId}`
-                          }
-                        </div>
-                      )}
-                    </td>
-                    
-                    <td className="py-3 px-4">
-                      <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm">
-                        {lease.leaseId || lease.id}
-                      </span>
-                    </td>
-                    
-                    <td className="py-3 px-4">
-                      {editingLeaseId === (lease.leaseId || lease.id) ? (
-                        <input
-                          type="date"
-                          name="startDate"
-                          value={
-                            editedLease.startDate
-                              ? new Date(editedLease.startDate).toISOString().substring(0, 10)
-                              : ""
-                          }
-                          onChange={handleInputChange}
-                          className="border rounded p-2"
-                        />
-                      ) : (
-                        <div>
-                          <div className="font-medium">
-                            {lease.startDate ? new Date(lease.startDate).toLocaleDateString() : 'Sin fecha'}
-                          </div>
-                          <div className="text-sm text-gray-500">
-                            {lease.updateFrequency || 'Sin frecuencia'}
-                          </div>
-                        </div>
-                      )}
-                    </td>
-                    
-                    <td className="py-3 px-4">
-                      {editingLeaseId === (lease.leaseId || lease.id) ? (
-                        <input
-                          name="rentAmount"
-                          value={editedLease.rentAmount || ""}
-                          onChange={handleInputChange}
-                          className="border rounded p-2 w-full"
-                          placeholder="Monto"
-                        />
-                      ) : (
-                        <div className="font-bold text-green-600">
-                          ${new Intl.NumberFormat("es-AR").format(lease.rentAmount || 0)}
-                        </div>
-                      )}
-                    </td>
-                    
-                    {/* 🔧 Columna de próxima actualización mejorada */}
-                    <td 
-                      className="py-3 px-4"
-                      style={{ backgroundColor: bgColor, color: textColor }}
-                    >
-                      <div className="font-medium">
-                        {nextUpdateDate && !isNaN(nextUpdateDate.getTime()) 
-                          ? nextUpdateDate.toLocaleDateString()
-                          : 'Fecha no disponible'
-                        }
                       </div>
-                      <div className="text-xs font-semibold mt-1">
-                        {status}
-                      </div>
-                      {/* 🔧 Debug info temporal */}
-                      <div className="text-xs opacity-70 mt-1">
-                        Debug: {days !== null ? `${days}d` : 'N/A'}
-                      </div>
-                    </td>
-                    
-                    <td className="py-3 px-4">
-                      {editingLeaseId === (lease.leaseId || lease.id) ? (
-                        <input
-                          name="totalMonths"
-                          value={editedLease.totalMonths || ""}
-                          onChange={handleInputChange}
-                          className="border rounded p-2 w-full"
-                          placeholder="Meses"
-                        />
-                      ) : (
-                        <div className="text-center">
-                          <span className="bg-gray-100 px-2 py-1 rounded text-sm">
-                            {lease.totalMonths || 0} meses
-                          </span>
-                        </div>
-                      )}
-                    </td>
-                    
-                    <td className="py-3 px-4">
-                      <div className="flex gap-2 justify-center">
-                        {editingLeaseId === (lease.leaseId || lease.id) ? (
+                      
+                      <div className="flex items-center space-x-2">
+                        {isEditing ? (
                           <>
                             <button
                               onClick={() => handleSaveClick(lease.leaseId || lease.id)}
-                              className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-sm transition-colors"
+                              className="p-2 bg-green-500/20 hover:bg-green-500/30 text-green-400 rounded-lg transition-colors duration-200"
+                              title="Guardar"
                             >
-                              Guardar
+                              <IoSaveOutline className="w-4 h-4" />
                             </button>
                             <button
-                              onClick={() => setEditingLeaseId(null)}
-                              className="bg-gray-500 hover:bg-gray-600 text-white px-3 py-1 rounded text-sm transition-colors"
+                              onClick={handleCancelEdit}
+                              className="p-2 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded-lg transition-colors duration-200"
+                              title="Cancelar"
                             >
-                              Cancelar
+                              <IoCloseCircleOutline className="w-4 h-4" />
                             </button>
                           </>
                         ) : (
-                          <>
-                            <button
-                              onClick={() => handleEditClick(lease)}
-                              className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded text-sm transition-colors"
-                              title="Editar contrato"
-                            >
-                              Editar
-                            </button>
-                            <button
-                              onClick={() => handleDownloadClick(lease.leaseId || lease.id)}
-                              className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm transition-colors"
-                              title="Descargar PDF"
-                            >
-                              PDF
-                            </button>
-                          </>
+                          <button
+                            onClick={() => handleEditClick(lease)}
+                            className="p-2 bg-amber-500/20 hover:bg-amber-500/30 text-amber-400 rounded-lg transition-colors duration-200"
+                            title="Editar"
+                          >
+                            <IoPencilOutline className="w-4 h-4" />
+                          </button>
                         )}
                       </div>
-                    </td>
-                    
-                    <td className="py-3 px-4 text-center">
-  <button
-    onClick={() => handleSelectLease(lease)}
-    className={`px-3 py-1 rounded text-sm transition-colors ${
-      days !== null && days < 0 
-        ? 'bg-red-500 hover:bg-red-600 text-white animate-pulse' // 🔧 Botón rojo pulsante para vencidos
-        : days !== null && days <= 7
-        ? 'bg-orange-500 hover:bg-orange-600 text-white' // 🔧 Botón naranja para próximos a vencer
-        : 'bg-purple-500 hover:bg-purple-600 text-white' // 🔧 Botón normal
-    }`}
-    title={
-      days !== null && days < 0 
-        ? `¡URGENTE! Actualización vencida hace ${Math.abs(days)} días`
-        : days !== null && days <= 7
-        ? `Vence en ${days} días - Actualizar pronto`
-        : "Actualizar alquiler"
-    }
-  >
-    {days !== null && days < 0 ? '🚨 URGENTE' : 'Actualizar'}
-  </button>
-</td>
-                  </tr>
+                    </div>
+
+                    {/* Información del contrato */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {/* Inquilino */}
+                      <div className="space-y-2">
+                        <label className="flex items-center text-sm font-medium text-slate-300">
+                          <IoPersonOutline className="w-4 h-4 mr-2 text-blue-400" />
+                          Inquilino
+                        </label>
+                        <div className="text-white font-medium">
+                          {lease.Tenant ? lease.Tenant.name : lease.tenantId}
+                        </div>
+                      </div>
+
+                      {/* Propiedad */}
+                      <div className="space-y-2">
+                        <label className="flex items-center text-sm font-medium text-slate-300">
+                          <IoBusinessOutline className="w-4 h-4 mr-2 text-green-400" />
+                          Propiedad
+                        </label>
+                        {isEditing ? (
+                          <input
+                            name="propertyId"
+                            value={displayLease.propertyId || ''}
+                            onChange={handleInputChange}
+                            className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                          />
+                        ) : (
+                          <div className="text-white">
+                            {lease.Property ? lease.Property.address : lease.propertyId}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Propietario */}
+                      <div className="space-y-2">
+                        <label className="flex items-center text-sm font-medium text-slate-300">
+                          <IoPersonOutline className="w-4 h-4 mr-2 text-purple-400" />
+                          Propietario
+                        </label>
+                        {isEditing ? (
+                          <input
+                            name="landlordId"
+                            value={displayLease.landlordId || ''}
+                            onChange={handleInputChange}
+                            className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                          />
+                        ) : (
+                          <div className="text-white">
+                            {lease.Landlord && lease.Landlord.name ? lease.Landlord.name : lease.landlordId}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Fecha de inicio */}
+                      <div className="space-y-2">
+                        <label className="flex items-center text-sm font-medium text-slate-300">
+                          <IoCalendarOutline className="w-4 h-4 mr-2 text-orange-400" />
+                          Fecha de Inicio
+                        </label>
+                        {isEditing ? (
+                          <input
+                            type="date"
+                            name="startDate"
+                            value={
+                              displayLease.startDate
+                                ? new Date(displayLease.startDate).toISOString().substring(0, 10)
+                                : ""
+                            }
+                            onChange={handleInputChange}
+                            className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                          />
+                        ) : (
+                          <div className="text-white">
+                            {new Date(lease.startDate).toLocaleDateString()}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Monto */}
+                      <div className="space-y-2">
+                        <label className="flex items-center text-sm font-medium text-slate-300">
+                          <IoCashOutline className="w-4 h-4 mr-2 text-green-400" />
+                          Monto
+                        </label>
+                        {isEditing ? (
+                          <input
+                            name="rentAmount"
+                            value={displayLease.rentAmount || ''}
+                            onChange={handleInputChange}
+                            className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                          />
+                        ) : (
+                          <div className="text-green-400 font-bold">
+                            ${lease.rentAmount?.toLocaleString() || 'N/A'}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Frecuencia */}
+                      <div className="space-y-2">
+                        <label className="flex items-center text-sm font-medium text-slate-300">
+                          <IoTimeOutline className="w-4 h-4 mr-2 text-yellow-400" />
+                          Frecuencia
+                        </label>
+                        {isEditing ? (
+                          <select
+                            name="updateFrequency"
+                            value={displayLease.updateFrequency || ''}
+                            onChange={handleInputChange}
+                            className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                          >
+                            <option value="" className="bg-slate-800">Seleccionar</option>
+                            <option value="semestral" className="bg-slate-800">Semestral</option>
+                            <option value="cuatrimestral" className="bg-slate-800">Cuatrimestral</option>
+                            <option value="anual" className="bg-slate-800">Anual</option>
+                          </select>
+                        ) : (
+                          <div className="text-white capitalize">
+                            {lease.updateFrequency || 'N/A'}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Meses totales */}
+                      <div className="space-y-2">
+                        <label className="flex items-center text-sm font-medium text-slate-300">
+                          <IoCalendarOutline className="w-4 h-4 mr-2 text-blue-400" />
+                          Duración (meses)
+                        </label>
+                        {isEditing ? (
+                          <input
+                            type="number"
+                            name="totalMonths"
+                            value={displayLease.totalMonths || ''}
+                            onChange={handleInputChange}
+                            className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                          />
+                        ) : (
+                          <div className="text-white">
+                            {lease.totalMonths} meses
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Inventario */}
+                      <div className="space-y-2 md:col-span-2">
+                        <label className="flex items-center text-sm font-medium text-slate-300">
+                          <IoClipboardOutline className="w-4 h-4 mr-2 text-indigo-400" />
+                          Inventario
+                        </label>
+                        {isEditing ? (
+                          <textarea
+                            name="inventory"
+                            value={displayLease.inventory || ''}
+                            onChange={handleInputChange}
+                            rows={3}
+                            className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 resize-none"
+                          />
+                        ) : (
+                          <div className="text-slate-300 text-sm bg-white/5 rounded-lg p-3 min-h-[60px]">
+                            {lease.inventory || 'Sin inventario registrado'}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Botón para seleccionar contrato para pagos */}
+                    {onLeaseSelect && (
+                      <div className="mt-6 pt-4 border-t border-white/10">
+                        <button
+                          onClick={() => onLeaseSelect(lease)}
+                          className="w-full flex items-center justify-center px-4 py-3 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white rounded-xl font-medium transition-all duration-300 hover:scale-[1.02]"
+                        >
+                          <IoCheckmarkCircleOutline className="w-5 h-5 mr-2" />
+                          Seleccionar para Pago
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 );
               })}
-            </tbody>
-          </table>
-        </div>
-      ) : (
-        !loading && (
-          <div className="text-center py-12">
-            <div className="text-gray-500 text-lg mb-4">
-              No hay contratos registrados
-            </div>
-            <div className="text-sm text-gray-400">
-              Los contratos aparecerán aquí una vez que sean creados
             </div>
           </div>
-        )
+        )}
+      </div>
+
+      {/* Modal para crear contrato de alquiler */}
+      {showCreateModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-slate-900 rounded-2xl border border-white/10 w-full max-w-4xl max-h-[90vh] overflow-hidden">
+            <div className="p-6 border-b border-white/10 flex items-center justify-between">
+              <h3 className="text-xl font-semibold text-white flex items-center">
+                <IoKeyOutline className="w-6 h-6 mr-2 text-blue-400" />
+                Crear Contrato de Alquiler
+              </h3>
+              <button
+                onClick={() => setShowCreateModal(false)}
+                className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+              >
+                <IoCloseCircleOutline className="w-6 h-6 text-slate-400" />
+              </button>
+            </div>
+            <div className="max-h-[calc(90vh-120px)] overflow-y-auto">
+              <CreateLeaseForm 
+                isModal={true}
+                onClose={() => {
+                  setShowCreateModal(false);
+                  dispatch(getAllLeases()); // Refrescar la lista
+                }}
+              />
+            </div>
+          </div>
+        </div>
       )}
 
-      {/* Componente de actualización de alquileres */}
-      {selectedLease && (
-        <div className="mt-6">
-          <ActualizarAlquileres
-            lease={selectedLease}
-            onUpdate={handleUpdateLease}
-          />
+      {/* Modal para compraventa */}
+      {showSaleModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-slate-900 rounded-2xl border border-white/10 w-full max-w-4xl max-h-[90vh] overflow-hidden">
+            <div className="p-6 border-b border-white/10 flex items-center justify-between">
+              <h3 className="text-xl font-semibold text-white flex items-center">
+                <IoBusinessOutline className="w-6 h-6 mr-2 text-purple-400" />
+                Gestionar Compraventa
+              </h3>
+              <button
+                onClick={() => setShowSaleModal(false)}
+                className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+              >
+                <IoCloseCircleOutline className="w-6 h-6 text-slate-400" />
+              </button>
+            </div>
+            <div className="max-h-[calc(90vh-120px)] overflow-y-auto">
+              <CompraVenta 
+                isModal={true}
+                onClose={() => {
+                  setShowSaleModal(false);
+                  dispatch(getAllLeases()); // Refrescar la lista
+                }}
+              />
+            </div>
+          </div>
         </div>
       )}
     </div>
   );
+};
+
+EstadoContratos.propTypes = {
+  onLeaseSelect: PropTypes.func,
 };
 
 export default EstadoContratos;
