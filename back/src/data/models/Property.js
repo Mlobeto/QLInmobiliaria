@@ -114,6 +114,17 @@ module.exports = (sequelize) => {
         },
       },
 
+      // Link de Google Maps para todas las propiedades
+      linkMaps: {
+        type: DataTypes.STRING,
+        allowNull: true,
+        validate: {
+          isUrl: {
+            msg: "Debe ser una URL válida de Google Maps"
+          }
+        },
+      },
+
       images: {
         type: DataTypes.ARRAY(DataTypes.STRING),
         defaultValue: [],

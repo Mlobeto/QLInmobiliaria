@@ -46,6 +46,7 @@ const CreateProperty = () => {
     frente: "", // Nuevo campo para frente (solo lotes)
     profundidad: "", // Nuevo campo para profundidad (solo lotes)
     linkInstagram: "", // Nuevo campo para link de Instagram
+    linkMaps: "", // Nuevo campo para link de Google Maps
     images: [], // Aquí almacenaremos las URLs de las imágenes subidas
     plantType: "", // Campo nuevo para el tipo de planta
     plantQuantity: "", // Campo nuevo para la cantidad de plantas
@@ -617,6 +618,7 @@ const CreateProperty = () => {
                     <option value="escritura" className="bg-slate-800">Escritura</option>
                     <option value="prescripcion adjudicada" className="bg-slate-800">Prescripción Adjudicada</option>
                     <option value="posesion" className="bg-slate-800">Posesión</option>
+                    <option value="sesión de derechos posesorios" className="bg-slate-800">Sesión de Derechos Posesorios</option>
                   </select>
                 </div>
 
@@ -707,6 +709,21 @@ const CreateProperty = () => {
                       onChange={handleChange}
                       className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-slate-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20 transition-all duration-300 backdrop-blur-sm"
                       placeholder="https://instagram.com/p/..."
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="linkMaps" className="block text-slate-300 font-medium mb-2">
+                      Link de Google Maps
+                    </label>
+                    <input
+                      type="url"
+                      id="linkMaps"
+                      name="linkMaps"
+                      value={formData.linkMaps}
+                      onChange={handleChange}
+                      className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-slate-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20 transition-all duration-300 backdrop-blur-sm"
+                      placeholder="https://maps.google.com/..."
                     />
                   </div>
                 </div>

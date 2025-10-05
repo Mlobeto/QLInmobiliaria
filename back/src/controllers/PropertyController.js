@@ -17,15 +17,15 @@ exports.createProperty = async (req, res) => {
         frente,
         profundidad,
         linkInstagram,
-        rooms, // Asegúrate de que rooms está incluido
+        linkMaps, // ✅ Agregado
+        rooms,
         socio,
         inventory,
         superficieCubierta,
         superficieTotal,
-
       } = req.body;
   
-      // Validación básica
+      // Validación básica - solo campos requeridos según el modelo
       if (
         !address ||
         !neighborhood ||
@@ -33,7 +33,6 @@ exports.createProperty = async (req, res) => {
         !type ||
         !typeProperty ||
         !price ||
-        !images ||
         !escritura ||
         !comision
       ) {
@@ -68,24 +67,25 @@ exports.createProperty = async (req, res) => {
         type,
         typeProperty,
         price,
-        images,
+        images: images || [], // ✅ Opcional, array vacío por defecto
         comision,
         escritura,
         matriculaOPadron: matriculaOPadron || null,
         frente: frente || null,
         profundidad: profundidad || null,
         linkInstagram: linkInstagram || null,
-        rooms: parsedRooms, // Asignar parsedRooms al modelo
-        isAvailable: true, // Si isAvailable debe tener un valor por defecto
-        description: req.body.description || "", // Valor por defecto para description
-        planType: req.body.planType || "", // Valor por defecto para planType
-        plantQuantity: req.body.plantQuantity || 0, // Valor numérico por defecto
-        bathrooms: req.body.bathrooms || 0, // Valor numérico por defecto
-        highlights: req.body.highlights || "", // Valor por defecto para highlights
-        socio,
-        inventory,
-        superficieCubierta,
-        superficieTotal
+        linkMaps: linkMaps || null, // ✅ Agregado
+        rooms: parsedRooms,
+        isAvailable: true,
+        description: req.body.description || "",
+        plantType: req.body.plantType || null, // ✅ Cambiado a null
+        plantQuantity: req.body.plantQuantity || null, // ✅ Cambiado a null
+        bathrooms: req.body.bathrooms || null, // ✅ Cambiado a null
+        highlights: req.body.highlights || "",
+        socio: socio || null,
+        inventory: inventory || null,
+        superficieCubierta: superficieCubierta || null,
+        superficieTotal: superficieTotal || null
       });
   
       // Responder con la propiedad creada

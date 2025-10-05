@@ -1,13 +1,15 @@
-# 🎯 RESUMEN: Campo linkMaps Agregado
+# 🎯 RESUMEN: Cambios en Property - linkMaps y Escritura
+
+## Fecha: 4 de Octubre 2025
 
 ## ✅ Cambios Realizados
 
-### 1. **Modelo de Base de Datos** (`Client.js`)
-- ✅ Agregado campo `linkMaps` (opcional)
-- ✅ Validación de URL automática
-- ✅ Permite valores `null`
+### 1. **Modelo Property** (`back/src/data/models/Property.js`)
+- ✅ Agregado campo `linkMaps` (opcional) para Google Maps
+- ✅ Validación de URL automática  
+- ✅ Ya existía "sesión de derechos posesorios" en ENUM de escritura
 
-### 2. **Controlador de Importación** (`importController.js`)
+### 2. **Formulario de Propiedades** (`QL Front/src/Components/Propiedades/Propiedades.jsx`)
 - ✅ Actualizado para procesar el campo `linkMaps` del CSV
 - ✅ Se asigna automáticamente si está presente en el archivo
 
