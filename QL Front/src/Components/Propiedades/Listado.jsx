@@ -7,6 +7,7 @@ import PropiedadesPDF from "../PdfTemplates/PropiedadesPdf";
 import CreateLeaseForm from "../Contratos/CreateLeaseForm";
 import CompraVenta from "../Contratos/CompraVenta";
 import WhatsAppButton from './WhatsAppButton';
+import ImageManager from './ImageManager';
 import { 
   IoArrowBackOutline,
   IoHomeOutline,
@@ -294,6 +295,7 @@ const Listado = ({ mode = "default" }) => {
                         propertyId={property.propertyId}
                         property={property}
                       />
+                      <ImageManager property={property} />
                       <button 
                         onClick={() => handleDelete(property.propertyId)}
                         className="p-2 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded-lg transition-colors duration-200"

@@ -147,18 +147,33 @@ exports.getPropertiesByType = async (req, res) => {
 exports.updateProperty = async (req, res) => {
   try {
     const { propertyId } = req.params;
+    
+    console.log('[UpdateProperty] Datos recibidos:', {
+      propertyId,
+      body: req.body
+    });
+
     const updated = await Property.update(req.body, { where: { propertyId } });
+    
+    console.log('[UpdateProperty] Resultado:', updated);
+    
     if (!updated[0]) {
       return res.status(404).json({ error: "Propiedad no encontrada" });
     }
+    
     res.status(200).json({ message: "Propiedad actualizada" });
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        error: "Error al actualizar la propiedad",
-        details: error.message,
-      });
+    console.error('[UpdateProperty] Error:', {
+      message: error.message,
+      stack: error.stack,
+      propertyId: req.params.propertyId,
+      body: req.body
+    });
+    
+    res.status(500).json({
+      error: "Error al actualizar la propiedad",
+      details: error.message,
+    });
   }
 };
 

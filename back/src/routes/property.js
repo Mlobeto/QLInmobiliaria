@@ -39,7 +39,7 @@ router.get("/:propertyId", (req, res, next) => {
 
 router.get("/", getAllProperties);
 router.post("/", createProperty);
-router.put("/:id", updateProperty);
+router.put("/:propertyId", updateProperty);
 router.delete("/:propertyId", deleteProperty);
 
 module.exports = router;
