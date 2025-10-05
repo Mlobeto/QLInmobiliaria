@@ -80,11 +80,11 @@ module.exports = (sequelize) => {
 
       direccion: {
         type: DataTypes.STRING,
-        allowNull: true
+        allowNull: false
       },
       ciudad: {
         type: DataTypes.STRING,
-        allowNull: true
+        allowNull: false
       },
       provincia: {
         type: DataTypes.STRING,

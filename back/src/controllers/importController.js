@@ -60,7 +60,7 @@ const importClients = catchedAsync(async (req, res) => {
     }
 
     // Validar estructura del archivo
-    const requiredColumns = ['cuil', 'name', 'email', 'direccion', 'mobilePhone'];
+    const requiredColumns = ['cuil', 'name', 'email', 'direccion', 'mobile'];
     const firstRow = data[0];
     const missingColumns = requiredColumns.filter(col => !firstRow.hasOwnProperty(col));
     
@@ -106,7 +106,7 @@ const importClients = catchedAsync(async (req, res) => {
           errors.push('Dirección es requerida');
         }
 
-        if (!row.mobilePhone || !isValidPhone(row.mobilePhone)) {
+        if (!row.mobile || !isValidPhone(row.mobile)) {
           errors.push('Teléfono debe tener exactamente 10 dígitos');
         }
 
@@ -148,7 +148,7 @@ const importClients = catchedAsync(async (req, res) => {
           direccion: row.direccion.trim(),
           ciudad: row.ciudad || null,
           provincia: row.provincia || null,
-          mobilePhone: row.mobilePhone
+          mobilePhone: row.mobile
         };
 
         const newClient = await Client.create(clientData);
