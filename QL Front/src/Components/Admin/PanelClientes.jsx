@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { getAllClients } from '../../redux/Actions/actions';
@@ -260,8 +260,6 @@ const PanelClientes = () => {
           )}
         </div>
 
-        {/* Quick Actions */}
-        
       </div>
     </div>
   );
