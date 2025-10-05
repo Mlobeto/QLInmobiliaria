@@ -119,10 +119,7 @@ exports.getAllPayments = async (req, res) => {
       ],
     });
 
-    if (!payments.length) {
-      return res.status(404).json({ error: 'No se encontraron pagos' });
-    }
-
+    // ✅ Devolver array vacío si no hay pagos, no un error 404
     res.status(200).json(payments);
   } catch (error) {
     res.status(500).json({ error: 'Error al obtener los pagos', details: error.message });
