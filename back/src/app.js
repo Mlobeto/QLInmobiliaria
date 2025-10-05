@@ -42,6 +42,9 @@ app.use(cors({
 
 app.use(morgan("dev"))
 
+// Manejar explícitamente peticiones OPTIONS (preflight CORS)
+app.options('*', cors());
+
 // Health check endpoint
 app.get('/health', (req, res) => {
     res.status(200).json({
@@ -60,9 +63,17 @@ app.use((err, req, res, next) => {
     console.error('Error Handler:', {
         path: req.path,
         method: req.method,
+        origin: req.get('origin'),
         error: err.message,
         stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
     });
+
+    // Asegurar que los headers CORS estén presentes en errores
+    const origin = req.get('origin');
+    if (origin && (origin.includes('.vercel.app') || allowedOrigins.indexOf(origin) !== -1)) {
+        res.header('Access-Control-Allow-Origin', origin);
+        res.header('Access-Control-Allow-Credentials', 'true');
+    }
 
     res.status(err.status || 500).json({
         error: err.message || 'Internal Server Error',
@@ -72,6 +83,13 @@ app.use((err, req, res, next) => {
 
 // 404 handler - must be last
 app.use((req, res) => {
+    // Asegurar que los headers CORS estén presentes en 404
+    const origin = req.get('origin');
+    if (origin && (origin.includes('.vercel.app') || allowedOrigins.indexOf(origin) !== -1)) {
+        res.header('Access-Control-Allow-Origin', origin);
+        res.header('Access-Control-Allow-Credentials', 'true');
+    }
+    
     res.status(404).json({
         error: 'Not Found',
         path: req.path

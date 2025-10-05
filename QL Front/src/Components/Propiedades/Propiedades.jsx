@@ -246,7 +246,6 @@ const CreateProperty = () => {
         {/* Form Container */}
         <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 sm:p-8 border border-white/10 shadow-2xl">
           <form onSubmit={handleSubmit} className="space-y-8">
-          <form onSubmit={handleSubmit} className="space-y-8">
             {/* Sección Cliente y Propietario */}
             <div className="bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-white/10">
               <h3 className="text-xl font-bold text-white mb-6 flex items-center">
@@ -844,7 +843,6 @@ const CreateProperty = () => {
                 <span>Guardar Propiedad</span>
               </button>
             </div>
-          </form>
           </form>
         </div>
       </div>
