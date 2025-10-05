@@ -21,7 +21,7 @@ const Panel = () => {
     clients: state.clients || [],
     properties: state.properties || [],
     leases: state.leases || [],
-    payments: state.payments || [],
+    payments: state.allPayments || [],
     loading: state.loading
   }));
 

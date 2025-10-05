@@ -560,7 +560,7 @@ export const createPayment = (paymentData) => async (dispatch) => {
 export const getPaymentsByLeaseId = (leaseId) => async (dispatch) => {
   dispatch({ type: GET_PAYMENTS_BY_LEASE_REQUEST });
   try {
-    const response = await axios.get(`/payment/${leaseId}`);
+    const response = await axios.get(`/payment/lease/${leaseId}`);
     dispatch({
       type: GET_PAYMENTS_BY_LEASE_SUCCESS,
       payload: response.data,
@@ -576,7 +576,7 @@ export const getPaymentsByLeaseId = (leaseId) => async (dispatch) => {
 export const getPaymentsByClient = (idClient) => async (dispatch) => {
   dispatch({ type: GET_PAYMENTS_BY_CLIENT_REQUEST });
   try {
-    const response = await axios.get(`/payment/${idClient}`);
+    const response = await axios.get(`/payment/client/${idClient}`);
     dispatch({
       type: GET_PAYMENTS_BY_CLIENT_SUCCESS,
       payload: response.data,

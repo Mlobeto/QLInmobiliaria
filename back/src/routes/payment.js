@@ -3,9 +3,9 @@ const { createPayment, getPaymentsByIdClient, getAllPayments, getPaymentsByLease
 const router = express.Router();
 
 router.post('/', createPayment);
-router.get('/:leaseId', getPaymentsByLeaseId);
-router.get('/:idClient', getPaymentsByIdClient);
 router.get('/', getAllPayments);
+router.get('/lease/:leaseId', getPaymentsByLeaseId);
+router.get('/client/:idClient', getPaymentsByIdClient);
 
 
 module.exports = router;
