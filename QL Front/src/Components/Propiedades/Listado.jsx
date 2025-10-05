@@ -249,21 +249,21 @@ const Listado = ({ mode = "default" }) => {
         {/* Properties Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
           {paginatedProperties.map((property) => (
-            <div key={property.propertyId} className="bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-white/10 hover:border-white/20 transition-all duration-300 group">
+            <div key={property.propertyId} className="bg-white/5 backdrop-blur-sm rounded-xl p-4 sm:p-6 border border-white/10 hover:border-white/20 transition-all duration-300 group">
               {/* Property Header */}
-              <div className="flex justify-between items-start mb-4">
-                <div className="flex items-center space-x-2">
-                  <div className="p-2 bg-blue-500/20 rounded-lg">
+              <div className="flex justify-between items-start gap-3 mb-4">
+                <div className="flex items-center space-x-2 flex-1 min-w-0">
+                  <div className="p-2 bg-blue-500/20 rounded-lg flex-shrink-0">
                     <IoBusinessOutline className="w-5 h-5 text-blue-400" />
                   </div>
-                  <div>
-                    <h3 className="text-white font-semibold">Propiedad #{property.propertyId}</h3>
-                    <p className="text-slate-400 text-sm">{property.type || 'Sin especificar'}</p>
+                  <div className="min-w-0">
+                    <h3 className="text-white font-semibold truncate">Propiedad #{property.propertyId}</h3>
+                    <p className="text-slate-400 text-sm truncate">{property.type || 'Sin especificar'}</p>
                   </div>
                 </div>
                 
                 {/* Action Buttons */}
-                <div className="flex space-x-2">
+                <div className="flex space-x-1 flex-shrink-0">
                   {editingId === property.propertyId ? (
                     <>
                       <button 
