@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { loginAdmin } from '../../../redux/Actions/actions'; 
 import { useNavigate, Link } from 'react-router-dom';
@@ -12,10 +12,14 @@ const LoginAdmin = () => {
 
   const error = useSelector((state) => state.error);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    dispatch(loginAdmin({ username, password }));
-    navigate('/panel');
+    const result = await dispatch(loginAdmin({ username, password }));
+    
+    // Solo navegar si el login fue exitoso
+    if (result.type === 'LOGIN_SUCCESS') {
+      navigate('/panel');
+    }
   };
 
   return (
