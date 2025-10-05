@@ -1,5 +1,8 @@
-import React from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import { getAllClients } from '../../redux/Actions/actions';
+import * as XLSX from 'xlsx';
 import { 
   IoLogOutOutline, 
   IoListOutline, 
@@ -7,11 +10,109 @@ import {
   IoArrowBackOutline,
   IoPeopleOutline,
   IoHomeOutline,
-  IoPersonOutline
+  IoDownloadOutline,
+  IoStatsChartOutline
 } from 'react-icons/io5';
 
 const PanelClientes = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+  // Obtener clientes desde Redux
+  const { clients = [], loading } = useSelector((state) => ({
+    clients: state.clients || [],
+    loading: state.loading
+  }));
+
+  // Cargar clientes al montar el componente
+  useEffect(() => {
+    dispatch(getAllClients());
+  }, [dispatch]);
+
+  // Calcular estadísticas
+  const stats = useMemo(() => {
+    const totalClientes = clients.length;
+    
+    // Clientes nuevos del mes actual
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+    
+    const nuevosDelMes = clients.filter(client => {
+      if (!client.createdAt) return false;
+      const createdDate = new Date(client.createdAt);
+      return createdDate.getMonth() === currentMonth && 
+             createdDate.getFullYear() === currentYear;
+    }).length;
+
+    // Clientes con propiedades (activos)
+    const activos = clients.filter(client => 
+      client.properties && client.properties.length > 0
+    ).length;
+
+    // Clientes con contratos
+    const conContratos = clients.filter(client => 
+      client.leases && client.leases.length > 0
+    ).length;
+
+    return {
+      totalClientes,
+      nuevosDelMes,
+      activos,
+      conContratos
+    };
+  }, [clients]);
+
+  // Función para exportar a Excel
+  const handleExportExcel = () => {
+    if (clients.length === 0) {
+      alert('No hay clientes para exportar');
+      return;
+    }
+
+    // Preparar datos para Excel
+    const excelData = clients.map(client => ({
+      'CUIL': client.cuil || '',
+      'Nombre': client.name || '',
+      'Email': client.email || '',
+      'Teléfono': client.mobilePhone || '',
+      'Dirección': client.direccion || '',
+      'Ciudad': client.ciudad || '',
+      'Provincia': client.provincia || '',
+      'Propiedades': client.properties?.length || 0,
+      'Contratos': client.leases?.length || 0,
+      'Fecha Creación': client.createdAt ? new Date(client.createdAt).toLocaleDateString('es-AR') : ''
+    }));
+
+    // Crear workbook y worksheet
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.json_to_sheet(excelData);
+
+    // Ajustar ancho de columnas
+    const colWidths = [
+      { wch: 15 }, // CUIL
+      { wch: 30 }, // Nombre
+      { wch: 30 }, // Email
+      { wch: 15 }, // Teléfono
+      { wch: 40 }, // Dirección
+      { wch: 20 }, // Ciudad
+      { wch: 15 }, // Provincia
+      { wch: 12 }, // Propiedades
+      { wch: 12 }, // Contratos
+      { wch: 15 }  // Fecha Creación
+    ];
+    ws['!cols'] = colWidths;
+
+    // Agregar worksheet al workbook
+    XLSX.utils.book_append_sheet(wb, ws, 'Clientes');
+
+    // Generar nombre de archivo con fecha
+    const fecha = new Date().toLocaleDateString('es-AR').replace(/\//g, '-');
+    const filename = `Clientes_${fecha}.xlsx`;
+
+    // Descargar archivo
+    XLSX.writeFile(wb, filename);
+  };
 
   const handleLogout = () => {
     // Aquí agregarías tu lógica de logout
@@ -118,64 +219,49 @@ const PanelClientes = () => {
 
         {/* Quick Stats */}
         <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10">
-          <h2 className="text-xl font-bold text-white mb-6 flex items-center">
-            <IoPersonOutline className="w-6 h-6 mr-2 text-blue-400" />
-            Estadísticas de Clientes
-          </h2>
-          
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            {[
-              { label: 'Total Clientes', value: '--', color: 'text-blue-400' },
-              { label: 'Nuevos (Mes)', value: '--', color: 'text-emerald-400' },
-              { label: 'Activos', value: '--', color: 'text-amber-400' },
-              { label: 'Con Contratos', value: '--', color: 'text-purple-400' }
-            ].map((stat, index) => (
-              <div key={index} className="text-center p-4 bg-white/5 rounded-xl border border-white/10">
-                <p className={`text-2xl font-bold ${stat.color}`}>{stat.value}</p>
-                <p className="text-xs text-slate-300 mt-1">{stat.label}</p>
-              </div>
-            ))}
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-xl font-bold text-white flex items-center">
+              <IoStatsChartOutline className="w-6 h-6 mr-2 text-blue-400" />
+              Estadísticas de Clientes
+            </h2>
+            
+            {/* Botón de descarga Excel */}
+            <button
+              onClick={handleExportExcel}
+              disabled={loading || clients.length === 0}
+              className="flex items-center space-x-2 px-4 py-2 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 rounded-lg border border-emerald-400/30 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+              title="Descargar lista completa en Excel"
+            >
+              <IoDownloadOutline className="w-5 h-5" />
+              <span className="hidden sm:inline">Exportar Excel</span>
+              <span className="sm:hidden">Excel</span>
+            </button>
           </div>
+          
+          {loading ? (
+            <div className="text-center py-8">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-400 mx-auto"></div>
+              <p className="text-slate-300 mt-4">Cargando estadísticas...</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              {[
+                { label: 'Total Clientes', value: stats.totalClientes, color: 'text-blue-400' },
+                { label: 'Nuevos (Mes)', value: stats.nuevosDelMes, color: 'text-emerald-400' },
+                { label: 'Con Propiedades', value: stats.activos, color: 'text-amber-400' },
+                { label: 'Con Contratos', value: stats.conContratos, color: 'text-purple-400' }
+              ].map((stat, index) => (
+                <div key={index} className="text-center p-4 bg-white/5 rounded-xl border border-white/10 hover:bg-white/10 transition-colors duration-300">
+                  <p className={`text-2xl sm:text-3xl font-bold ${stat.color}`}>{stat.value}</p>
+                  <p className="text-xs text-slate-300 mt-1">{stat.label}</p>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Quick Actions */}
-        <div className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="bg-white/5 backdrop-blur-sm p-4 rounded-xl border border-white/10 hover:bg-white/10 transition-colors duration-300 cursor-pointer">
-            <div className="flex items-center space-x-3">
-              <div className="p-2 bg-blue-500/20 rounded-lg">
-                <IoListOutline className="w-5 h-5 text-blue-400" />
-              </div>
-              <div>
-                <p className="text-white font-medium">Búsqueda Rápida</p>
-                <p className="text-xs text-slate-300">Encuentra clientes</p>
-              </div>
-            </div>
-          </div>
-          
-          <div className="bg-white/5 backdrop-blur-sm p-4 rounded-xl border border-white/10 hover:bg-white/10 transition-colors duration-300 cursor-pointer">
-            <div className="flex items-center space-x-3">
-              <div className="p-2 bg-emerald-500/20 rounded-lg">
-                <IoPersonAddOutline className="w-5 h-5 text-emerald-400" />
-              </div>
-              <div>
-                <p className="text-white font-medium">Registro Rápido</p>
-                <p className="text-xs text-slate-300">Agregar cliente</p>
-              </div>
-            </div>
-          </div>
-          
-          <div className="bg-white/5 backdrop-blur-sm p-4 rounded-xl border border-white/10 hover:bg-white/10 transition-colors duration-300 cursor-pointer">
-            <div className="flex items-center space-x-3">
-              <div className="p-2 bg-purple-500/20 rounded-lg">
-                <IoPeopleOutline className="w-5 h-5 text-purple-400" />
-              </div>
-              <div>
-                <p className="text-white font-medium">Exportar Lista</p>
-                <p className="text-xs text-slate-300">Descargar datos</p>
-              </div>
-            </div>
-          </div>
-        </div>
+        
       </div>
     </div>
   );
