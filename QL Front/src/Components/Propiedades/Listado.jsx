@@ -263,8 +263,8 @@ const Listado = ({ mode = "default" }) => {
                   </div>
                 </div>
                 
-                {/* Action Buttons */}
-                <div className="flex space-x-1 flex-shrink-0">
+                {/* Action Buttons - Ahora con wrap para múltiples filas */}
+                <div className="flex flex-wrap gap-1 justify-end max-w-[180px]">
                   {editingId === property.propertyId ? (
                     <>
                       <button 
