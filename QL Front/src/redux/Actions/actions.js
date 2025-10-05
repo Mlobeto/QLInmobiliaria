@@ -953,7 +953,7 @@ export const getWhatsAppText = (propertyId) => async (dispatch) => {
   dispatch({ type: GET_WHATSAPP_TEXT_REQUEST });
 
   try {
-    const response = await axios.get(`/api/property/${propertyId}/whatsapp`);
+    const response = await axios.get(`/property/${propertyId}/whatsapp`);
 
     dispatch({
       type: GET_WHATSAPP_TEXT_SUCCESS,
@@ -984,7 +984,7 @@ export const updateWhatsAppTemplate = (propertyId, template) => async (dispatch)
   dispatch({ type: UPDATE_WHATSAPP_TEMPLATE_REQUEST });
 
   try {
-    const response = await axios.put(`/api/property/${propertyId}`, {
+    const response = await axios.put(`/property/${propertyId}`, {
       whatsappTemplate: template,
     });
 
@@ -1025,7 +1025,7 @@ export const updatePropertyImages = (propertyId, images) => async (dispatch) => 
   dispatch({ type: UPDATE_PROPERTY_IMAGES_REQUEST });
 
   try {
-    const response = await axios.put(`/api/property/${propertyId}`, {
+    const response = await axios.put(`/property/${propertyId}`, {
       images: images,
     });
 
