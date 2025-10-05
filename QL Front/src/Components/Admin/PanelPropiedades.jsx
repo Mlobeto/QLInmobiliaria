@@ -32,11 +32,11 @@ const PanelPropiedades = () => {
     dispatch(getAllProperties());
   }, [dispatch]);
 
-  // Calcular estadísticas
+  
   const stats = useMemo(() => {
     const totalPropiedades = properties.length;
     
-    // Propiedades disponibles
+  
     const disponibles = properties.filter(prop => 
       prop.isAvailable === true || prop.isAvailable === "true"
     ).length;
