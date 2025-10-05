@@ -1,24 +1,23 @@
 import React, { useState } from "react";
 import { useDispatch } from "react-redux";
 import { updatePropertyImages } from "../../redux/Actions/actions";
+import { loadCloudinaryScript, openCloudinaryWidget } from "../../cloudinaryConfig";
 
 export default function ImageManager({ property }) {
   const dispatch = useDispatch();
   const [isOpen, setIsOpen] = useState(false);
   const [images, setImages] = useState(property.images || []);
-  const [newImageUrl, setNewImageUrl] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleAddImage = () => {
-    if (newImageUrl.trim()) {
-      // Validar que sea una URL válida
-      try {
-        new URL(newImageUrl);
-        setImages([...images, newImageUrl]);
-        setNewImageUrl("");
-      } catch {
-        alert("Por favor ingresa una URL válida");
-      }
+  const handleAddImage = async () => {
+    try {
+      await loadCloudinaryScript();
+      openCloudinaryWidget((uploadedImageUrl) => {
+        setImages((prevImages) => [...prevImages, uploadedImageUrl]);
+      });
+    } catch (error) {
+      console.error("Error al cargar el script de Cloudinary:", error);
+      alert("Error al abrir el widget de Cloudinary");
     }
   };
 
@@ -43,7 +42,6 @@ export default function ImageManager({ property }) {
 
   const handleCancel = () => {
     setImages(property.images || []);
-    setNewImageUrl("");
     setIsOpen(false);
   };
 
@@ -79,26 +77,19 @@ export default function ImageManager({ property }) {
             <div className="p-6 space-y-6">
               {/* Agregar nueva imagen */}
               <div className="border rounded-lg p-4 bg-gray-50">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Agregar nueva imagen (URL de Cloudinary)
+                <label className="block text-sm font-medium text-gray-700 mb-3">
+                  Agregar nuevas imágenes
                 </label>
-                <div className="flex gap-2">
-                  <input
-                    type="url"
-                    value={newImageUrl}
-                    onChange={(e) => setNewImageUrl(e.target.value)}
-                    placeholder="https://res.cloudinary.com/..."
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                  />
-                  <button
-                    onClick={handleAddImage}
-                    className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors flex-shrink-0"
-                  >
-                    ➕ Agregar
-                  </button>
-                </div>
+                <button
+                  onClick={handleAddImage}
+                  disabled={isLoading}
+                  className="w-full px-4 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                >
+                  <span className="text-xl">☁️</span>
+                  Subir Imágenes a Cloudinary
+                </button>
                 <p className="text-xs text-gray-500 mt-2">
-                  💡 Sube las imágenes a Cloudinary primero y pega la URL aquí
+                  💡 Haz clic para abrir el widget de Cloudinary y subir múltiples imágenes
                 </p>
               </div>
 
