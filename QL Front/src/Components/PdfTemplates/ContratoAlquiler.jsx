@@ -257,7 +257,7 @@ const ContratoAlquiler = ({ lease, autoGenerate = false }) => {
 };
 
 ContratoAlquiler.propTypes = {
-  lease: PropTypes.object.isRequired,
+  lease: PropTypes.object,
   autoGenerate: PropTypes.bool,
 };
 

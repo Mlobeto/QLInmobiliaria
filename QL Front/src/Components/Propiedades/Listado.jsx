@@ -6,6 +6,7 @@ import { getAllProperties, updateProperty, deleteProperty } from "../../redux/Ac
 import PropiedadesPDF from "../PdfTemplates/PropiedadesPdf";
 import CreateLeaseForm from "../Contratos/CreateLeaseForm";
 import CompraVenta from "../Contratos/CompraVenta";
+import WhatsAppButton from './WhatsAppButton';
 import { 
   IoArrowBackOutline,
   IoHomeOutline,
@@ -289,6 +290,10 @@ const Listado = ({ mode = "default" }) => {
                       >
                         <IoPencilOutline className="w-4 h-4" />
                       </button>
+                      <WhatsAppButton 
+                        propertyId={property.propertyId}
+                        property={property}
+                      />
                       <button 
                         onClick={() => handleDelete(property.propertyId)}
                         className="p-2 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded-lg transition-colors duration-200"

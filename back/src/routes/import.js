@@ -37,16 +37,19 @@ router.get('/templates', (req, res) => {
     message: 'Plantillas disponibles',
     templates: {
       clients: {
-        filename: 'plantilla_clientes.xlsx',
+        filename: 'plantilla_clientes.csv',
         description: 'Plantilla para carga masiva de clientes',
         requiredColumns: [
           'cuil (Formato: xx-xxxxxxxx-x)',
           'name (Texto)',
           'email (Email válido)',
           'direccion (Texto)',
+          'mobile (10 dígitos)'
+        ],
+        optionalColumns: [
           'ciudad (Texto, opcional)',
           'provincia (Texto, opcional)',
-          'mobilePhone (10 dígitos)'
+          'linkMaps (URL de Google Maps, opcional)'
         ]
       },
       properties: {

@@ -80,7 +80,7 @@ module.exports = (sequelize) => {
 
       direccion: {
         type: DataTypes.STRING,
-        allowNull: false
+        allowNull: true
       },
       ciudad: {
         type: DataTypes.STRING,
@@ -96,6 +96,16 @@ module.exports = (sequelize) => {
         allowNull: false,
         validate: {
           is: /^\d{10}$/,
+        },
+      },
+      
+      linkMaps: {
+        type: DataTypes.STRING,
+        allowNull: true,
+        validate: {
+          isUrl: {
+            msg: "El link de Google Maps debe ser una URL válida"
+          }
         },
       },
     },

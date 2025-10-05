@@ -316,3 +316,103 @@ exports.getPropertyById = async (req, res) => {
     });
   }
 };
+
+// GET: Obtener texto de WhatsApp para una propiedad
+exports.getWhatsAppText = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const property = await Property.findByPk(id);
+
+    if (!property) {
+      return res.status(404).json({ error: 'Propiedad no encontrada' });
+    }
+
+    // Plantilla por defecto si no existe una personalizada
+    const defaultTemplate = `Gracias por ponerte en contacto con Quintero Lobeto Propiedades! Estamos encantados de poder ayudar. 
+
+{descripcion}
+
+Te comento que estamos en lanzamiento de ofertas y este es el primero!
+
+Precio: AR$ {precio}
+Ubicación: {direccion}
+
+Estamos a tu entera disposición por dudas, precio o consultas.`;
+
+    const template = property.whatsappTemplate || defaultTemplate;
+
+    // Formatear precio con separadores de miles
+    const formattedPrice = new Intl.NumberFormat('es-AR', {
+      style: 'currency',
+      currency: 'ARS',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(property.price);
+
+    // Crear descripción detallada de la propiedad
+    let propertyDescription = `${property.typeProperty.charAt(0).toUpperCase() + property.typeProperty.slice(1)} en ${property.type}`;
+    
+    if (property.rooms) {
+      propertyDescription += ` - ${property.rooms} habitaciones`;
+    }
+    if (property.bathrooms) {
+      propertyDescription += `, ${property.bathrooms} baños`;
+    }
+    if (property.superficieTotal) {
+      propertyDescription += `, ${property.superficieTotal}m²`;
+    }
+    if (property.neighborhood) {
+      propertyDescription += ` en ${property.neighborhood}`;
+    }
+
+    // Reemplazar variables en la plantilla
+    let whatsappText = template
+      .replace(/{precio}/g, formattedPrice)
+      .replace(/{direccion}/g, property.address)
+      .replace(/{ciudad}/g, property.city || '')
+      .replace(/{barrio}/g, property.neighborhood || '')
+      .replace(/{tipo}/g, property.typeProperty)
+      .replace(/{tipoOperacion}/g, property.type)
+      .replace(/{habitaciones}/g, property.rooms || 'N/A')
+      .replace(/{baños}/g, property.bathrooms || 'N/A')
+      .replace(/{superficieTotal}/g, property.superficieTotal || 'N/A')
+      .replace(/{superficieCubierta}/g, property.superficieCubierta || 'N/A')
+      .replace(/{descripcion}/g, propertyDescription)
+      .replace(/{destacados}/g, property.highlights || '')
+      .replace(/{escritura}/g, property.escritura || '');
+
+    // Si es finca, agregar información de plantas
+    if (property.typeProperty === 'finca' && property.plantType) {
+      const plantInfo = `\n\nCultivo: ${property.plantType} - ${property.plantQuantity || 0} plantas`;
+      whatsappText += plantInfo;
+    }
+
+    // Si es lote, agregar medidas
+    if (property.typeProperty === 'lote' && (property.frente || property.profundidad)) {
+      const loteInfo = `\n\nMedidas: Frente ${property.frente || 'N/A'}m x Profundidad ${property.profundidad || 'N/A'}m`;
+      whatsappText += loteInfo;
+    }
+
+    res.status(200).json({
+      success: true,
+      propertyId: property.propertyId,
+      address: property.address,
+      whatsappText: whatsappText,
+      template: template,
+      availableVariables: [
+        '{precio}', '{direccion}', '{ciudad}', '{barrio}',
+        '{tipo}', '{tipoOperacion}', '{habitaciones}', '{baños}',
+        '{superficieTotal}', '{superficieCubierta}', '{descripcion}',
+        '{destacados}', '{escritura}'
+      ]
+    });
+
+  } catch (error) {
+    console.error('Error al generar texto de WhatsApp:', error);
+    res.status(500).json({
+      error: 'Error al generar texto de WhatsApp',
+      details: error.message
+    });
+  }
+};

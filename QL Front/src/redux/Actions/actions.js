@@ -95,6 +95,15 @@ import {
   GET_UPDATE_STATS_FAILURE,
   ADD_PROPERTY_TO_CLIENT_ERROR,
   ADD_PROPERTY_TO_CLIENT_SUCCESS,
+  GET_WHATSAPP_TEXT_REQUEST,
+  GET_WHATSAPP_TEXT_SUCCESS,
+  GET_WHATSAPP_TEXT_FAILURE,
+  UPDATE_WHATSAPP_TEMPLATE_REQUEST,
+  UPDATE_WHATSAPP_TEMPLATE_SUCCESS,
+  UPDATE_WHATSAPP_TEMPLATE_FAILURE,
+  UPDATE_PROPERTY_IMAGES_REQUEST,
+  UPDATE_PROPERTY_IMAGES_SUCCESS,
+  UPDATE_PROPERTY_IMAGES_FAILURE,
 } from "./actions-types";
 
 export const registerAdmin = (adminData) => async (dispatch) => {
@@ -936,5 +945,150 @@ export const getUpdateStatistics = () => async (dispatch) => {
     // 🔧 No mostrar error visual si es problema de backend
     console.error('Error de estadísticas:', error.message);
     return null;
+  }
+};
+
+// 🆕 Obtener texto de WhatsApp para una propiedad
+export const getWhatsAppText = (propertyId) => async (dispatch) => {
+  dispatch({ type: GET_WHATSAPP_TEXT_REQUEST });
+
+  try {
+    const response = await axios.get(`/api/property/${propertyId}/whatsapp`);
+
+    dispatch({
+      type: GET_WHATSAPP_TEXT_SUCCESS,
+      payload: response.data,
+    });
+
+    return response.data;
+  } catch (error) {
+    const errorMessage = error.response?.data?.message || "Error al generar texto de WhatsApp";
+    
+    dispatch({
+      type: GET_WHATSAPP_TEXT_FAILURE,
+      payload: errorMessage,
+    });
+
+    Swal.fire({
+      icon: "error",
+      title: "Error",
+      text: errorMessage,
+    });
+
+    throw error;
+  }
+};
+
+// 🆕 Actualizar plantilla de WhatsApp de una propiedad
+export const updateWhatsAppTemplate = (propertyId, template) => async (dispatch) => {
+  dispatch({ type: UPDATE_WHATSAPP_TEMPLATE_REQUEST });
+
+  try {
+    const response = await axios.put(`/api/property/${propertyId}`, {
+      whatsappTemplate: template,
+    });
+
+    dispatch({
+      type: UPDATE_WHATSAPP_TEMPLATE_SUCCESS,
+      payload: response.data,
+    });
+
+    Swal.fire({
+      icon: "success",
+      title: "¡Éxito!",
+      text: "Plantilla de WhatsApp actualizada correctamente",
+      timer: 2000,
+      showConfirmButton: false,
+    });
+
+    return response.data;
+  } catch (error) {
+    const errorMessage = error.response?.data?.message || "Error al actualizar plantilla de WhatsApp";
+    
+    dispatch({
+      type: UPDATE_WHATSAPP_TEMPLATE_FAILURE,
+      payload: errorMessage,
+    });
+
+    Swal.fire({
+      icon: "error",
+      title: "Error",
+      text: errorMessage,
+    });
+
+    throw error;
+  }
+};
+
+// 🆕 Actualizar imágenes de una propiedad
+export const updatePropertyImages = (propertyId, images) => async (dispatch) => {
+  dispatch({ type: UPDATE_PROPERTY_IMAGES_REQUEST });
+
+  try {
+    const response = await axios.put(`/api/property/${propertyId}`, {
+      images: images,
+    });
+
+    dispatch({
+      type: UPDATE_PROPERTY_IMAGES_SUCCESS,
+      payload: response.data,
+    });
+
+    Swal.fire({
+      icon: "success",
+      title: "¡Éxito!",
+      text: "Imágenes actualizadas correctamente",
+      timer: 2000,
+      showConfirmButton: false,
+    });
+
+    return response.data;
+  } catch (error) {
+    const errorMessage = error.response?.data?.message || "Error al actualizar imágenes";
+    
+    dispatch({
+      type: UPDATE_PROPERTY_IMAGES_FAILURE,
+      payload: errorMessage,
+    });
+
+    Swal.fire({
+      icon: "error",
+      title: "Error",
+      text: errorMessage,
+    });
+
+    throw error;
+  }
+};
+
+// 🆕 Copiar texto de WhatsApp al portapapeles
+export const copyWhatsAppToClipboard = (propertyId) => async (dispatch) => {
+  try {
+    const data = await dispatch(getWhatsAppText(propertyId));
+
+    if (data && data.whatsappText) {
+      // Copiar al portapapeles
+      await navigator.clipboard.writeText(data.whatsappText);
+
+      Swal.fire({
+        icon: "success",
+        title: "¡Copiado!",
+        text: "Texto de WhatsApp copiado al portapapeles",
+        timer: 2000,
+        showConfirmButton: false,
+      });
+
+      return true;
+    }
+  } catch (error) {
+    console.error("Error al copiar:", error);
+    
+    Swal.fire({
+      icon: "error",
+      title: "Error",
+      text: "No se pudo copiar el texto. Intenta nuevamente.",
+    });
+
+    return false;
   }
 };

@@ -148,7 +148,8 @@ const importClients = catchedAsync(async (req, res) => {
           direccion: row.direccion.trim(),
           ciudad: row.ciudad || null,
           provincia: row.provincia || null,
-          mobilePhone: row.mobile
+          mobilePhone: row.mobile,
+          linkMaps: row.linkMaps || null
         };
 
         const newClient = await Client.create(clientData);

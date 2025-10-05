@@ -78,7 +78,8 @@ module.exports = (sequelize) => {
           "prescripcion en tramite",
           "escritura",
           "prescripcion adjudicada",
-          "posesion"
+          "posesion",
+          "sesión de derechos posesorios"
         ),
         allowNull: false,
       },
@@ -147,6 +148,21 @@ module.exports = (sequelize) => {
       superficieTotal:{
         type: DataTypes.STRING,
         allowNull: true,
+      },
+      
+      whatsappTemplate: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+        defaultValue: `Gracias por ponerte en contacto con Quintero Lobeto Propiedades! Estamos encantados de poder ayudar. 
+
+{descripcion}
+
+Te comento que estamos en lanzamiento de ofertas y este es el primero!
+
+Precio: AR$ {precio}
+Ubicación: {direccion}
+
+Estamos a tu entera disposición por dudas, precio o consultas.`,
       },
       
       

@@ -7,7 +7,8 @@ const {
   getPropertiesByType,
   deleteProperty,
   updateProperty,
-  getFilteredProperties
+  getFilteredProperties,
+  getWhatsAppText
 } = require("../controllers");
 
 const router = Router();
@@ -23,6 +24,9 @@ router.use((req, res, next) => {
 router.get("/filtered", getFilteredProperties);
 router.get("/type/:type", getPropertiesByType);
 router.get("/client/:idClient", getPropertiesByIdClient);
+
+// Ruta para obtener texto de WhatsApp (debe ir ANTES de /:propertyId)
+router.get("/:id/whatsapp", getWhatsAppText);
 
 // Agregamos logging específico para la ruta getPropertyById
 router.get("/:propertyId", (req, res, next) => {

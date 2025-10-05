@@ -95,6 +95,15 @@ import {
   GET_UPDATE_STATS_REQUEST,
   GET_UPDATE_STATS_SUCCESS,
   GET_UPDATE_STATS_FAILURE,
+  GET_WHATSAPP_TEXT_REQUEST,
+  GET_WHATSAPP_TEXT_SUCCESS,
+  GET_WHATSAPP_TEXT_FAILURE,
+  UPDATE_WHATSAPP_TEMPLATE_REQUEST,
+  UPDATE_WHATSAPP_TEMPLATE_SUCCESS,
+  UPDATE_WHATSAPP_TEMPLATE_FAILURE,
+  UPDATE_PROPERTY_IMAGES_REQUEST,
+  UPDATE_PROPERTY_IMAGES_SUCCESS,
+  UPDATE_PROPERTY_IMAGES_FAILURE,
   VERIFY_TOKEN_REQUEST,
   VERIFY_TOKEN_SUCCESS,
   VERIFY_TOKEN_FAILURE,
@@ -170,7 +179,9 @@ const initialState = {
     data: null,
     error: null,
     lastFetch: null
-  }
+  },
+  // 🆕 Estados para WhatsApp
+  whatsappText: null,
 };
 
 const rootReducer = (state = initialState, action) => {
@@ -920,6 +931,61 @@ const rootReducer = (state = initialState, action) => {
 
     case CREATE_GUARANTORS_FAIL:
     case GET_GUARANTORS_FAIL:
+      return {
+        ...state,
+        loading: false,
+        error: action.payload,
+      };
+
+    // ========== WHATSAPP ==========
+    case GET_WHATSAPP_TEXT_REQUEST:
+      return {
+        ...state,
+        loading: true,
+        error: null,
+      };
+
+    case GET_WHATSAPP_TEXT_SUCCESS:
+      return {
+        ...state,
+        loading: false,
+        whatsappText: action.payload.whatsappText,
+        error: null,
+      };
+
+    case GET_WHATSAPP_TEXT_FAILURE:
+      return {
+        ...state,
+        loading: false,
+        error: action.payload,
+      };
+
+    case UPDATE_WHATSAPP_TEMPLATE_REQUEST:
+    case UPDATE_PROPERTY_IMAGES_REQUEST:
+      return {
+        ...state,
+        loading: true,
+        error: null,
+      };
+
+    case UPDATE_WHATSAPP_TEMPLATE_SUCCESS:
+      return {
+        ...state,
+        loading: false,
+        property: action.payload, // Actualiza la propiedad con la nueva plantilla
+        error: null,
+      };
+
+    case UPDATE_PROPERTY_IMAGES_SUCCESS:
+      return {
+        ...state,
+        loading: false,
+        property: action.payload, // Actualiza la propiedad con las nuevas imágenes
+        error: null,
+      };
+
+    case UPDATE_WHATSAPP_TEMPLATE_FAILURE:
+    case UPDATE_PROPERTY_IMAGES_FAILURE:
       return {
         ...state,
         loading: false,
