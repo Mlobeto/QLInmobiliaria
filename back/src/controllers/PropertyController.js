@@ -10,6 +10,7 @@ exports.createProperty = async (req, res) => {
         type,
         typeProperty,
         price,
+        precioReferencia,
         images,
         comision,
         escritura,
@@ -67,6 +68,7 @@ exports.createProperty = async (req, res) => {
         type,
         typeProperty,
         price,
+        precioReferencia: precioReferencia || null,
         images: images || [], // ✅ Opcional, array vacío por defecto
         comision,
         escritura,

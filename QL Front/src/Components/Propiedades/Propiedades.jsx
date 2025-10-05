@@ -36,6 +36,7 @@ const CreateProperty = () => {
     type: "",
     typeProperty: "",
     price: "",
+    precioReferencia: "",
     rooms: "",
     bathrooms: "",
     comision: "",
@@ -548,6 +549,22 @@ const CreateProperty = () => {
                     className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-slate-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20 transition-all duration-300 backdrop-blur-sm"
                     placeholder="Ingrese el precio"
                     required
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="precioReferencia" className="block text-slate-300 font-medium mb-2">
+                    Precio de Referencia
+                    <span className="text-slate-400 text-sm ml-2">(Opcional - Solo para consulta interna)</span>
+                  </label>
+                  <input
+                    type="number"
+                    id="precioReferencia"
+                    name="precioReferencia"
+                    value={formData.precioReferencia}
+                    onChange={handleChange}
+                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-slate-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20 transition-all duration-300 backdrop-blur-sm"
+                    placeholder="Precio de referencia (interno)"
                   />
                 </div>
 

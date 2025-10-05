@@ -49,6 +49,13 @@ module.exports = (sequelize) => {
           min: 0, // Precio no puede ser negativo
         },
       },
+      precioReferencia: {
+        type: DataTypes.DECIMAL,
+        allowNull: true, // No es requerido
+        validate: {
+          min: 0, // Precio de referencia no puede ser negativo
+        },
+      },
       rooms: {
         type: DataTypes.INTEGER,
         validate: {
