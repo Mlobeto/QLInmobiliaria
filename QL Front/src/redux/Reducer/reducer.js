@@ -2,6 +2,7 @@ import {
   CREATE_CLIENT_REQUEST,
   CREATE_CLIENT_SUCCESS,
   CREATE_CLIENT_FAILURE,
+  RESET_CREATE_CLIENT_STATE,
   GET_ALL_CLIENT_REQUEST,
   GET_ALL_CLIENT_SUCCESS,
   GET_ALL_CLIENT_FAIL,
@@ -260,6 +261,16 @@ const rootReducer = (state = initialState, action) => {
           loading: false,
           success: false,
           error: action.payload,
+        },
+      };
+
+    case RESET_CREATE_CLIENT_STATE:
+      return {
+        ...state,
+        clientCreate: {
+          loading: false,
+          success: false,
+          error: null,
         },
       };
 

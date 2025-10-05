@@ -9,6 +9,7 @@ import {
   CREATE_CLIENT_REQUEST,
   CREATE_CLIENT_SUCCESS,
   CREATE_CLIENT_FAILURE,
+  RESET_CREATE_CLIENT_STATE,
   GET_CLIENT_REQUEST,
   GET_CLIENT_SUCCESS,
   GET_CLIENT_FAILURE,
@@ -192,6 +193,11 @@ export const createClient = (clientData) => async (dispatch) => {
     throw errorMessage; // Lanza el error para que el componente lo maneje
   }
 };
+
+// Acción para limpiar el estado de creación de cliente
+export const resetCreateClientState = () => ({
+  type: RESET_CREATE_CLIENT_STATE
+});
 
 export const getAllClients = () => async (dispatch) => {
   dispatch({ type: GET_ALL_CLIENT_REQUEST });

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { createClient } from "../../redux/Actions/actions";
+import { createClient, resetCreateClientState } from "../../redux/Actions/actions";
 import { useNavigate } from 'react-router-dom';
 import { 
   IoArrowBackOutline, 
@@ -32,6 +32,11 @@ const CreateClientForm = () => {
 
   const { loading, error, success } = useSelector((state) => state.clientCreate);
 
+  // Limpiar el estado cuando el componente se monta
+  useEffect(() => {
+    dispatch(resetCreateClientState());
+  }, [dispatch]);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({
@@ -44,16 +49,8 @@ const CreateClientForm = () => {
     e.preventDefault();
     
     try {
-      const result = await dispatch(createClient(formData));
-      
-      // Solo limpiar formulario y redirigir si fue exitoso
-      if (result.type.includes('fulfilled')) {
-        setFormData(initialState);
-        // Esperar un momento para mostrar el mensaje de éxito antes de redirigir
-        setTimeout(() => {
-          navigate('/panelClientes');
-        }, 2000);
-      }
+      await dispatch(createClient(formData));
+      // El formulario se limpiará después de que el efecto detecte success
     } catch (error) {
       console.error("Error al crear el cliente:", error);
       // El error se manejará automáticamente por Redux
@@ -63,13 +60,19 @@ const CreateClientForm = () => {
   // Efecto para manejar redirección exitosa
   useEffect(() => {
     if (success) {
+      // Limpiar formulario
+      setFormData(initialState);
+      setValidationErrors({});
+      
+      // Redirigir después de 2 segundos
       const timer = setTimeout(() => {
+        dispatch(resetCreateClientState()); // Limpiar estado antes de redirigir
         navigate('/panelClientes');
       }, 2000);
       
       return () => clearTimeout(timer);
     }
-  }, [success, navigate]);
+  }, [success, navigate, dispatch]);
 
   // Función para validar CUIL
   const validateCUIL = (cuil) => {
