@@ -1,18 +1,49 @@
-import React from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import { getAllClients, getAllProperties, getAllLeases, getAllPayments } from '../../redux/Actions/actions';
 import { 
   IoLogOutOutline, 
   IoPeopleOutline, 
   IoHomeOutline, 
   IoDocumentTextOutline, 
   IoReceiptOutline, 
-  IoStatsChartOutline,
-  IoPersonOutline 
+  IoStatsChartOutline
 } from 'react-icons/io5';
 import UpcomingExpiryPopup from '../Contratos/UpcomingExpiryPopup';
 
 const Panel = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+  // Obtener datos desde Redux
+  const { clients = [], properties = [], leases = [], payments = [], loading } = useSelector((state) => ({
+    clients: state.clients || [],
+    properties: state.properties || [],
+    leases: state.leases || [],
+    payments: state.payments || [],
+    loading: state.loading
+  }));
+
+  // Cargar todos los datos al montar el componente
+  useEffect(() => {
+    dispatch(getAllClients());
+    dispatch(getAllProperties());
+    dispatch(getAllLeases());
+    dispatch(getAllPayments());
+  }, [dispatch]);
+
+  // Calcular estadísticas
+  const stats = useMemo(() => {
+    return {
+      clientesActivos: clients.filter(client => 
+        client.properties && client.properties.length > 0
+      ).length,
+      totalPropiedades: properties.length,
+      contratosActivos: leases.filter(lease => lease.status === 'active').length,
+      totalRecibos: payments.length
+    };
+  }, [clients, properties, leases, payments]);
 
   const handleLogout = () => {
     // Aquí agregarías tu lógica de logout
@@ -140,27 +171,36 @@ const Panel = () => {
           </Link>
         </div>
 
-        {/* Quick Stats - Optional section for future enhancements */}
-        <div className="mt-12 grid grid-cols-2 sm:grid-cols-4 gap-4">
-          {[
-            { label: 'Clientes Activos', value: '--', icon: IoPeopleOutline },
-            { label: 'Propiedades', value: '--', icon: IoHomeOutline },
-            { label: 'Contratos', value: '--', icon: IoDocumentTextOutline },
-            { label: 'Recibos', value: '--', icon: IoReceiptOutline }
-          ].map((stat, index) => {
-            const IconComponent = stat.icon;
-            return (
-              <div key={index} className="bg-white/5 backdrop-blur-sm p-4 rounded-xl border border-white/10">
-                <div className="flex items-center space-x-3">
-                  <IconComponent className="w-5 h-5 text-blue-400" />
-                  <div>
-                    <p className="text-2xl font-bold text-white">{stat.value}</p>
-                    <p className="text-xs text-slate-300">{stat.label}</p>
+        {/* Quick Stats */}
+        <div className="mt-12">
+          <h2 className="text-2xl font-bold text-white mb-6 flex items-center">
+            <IoStatsChartOutline className="w-6 h-6 mr-2" />
+            Vista Rápida
+          </h2>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            {[
+              { label: 'Clientes Activos', value: loading ? '...' : stats.clientesActivos, icon: IoPeopleOutline, color: 'blue' },
+              { label: 'Propiedades', value: loading ? '...' : stats.totalPropiedades, icon: IoHomeOutline, color: 'emerald' },
+              { label: 'Contratos Activos', value: loading ? '...' : stats.contratosActivos, icon: IoDocumentTextOutline, color: 'amber' },
+              { label: 'Recibos', value: loading ? '...' : stats.totalRecibos, icon: IoReceiptOutline, color: 'purple' }
+            ].map((stat, index) => {
+              const IconComponent = stat.icon;
+              return (
+                <div 
+                  key={index} 
+                  className="bg-white/5 backdrop-blur-sm p-4 rounded-xl border border-white/10 hover:bg-white/10 transition-all duration-300 hover:scale-105"
+                >
+                  <div className="flex items-center space-x-3">
+                    <IconComponent className={`w-5 h-5 text-${stat.color}-400`} />
+                    <div>
+                      <p className="text-2xl font-bold text-white">{stat.value}</p>
+                      <p className="text-xs text-slate-300">{stat.label}</p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
       </div>
     </div>
