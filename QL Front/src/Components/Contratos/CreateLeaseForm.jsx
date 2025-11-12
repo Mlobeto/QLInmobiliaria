@@ -31,7 +31,9 @@ const CreateLeaseForm = () => {
   const [leaseCreated, setLeaseCreated] = useState(null);
   const [filteredClients, setFilteredClients] = useState([]);
   const [showClientList, setShowClientList] = useState(false);
+  // eslint-disable-next-line no-unused-vars
   const [selectedClient, setSelectedClient] = useState(null);
+  // eslint-disable-next-line no-unused-vars
   const [pdfData, setPdfData] = useState(null);
 
   const [formData, setFormData] = useState({
@@ -219,6 +221,9 @@ const CreateLeaseForm = () => {
   };
 
   const handlePropertySelect = (property) => {
+    console.log("=== handlePropertySelect llamado ===");
+    console.log("Propiedad recibida:", property);
+    
     if (!property || !property.propertyId) {
       console.error("Propiedad inválida seleccionada:", property);
       Swal.fire({
@@ -229,6 +234,7 @@ const CreateLeaseForm = () => {
       return;
     }
 
+    console.log("Actualizando formData con propertyId:", property.propertyId);
     setFormData((prevData) => ({
       ...prevData,
       propertyId: property.propertyId,
@@ -240,13 +246,21 @@ const CreateLeaseForm = () => {
       commission: property.comision,
       inventory: property.inventory,
     }));
+    console.log("FormData actualizado exitosamente");
   };
+
+  console.log("=== CreateLeaseForm renderizado ===");
+  console.log("formData.propertyId:", formData.propertyId);
+  console.log("¿Mostrar Listado?", !formData.propertyId);
 
   return (
     <div className="min-h-screen">
       {/* Mostrar Listado si no hay propiedad seleccionada */}
       {!formData.propertyId ? (
-        <Listado mode="lease" onSelectProperty={handlePropertySelect} />
+        <>
+          {console.log("Renderizando Listado con mode='lease'")}
+          <Listado mode="lease" onSelectProperty={handlePropertySelect} />
+        </>
       ) : (
         /* Modal overlay con formulario */
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">

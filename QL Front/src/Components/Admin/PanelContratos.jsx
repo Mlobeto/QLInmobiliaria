@@ -8,7 +8,7 @@ import {
   IoKeyOutline,
   IoBusinessOutline,
   IoWarningOutline,
-  IoContractOutline
+  
 } from 'react-icons/io5';
 
 const PanelContratos = () => {

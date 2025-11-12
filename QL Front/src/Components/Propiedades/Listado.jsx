@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import  { useState, useEffect, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from "react-router-dom";
 import PropTypes from 'prop-types';
@@ -23,7 +23,6 @@ import {
   IoChevronBackOutline,
   IoChevronForwardOutline,
   IoFilterOutline,
-  IoDocumentTextOutline,
   IoKeyOutline,
   IoAddOutline
 } from 'react-icons/io5';
@@ -71,7 +70,11 @@ const Listado = ({ mode = "default", onSelectProperty }) => {
   }, [allProperties, mode]);
 
   useEffect(() => {
+    console.log("=== Listado useEffect - cargando propiedades ===");
+    console.log("Mode:", mode);
+    console.log("onSelectProperty:", onSelectProperty ? "Definido" : "No definido");
     dispatch(getAllProperties());
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dispatch]);
 
   // Filtrar propiedades por dirección y disponibilidad (optimizado)
@@ -160,17 +163,28 @@ const Listado = ({ mode = "default", onSelectProperty }) => {
     });
   };
 
-  if (loading) return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
-      <div className="text-white text-xl">Cargando propiedades...</div>
-    </div>
-  );
+  if (loading) {
+    console.log("=== Listado en estado LOADING ===");
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
+        <div className="text-white text-xl">Cargando propiedades...</div>
+      </div>
+    );
+  }
   
-  if (error) return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
-      <div className="text-red-400 text-xl">Error: {error}</div>
-    </div>
-  );
+  if (error) {
+    console.log("=== Listado en estado ERROR ===", error);
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
+        <div className="text-red-400 text-xl">Error: {error}</div>
+      </div>
+    );
+  }
+
+  console.log("=== Listado renderizado ===");
+  console.log("Total propiedades:", allProperties.length);
+  console.log("Propiedades disponibles:", availableProperties.length);
+  console.log("Propiedades filtradas:", filteredProperties.length);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
