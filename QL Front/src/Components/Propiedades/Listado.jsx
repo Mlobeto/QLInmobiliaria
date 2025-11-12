@@ -564,8 +564,8 @@ const Listado = ({ mode = "default", onSelectProperty }) => {
         )}
       </div>
 
-      {/* Modal para crear contrato de alquiler */}
-      {showCreateModal && selectedProperty && (
+      {/* Modal para crear contrato de alquiler - solo si no hay callback externo */}
+      {!onSelectProperty && showCreateModal && selectedProperty && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-slate-900 rounded-2xl border border-white/10 w-full max-w-4xl max-h-[90vh] overflow-hidden">
             <div className="p-6 border-b border-white/10 flex items-center justify-between">
@@ -598,8 +598,8 @@ const Listado = ({ mode = "default", onSelectProperty }) => {
         </div>
       )}
 
-      {/* Modal para compraventa */}
-      {showSaleModal && selectedProperty && (
+      {/* Modal para compraventa - solo si no hay callback externo */}
+      {!onSelectProperty && showSaleModal && selectedProperty && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-slate-900 rounded-2xl border border-white/10 w-full max-w-4xl max-h-[90vh] overflow-hidden">
             <div className="p-6 border-b border-white/10 flex items-center justify-between">
