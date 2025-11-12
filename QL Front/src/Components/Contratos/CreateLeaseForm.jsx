@@ -257,12 +257,10 @@ const CreateLeaseForm = () => {
     <div className="min-h-screen">
       {/* Mostrar Listado si no hay propiedad seleccionada */}
       {!formData.propertyId ? (
-        <>
-          {console.log("Renderizando Listado con mode='lease'")}
-          <Listado mode="lease" onSelectProperty={handlePropertySelect} />
-        </>
+        <Listado mode="lease" onSelectProperty={handlePropertySelect} />
       ) : (
-        /* Modal overlay con formulario */
+        // Modal overlay con formulario
+        formData.propertyId && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 shadow-2xl max-w-5xl w-full max-h-[90vh] overflow-y-auto">
             {/* Header del modal */}
@@ -663,6 +661,7 @@ const CreateLeaseForm = () => {
             </div>
           </div>
         </div>
+        )
       )}
     </div>
   );
