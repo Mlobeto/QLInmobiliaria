@@ -144,7 +144,7 @@ const CreateSaleContractForm = () => {
     <div className="min-h-screen">
       {/* Mostrar Listado si no hay propiedad seleccionada */}
       {!formData.propertyId ? (
-        <Listado onSelectProperty={handlePropertySelect} />
+        <Listado mode="sale" onSelectProperty={handlePropertySelect} />
       ) : (
         /* Modal overlay con formulario */
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">

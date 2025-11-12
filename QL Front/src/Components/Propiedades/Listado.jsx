@@ -28,7 +28,7 @@ import {
   IoAddOutline
 } from 'react-icons/io5';
 
-const Listado = ({ mode = "default" }) => {
+const Listado = ({ mode = "default", onSelectProperty }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   
@@ -426,9 +426,15 @@ const Listado = ({ mode = "default" }) => {
                     <div className="flex justify-center">
                       <button
                         onClick={() => {
-                          setSelectedProperty(property);
-                          if (mode === "lease") setShowCreateModal(true);
-                          if (mode === "sale") setShowSaleModal(true);
+                          // Si hay callback de selección, usarlo (cuando viene de CreateLeaseForm)
+                          if (onSelectProperty) {
+                            onSelectProperty(property);
+                          } else {
+                            // Si no, usar el modal interno
+                            setSelectedProperty(property);
+                            if (mode === "lease") setShowCreateModal(true);
+                            if (mode === "sale") setShowSaleModal(true);
+                          }
                         }}
                         className={`w-full flex items-center justify-center px-4 py-3 rounded-xl font-medium transition-all duration-300 hover:scale-[1.02] ${
                           mode === "lease" 
@@ -439,12 +445,12 @@ const Listado = ({ mode = "default" }) => {
                         {mode === "lease" ? (
                           <>
                             <IoKeyOutline className="w-5 h-5 mr-2" />
-                            Crear Contrato de Alquiler
+                            {onSelectProperty ? "Seleccionar Propiedad" : "Crear Contrato de Alquiler"}
                           </>
                         ) : (
                           <>
                             <IoBusinessOutline className="w-5 h-5 mr-2" />
-                            Gestionar Compraventa
+                            {onSelectProperty ? "Seleccionar Propiedad" : "Gestionar Compraventa"}
                           </>
                         )}
                       </button>
@@ -619,6 +625,7 @@ const Listado = ({ mode = "default" }) => {
 
 Listado.propTypes = {
   mode: PropTypes.oneOf(['default', 'lease', 'sale']),
+  onSelectProperty: PropTypes.func,
 };
 
 export default Listado;
