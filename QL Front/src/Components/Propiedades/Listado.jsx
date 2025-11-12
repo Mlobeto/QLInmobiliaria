@@ -70,13 +70,8 @@ const Listado = ({ mode = "default", onSelectProperty }) => {
   }, [allProperties, mode]);
 
   useEffect(() => {
-    // Solo cargar propiedades si no hay ninguna cargada
-    if (!allProperties || allProperties.length === 0) {
-      console.log("=== Listado useEffect - cargando propiedades ===");
-      console.log("Mode:", mode);
-      console.log("onSelectProperty:", onSelectProperty ? "Definido" : "No definido");
-      dispatch(getAllProperties());
-    }
+    // Solo cargar propiedades la primera vez que se monta el componente
+    dispatch(getAllProperties());
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

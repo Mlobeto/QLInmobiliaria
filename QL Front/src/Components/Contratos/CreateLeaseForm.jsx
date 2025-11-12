@@ -61,7 +61,8 @@ const CreateLeaseForm = () => {
 
   useEffect(() => {
     dispatch(getAllClients());
-  }, [dispatch]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const filteredActiveLeases = (leases) => {
     return leases.filter((lease) => {
