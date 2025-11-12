@@ -307,7 +307,7 @@ export const addPropertyToClientWithRole = (data) => async (dispatch) => {
   try {
     console.log("Enviando datos para asignar rol:", data);
 
-    const response = await axios.post(`${URL}/clientRole/addRole`, data);
+    const response = await axios.post(`/clientRole/addRole`, data);
 
     console.log("Respuesta exitosa de addRole:", response.data);
 

@@ -133,7 +133,16 @@ const CreateLeaseForm = () => {
         inventory: formData.inventory,
       };
 
-      const createdLease = await dispatch(createLease(leaseData));
+      console.log("Intentando crear contrato con datos:", leaseData);
+      const result = await dispatch(createLease(leaseData));
+      console.log("Resultado de createLease:", result);
+
+      // Verificar si la creación fue exitosa
+      if (!result || !result.success) {
+        throw new Error(result?.fullError || result?.error || "Error desconocido al crear el contrato");
+      }
+
+      const createdLease = result.data;
 
       if (createdLease && createdLease.leaseId) {
         // Crear garantes si están presentes
@@ -162,14 +171,16 @@ const CreateLeaseForm = () => {
         }
 
         if (guarantorsData.length > 0) {
+          console.log("Creando garantes:", guarantorsData);
           await dispatch(createGarantorsForLease(guarantorsData));
         }
 
         // Agregar cliente a la propiedad como inquilino
+        console.log("Asignando rol de inquilino al cliente");
         await dispatch(
           addPropertyToClientWithRole({
             propertyId: formData.propertyId,
-            clientId: formData.locatarioId,
+            idClient: formData.locatarioId,
             role: "inquilino",
           })
         );
@@ -182,13 +193,25 @@ const CreateLeaseForm = () => {
           title: "¡Éxito!",
           text: "Contrato de alquiler creado exitosamente.",
         });
+      } else {
+        throw new Error("No se recibió el leaseId del contrato creado");
       }
     } catch (error) {
-      console.error("Error al crear el contrato:", error);
+      console.error("Error completo al crear el contrato:", error);
+      
+      let errorMessage = "Hubo un error al crear el contrato de alquiler.";
+      
+      if (error.message) {
+        errorMessage = error.message;
+      } else if (typeof error === 'string') {
+        errorMessage = error;
+      }
+      
       Swal.fire({
         icon: "error",
         title: "Error",
-        text: "Hubo un error al crear el contrato de alquiler.",
+        text: errorMessage,
+        footer: 'Revisa la consola del navegador para más detalles'
       });
     } finally {
       setIsLoading(false);
@@ -524,10 +547,26 @@ const CreateLeaseForm = () => {
                     <button
                       type="submit"
                       disabled={isLoading}
-                      className="w-full flex items-center justify-center px-6 py-4 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl font-semibold transition-all duration-300 hover:scale-[1.02] hover:shadow-xl"
+                      className={`w-full flex items-center justify-center px-6 py-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl font-semibold transition-all duration-300 shadow-xl ${
+                        isLoading 
+                          ? 'opacity-50 cursor-not-allowed' 
+                          : 'hover:from-green-600 hover:to-emerald-700 hover:scale-[1.02]'
+                      }`}
                     >
-                      <IoSaveOutline className="w-5 h-5 mr-2" />
-                      {isLoading ? "Creando..." : "Crear Contrato de Alquiler"}
+                      {isLoading ? (
+                        <>
+                          <svg className="animate-spin h-5 w-5 mr-2 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                          <span>Creando contrato...</span>
+                        </>
+                      ) : (
+                        <>
+                          <IoSaveOutline className="w-5 h-5 mr-2" />
+                          <span>Crear Contrato de Alquiler</span>
+                        </>
+                      )}
                     </button>
                   </div>
                 </form>
