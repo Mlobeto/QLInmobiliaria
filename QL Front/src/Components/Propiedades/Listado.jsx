@@ -438,10 +438,16 @@ const Listado = ({ mode = "default", onSelectProperty }) => {
                     <div className="flex justify-center">
                       <button
                         onClick={() => {
+                          console.log("=== Click en botón de selección ===");
+                          console.log("onSelectProperty definido:", !!onSelectProperty);
+                          console.log("Property:", property);
+                          
                           // Si hay callback de selección, usarlo (cuando viene de CreateLeaseForm)
                           if (onSelectProperty) {
+                            console.log("Llamando a onSelectProperty...");
                             onSelectProperty(property);
                           } else {
+                            console.log("Abriendo modal interno...");
                             // Si no, usar el modal interno
                             setSelectedProperty(property);
                             if (mode === "lease") setShowCreateModal(true);

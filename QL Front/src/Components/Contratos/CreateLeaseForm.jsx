@@ -38,6 +38,7 @@ const CreateLeaseForm = () => {
 
   const [formData, setFormData] = useState({
     propertyId: "",
+    landlordId: "",
     locador: "",
     locatario: "",
     locatarioId: "",
@@ -126,8 +127,8 @@ const CreateLeaseForm = () => {
       // Crear el contrato de alquiler
       const leaseData = {
         propertyId: formData.propertyId,
-        locatario: formData.locatario,
-        locatarioId: formData.locatarioId,
+        landlordId: formData.landlordId,
+        tenantId: formData.locatarioId,
         startDate: formData.startDate,
         rentAmount: parseFloat(formData.rentAmount),
         updateFrequency: formData.updateFrequency,
@@ -236,13 +237,16 @@ const CreateLeaseForm = () => {
     }
 
     console.log("Actualizando formData con propertyId:", property.propertyId);
+    
+    const landlord = property.Clients?.find(
+      (client) => client.ClientProperty.role === "propietario"
+    );
+    
     setFormData((prevData) => ({
       ...prevData,
       propertyId: property.propertyId,
-      locador:
-        property.Clients?.find(
-          (client) => client.ClientProperty.role === "propietario"
-        )?.name || "",
+      landlordId: landlord?.idClient || "",
+      locador: landlord?.name || "",
       rentAmount: property.price,
       commission: property.comision,
       inventory: property.inventory,
