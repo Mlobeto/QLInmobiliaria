@@ -37,6 +37,17 @@ const Listado = ({ mode = "default" }) => {
   const loading = useSelector((state) => state.loading);
   const error = useSelector((state) => state.error);
 
+  // Función para formatear precio como moneda
+  const formatCurrency = (value) => {
+    if (!value) return '$0';
+    return new Intl.NumberFormat('es-AR', {
+      style: 'currency',
+      currency: 'ARS',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(value);
+  };
+
   const [editingId, setEditingId] = useState(null);
   const [formData, setFormData] = useState({});
   const [errors, setErrors] = useState({});
@@ -133,12 +144,20 @@ const Listado = ({ mode = "default" }) => {
       return;
     }
 
-    dispatch(updateProperty(formData));
+    // Corregir: pasar propertyId y propertyData como parámetros separados
+    const { propertyId, ...propertyData } = formData;
+    dispatch(updateProperty(propertyId, propertyData)).then(() => {
+      // Recargar propiedades después de actualizar
+      dispatch(getAllProperties());
+    });
     setEditingId(null);
   };
 
   const handleDelete = (propertyId) => {
-    dispatch(deleteProperty(propertyId));
+    dispatch(deleteProperty(propertyId)).then(() => {
+      // Recargar propiedades después de eliminar
+      dispatch(getAllProperties());
+    });
   };
 
   if (loading) return (
@@ -369,7 +388,7 @@ const Listado = ({ mode = "default" }) => {
                         {errors.price && <p className="text-red-400 text-xs mt-1">{errors.price}</p>}
                       </div>
                     ) : (
-                      <p className="text-emerald-400 font-bold text-lg mt-1">${property.price?.toLocaleString()}</p>
+                      <p className="text-emerald-400 font-bold text-lg mt-1">{formatCurrency(property.price)}</p>
                     )}
                   </div>
                 </div>
