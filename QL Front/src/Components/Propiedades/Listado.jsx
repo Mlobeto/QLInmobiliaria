@@ -161,8 +161,8 @@ const Listado = ({ mode = "default", onSelectProperty }) => {
     });
   };
 
-  if (loading) {
-    console.log("=== Listado en estado LOADING ===");
+  // Solo mostrar loading si no hay propiedades cargadas aún
+  if (loading && (!allProperties || allProperties.length === 0)) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
         <div className="text-white text-xl">Cargando propiedades...</div>
