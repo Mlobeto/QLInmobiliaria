@@ -125,28 +125,33 @@ exports.fixClientPropertyConstraints = async (req, res) => {
     
     console.log('=== CORRECCIÓN COMPLETADA EXITOSAMENTE ===');
     
-    // 5. Eliminar tabla Properties duplicada si existe
-    console.log('Verificando tabla Properties duplicada...');
+    // 5. Eliminar tablas duplicadas si existen
+    console.log('Verificando tablas duplicadas...');
     const tablesCheck = await conn.query(`
       SELECT table_name 
       FROM information_schema.tables 
       WHERE table_schema = 'public' 
-      AND table_name = 'Properties'
+      AND (table_name = 'Properties' OR table_name = 'Client')
     `, { type: conn.QueryTypes.SELECT });
     
+    let tablesDeleted = [];
+    
     if (tablesCheck.length > 0) {
-      console.log('Eliminando tabla Properties duplicada...');
-      await conn.query('DROP TABLE IF EXISTS "Properties" CASCADE');
-      console.log('✓ Tabla Properties eliminada');
+      for (const table of tablesCheck) {
+        console.log(`Eliminando tabla ${table.table_name} duplicada...`);
+        await conn.query(`DROP TABLE IF EXISTS "${table.table_name}" CASCADE`);
+        tablesDeleted.push(table.table_name);
+        console.log(`✓ Tabla ${table.table_name} eliminada`);
+      }
     } else {
-      console.log('No se encontró tabla Properties duplicada');
+      console.log('No se encontraron tablas duplicadas');
     }
     
     res.status(200).json({
       success: true,
       message: 'Constraints corregidos exitosamente',
       details: 'Las referencias ahora apuntan a "Clients" y "Property" (singular)',
-      tablePropertiesDeleted: tablesCheck.length > 0
+      tablesDeleted: tablesDeleted
     });
     
   } catch (error) {
