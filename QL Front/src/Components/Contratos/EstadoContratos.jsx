@@ -5,6 +5,7 @@ import PropTypes from 'prop-types';
 import { getAllLeases } from "../../redux/Actions/actions";
 import CreateLeaseForm from "./CreateLeaseForm";
 import CompraVenta from "./CompraVenta";
+import ContratoAlquiler from "../PdfTemplates/ContratoAlquiler";
 import {
   IoArrowBackOutline,
   IoHomeOutline,
@@ -20,7 +21,8 @@ import {
   IoCheckmarkCircleOutline,
   IoCloseCircleOutline,
   IoAddOutline,
-  IoKeyOutline
+  IoKeyOutline,
+  IoDownloadOutline
 } from 'react-icons/io5';const EstadoContratos = ({ onLeaseSelect }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -33,6 +35,7 @@ import {
   const [editedLease, setEditedLease] = useState({});
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showSaleModal, setShowSaleModal] = useState(false);
+  const [pdfLease, setPdfLease] = useState(null);
 
   // Detectar el contexto basado en la URL
   const isLeaseContext = location.pathname === '/contratoAlquiler';
@@ -66,6 +69,15 @@ import {
   const handleCancelEdit = () => {
     setEditingLeaseId(null);
     setEditedLease({});
+  };
+
+  const handleDownloadPdf = (lease) => {
+    console.log("Generando PDF para contrato:", lease);
+    setPdfLease(lease);
+  };
+
+  const handleClosePdf = () => {
+    setPdfLease(null);
   };
 
   if (loading) {
@@ -215,13 +227,22 @@ import {
                             </button>
                           </>
                         ) : (
-                          <button
-                            onClick={() => handleEditClick(lease)}
-                            className="p-2 bg-amber-500/20 hover:bg-amber-500/30 text-amber-400 rounded-lg transition-colors duration-200"
-                            title="Editar"
-                          >
-                            <IoPencilOutline className="w-4 h-4" />
-                          </button>
+                          <>
+                            <button
+                              onClick={() => handleEditClick(lease)}
+                              className="p-2 bg-amber-500/20 hover:bg-amber-500/30 text-amber-400 rounded-lg transition-colors duration-200"
+                              title="Editar"
+                            >
+                              <IoPencilOutline className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => handleDownloadPdf(lease)}
+                              className="p-2 bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 rounded-lg transition-colors duration-200"
+                              title="Descargar PDF"
+                            >
+                              <IoDownloadOutline className="w-4 h-4" />
+                            </button>
+                          </>
                         )}
                       </div>
                     </div>
@@ -465,6 +486,29 @@ import {
                   dispatch(getAllLeases()); // Refrescar la lista
                 }}
               />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal para visualizar PDF */}
+      {pdfLease && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-slate-900 rounded-2xl border border-white/10 w-full max-w-5xl max-h-[90vh] overflow-hidden">
+            <div className="p-6 border-b border-white/10 flex items-center justify-between">
+              <h3 className="text-xl font-semibold text-white flex items-center">
+                <IoDocumentTextOutline className="w-6 h-6 mr-2 text-blue-400" />
+                Contrato de Alquiler - #{pdfLease.leaseId || pdfLease.id}
+              </h3>
+              <button
+                onClick={handleClosePdf}
+                className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+              >
+                <IoCloseCircleOutline className="w-6 h-6 text-slate-400" />
+              </button>
+            </div>
+            <div className="max-h-[calc(90vh-120px)] overflow-y-auto p-6">
+              <ContratoAlquiler lease={pdfLease} />
             </div>
           </div>
         </div>
