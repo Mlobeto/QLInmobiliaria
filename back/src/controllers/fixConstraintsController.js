@@ -47,7 +47,8 @@ exports.checkConstraints = async (req, res) => {
       SELECT table_name 
       FROM information_schema.tables 
       WHERE table_schema = 'public' 
-      AND (table_name = 'Property' OR table_name = 'Properties')
+      AND (table_name = 'Property' OR table_name = 'Properties' OR table_name = 'Client' OR table_name = 'Clients')
+      ORDER BY table_name
     `, { type: conn.QueryTypes.SELECT });
     
     res.status(200).json({
