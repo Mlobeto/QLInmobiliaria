@@ -17,7 +17,7 @@ module.exports = (sequelize) => {
         propertyId: {
             type: DataTypes.INTEGER,
             references: {
-                model: 'Properties', // Nombre de la tabla real (plural)
+                model: 'Property', // Nombre de la tabla real (singular porque freezeTableName: true)
                 key: 'propertyId', // La clave primaria de la tabla relacionada
             },
             allowNull: false,

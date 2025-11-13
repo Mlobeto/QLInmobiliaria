@@ -21,7 +21,7 @@ exports.fixClientPropertyConstraints = async (req, res) => {
     await conn.query(`
       ALTER TABLE "ClientProperties" 
       ADD CONSTRAINT "ClientProperties_propertyId_fkey" 
-      FOREIGN KEY ("propertyId") REFERENCES "Properties"("propertyId") ON DELETE CASCADE
+      FOREIGN KEY ("propertyId") REFERENCES "Property"("propertyId") ON DELETE CASCADE
     `);
     console.log('✓ Constraints nuevos creados');
     
