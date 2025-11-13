@@ -154,7 +154,6 @@ const CreateLeaseForm = () => {
 
         if (formData.guarantor1Name) {
           guarantorsData.push({
-            leaseId: createdLease.leaseId,
             name: formData.guarantor1Name,
             cuil: formData.guarantor1Cuil,
             direccion: formData.guarantor1Direccion,
@@ -165,7 +164,6 @@ const CreateLeaseForm = () => {
 
         if (formData.guarantor2Name) {
           guarantorsData.push({
-            leaseId: createdLease.leaseId,
             name: formData.guarantor2Name,
             cuil: formData.guarantor2Cuil,
             direccion: formData.guarantor2Direccion,
@@ -176,7 +174,7 @@ const CreateLeaseForm = () => {
 
         if (guarantorsData.length > 0) {
           console.log("Creando garantes:", guarantorsData);
-          await dispatch(createGarantorsForLease(guarantorsData));
+          await dispatch(createGarantorsForLease(createdLease.leaseId, guarantorsData));
         }
 
         // Agregar cliente a la propiedad como inquilino
