@@ -22,7 +22,7 @@ module.exports = (sequelize) => {
     propertyId: {
       type: DataTypes.INTEGER,
       references: {
-        model: 'Properties',
+        model: 'Property',
         key: 'propertyId',
       },
       allowNull: false,

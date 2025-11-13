@@ -42,7 +42,7 @@ const fixForeignKeyConstraints = async () => {
     // Crear constraints correctos apuntando a las tablas correctas
     await Lease.sequelize.query('ALTER TABLE "Leases" ADD CONSTRAINT "Leases_landlordId_fkey" FOREIGN KEY ("landlordId") REFERENCES "Clients"("idClient")');
     await Lease.sequelize.query('ALTER TABLE "Leases" ADD CONSTRAINT "Leases_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES "Clients"("idClient")');
-    await Lease.sequelize.query('ALTER TABLE "Leases" ADD CONSTRAINT "Leases_propertyId_fkey" FOREIGN KEY ("propertyId") REFERENCES "Properties"("propertyId")');
+    await Lease.sequelize.query('ALTER TABLE "Leases" ADD CONSTRAINT "Leases_propertyId_fkey" FOREIGN KEY ("propertyId") REFERENCES "Property"("propertyId")');
     console.log('Constraints correctos creados');
     
     console.log('=== FOREIGN KEY CONSTRAINTS ARREGLADOS ===');
