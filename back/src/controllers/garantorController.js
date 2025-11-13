@@ -16,11 +16,20 @@ exports.createGarantorsForLease = async (req, res) => {
       return res.status(404).json({ error: "Contrato de alquiler no encontrado" });
     }
 
-    // Validar que hay entre 2 y 4 garantes
-    if (!Array.isArray(guarantors) || guarantors.length < 2 || guarantors.length > 4) {
-      console.error("[createGarantorsForLease] Número de garantes inválido:", guarantors);
+    // Validar que hay garantes y que es un array
+    if (!Array.isArray(guarantors) || guarantors.length === 0) {
+      console.log("[createGarantorsForLease] No hay garantes para crear");
+      return res.status(200).json({
+        message: "No se proporcionaron garantes",
+        guarantors: []
+      });
+    }
+
+    // Validar que no haya más de 4 garantes
+    if (guarantors.length > 4) {
+      console.error("[createGarantorsForLease] Número de garantes excede el máximo:", guarantors.length);
       return res.status(400).json({
-        error: "Debe proporcionar entre 2 y 4 garantes.",
+        error: "No se pueden agregar más de 4 garantes.",
       });
     }
 
