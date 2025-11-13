@@ -54,6 +54,7 @@ module.exports = {
   createLease: catchedAsync(LeaseController.createLease),
   getAllLeases: catchedAsync(LeaseController.getAllLeases),
   getLeaseById: catchedAsync(LeaseController.getLeaseById),
+  updateLease: catchedAsync(LeaseController.updateLease),
   terminateLease: catchedAsync(LeaseController.terminateLease),
   checkPendingPayments: catchedAsync(LeaseController.checkPendingPayments),
   updateRentAmount: catchedAsync(LeaseController.updateRentAmount),
