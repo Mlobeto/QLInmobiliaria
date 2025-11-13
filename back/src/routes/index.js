@@ -21,5 +21,6 @@ router.use("/payment", require("./payment"));
 router.use("/property", require("./property"));
 router.use("/garantor", require("./garantor"));
 router.use("/import", require("./import"));
+router.use("/fix", require("./fixConstraints")); // Endpoint temporal
 
 module.exports = router;
