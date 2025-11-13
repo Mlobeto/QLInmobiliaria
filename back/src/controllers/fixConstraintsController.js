@@ -98,6 +98,7 @@ exports.fixClientPropertyConstraints = async (req, res) => {
     await conn.query('ALTER TABLE "Leases" DROP CONSTRAINT IF EXISTS "Leases_landlordId_fkey"');
     await conn.query('ALTER TABLE "Leases" DROP CONSTRAINT IF EXISTS "Leases_tenantId_fkey"');
     await conn.query('ALTER TABLE "Leases" DROP CONSTRAINT IF EXISTS "Leases_propertyId_fkey"');
+    await conn.query('ALTER TABLE "Leases" DROP CONSTRAINT IF EXISTS "Leases_propertyId_fkey1"');
     console.log('✓ Constraints antiguos de Leases eliminados');
     
     // 4. Crear constraints nuevos de Leases con referencias correctas
@@ -123,10 +124,28 @@ exports.fixClientPropertyConstraints = async (req, res) => {
     
     console.log('=== CORRECCIÓN COMPLETADA EXITOSAMENTE ===');
     
+    // 5. Eliminar tabla Properties duplicada si existe
+    console.log('Verificando tabla Properties duplicada...');
+    const tablesCheck = await conn.query(`
+      SELECT table_name 
+      FROM information_schema.tables 
+      WHERE table_schema = 'public' 
+      AND table_name = 'Properties'
+    `, { type: conn.QueryTypes.SELECT });
+    
+    if (tablesCheck.length > 0) {
+      console.log('Eliminando tabla Properties duplicada...');
+      await conn.query('DROP TABLE IF EXISTS "Properties" CASCADE');
+      console.log('✓ Tabla Properties eliminada');
+    } else {
+      console.log('No se encontró tabla Properties duplicada');
+    }
+    
     res.status(200).json({
       success: true,
       message: 'Constraints corregidos exitosamente',
-      details: 'Las referencias ahora apuntan a "Client" y "Property" (singular)'
+      details: 'Las referencias ahora apuntan a "Clients" y "Property" (singular)',
+      tablePropertiesDeleted: tablesCheck.length > 0
     });
     
   } catch (error) {
