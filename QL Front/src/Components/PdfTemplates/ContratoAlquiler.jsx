@@ -42,6 +42,47 @@ const ContratoAlquiler = ({ lease, autoGenerate = false }) => {
       return y + (lines.length * lineHeight);
     };
 
+    // Función mejorada para agregar texto largo con saltos de página automáticos
+    const addLongText = (text, y, fontSize = 11, isBold = false) => {
+      if (isBold) {
+        doc.setFont("helvetica", "bold");
+      } else {
+        doc.setFont("helvetica", "normal");
+      }
+      doc.setFontSize(fontSize);
+      
+      // Limpiar caracteres problemáticos
+      const cleanText = text
+        .replace(/\\n/g, '\n')
+        .replace(/[ó]/g, 'o')
+        .replace(/[á]/g, 'a')
+        .replace(/[é]/g, 'e')
+        .replace(/[í]/g, 'i')
+        .replace(/[ú]/g, 'u')
+        .replace(/[ñ]/g, 'n')
+        .replace(/[Ó]/g, 'O')
+        .replace(/[Á]/g, 'A')
+        .replace(/[É]/g, 'E')
+        .replace(/[Í]/g, 'I')
+        .replace(/[Ú]/g, 'U')
+        .replace(/[Ñ]/g, 'N');
+
+      const lines = doc.splitTextToSize(cleanText, maxWidth);
+      let currentLineY = y;
+      
+      lines.forEach(line => {
+        // Verificar si necesita nueva página antes de cada línea
+        if (currentLineY + lineHeight + bottomMargin > doc.internal.pageSize.getHeight()) {
+          doc.addPage();
+          currentLineY = 20;
+        }
+        doc.text(line, 25, currentLineY);
+        currentLineY += lineHeight;
+      });
+      
+      return currentLineY;
+    };
+
     // Helper function para verificar si necesita nueva página
     const isPageBreakNeeded = (contentHeight) => {
       return currentY + contentHeight + bottomMargin > doc.internal.pageSize.getHeight();
@@ -204,8 +245,9 @@ const ContratoAlquiler = ({ lease, autoGenerate = false }) => {
       .replace(/\n-/g, '\n• ');
 
     const inventarioText = `INVENTARIO:\n${inventarioLimpio}`;
-    addPageIfNecessary(30);
-    currentY = addText(inventarioText, currentY, 11, true);
+    
+    // Usar addLongText para manejar inventarios largos con saltos de página automáticos
+    currentY = addLongText(inventarioText, currentY, 11, true);
     currentY += 15;
 
     // Garantes
