@@ -9,7 +9,7 @@ module.exports = (sequelize) => {
         clientId: {
             type: DataTypes.INTEGER,
             references: {
-                model: 'Client', // Nombre de la tabla relacionada (singular)
+                model: 'Clients', // Nombre de la tabla real (plural)
                 key: 'idClient', // La clave primaria de la tabla relacionada
             },
             allowNull: false,
@@ -17,7 +17,7 @@ module.exports = (sequelize) => {
         propertyId: {
             type: DataTypes.INTEGER,
             references: {
-                model: 'Property', // Nombre de la tabla relacionada (singular)
+                model: 'Properties', // Nombre de la tabla real (plural)
                 key: 'propertyId', // La clave primaria de la tabla relacionada
             },
             allowNull: false,

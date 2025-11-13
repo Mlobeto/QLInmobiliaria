@@ -15,13 +15,13 @@ exports.fixClientPropertyConstraints = async (req, res) => {
     await conn.query(`
       ALTER TABLE "ClientProperties" 
       ADD CONSTRAINT "ClientProperties_clientId_fkey" 
-      FOREIGN KEY ("clientId") REFERENCES "Client"("idClient") ON DELETE CASCADE
+      FOREIGN KEY ("clientId") REFERENCES "Clients"("idClient") ON DELETE CASCADE
     `);
     
     await conn.query(`
       ALTER TABLE "ClientProperties" 
       ADD CONSTRAINT "ClientProperties_propertyId_fkey" 
-      FOREIGN KEY ("propertyId") REFERENCES "Property"("propertyId") ON DELETE CASCADE
+      FOREIGN KEY ("propertyId") REFERENCES "Properties"("propertyId") ON DELETE CASCADE
     `);
     console.log('✓ Constraints nuevos creados');
     

@@ -186,6 +186,7 @@ Estamos a tu entera disposición por dudas, precio o consultas.`,
       
     },
     {
+      tableName: "Properties",
       freezeTableName: true,
       paranoid: true,
     }
