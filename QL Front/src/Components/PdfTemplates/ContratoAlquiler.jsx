@@ -6,7 +6,7 @@ const ContratoAlquiler = ({ lease, autoGenerate = false }) => {
     const doc = new jsPDF();
     const maxWidth = 160; // Reducir para mejor formato
     let currentY = 20;
-    const lineHeight = 6;
+    const lineHeight = 5; // Reducido de 6 a 5 para menos espaciado
     const bottomMargin = 20;
 
     // Configurar fuente para mejor soporte de caracteres latinos
@@ -181,46 +181,100 @@ const ContratoAlquiler = ({ lease, autoGenerate = false }) => {
     // === GENERAR PDF ===
 
    doc.setFont("helvetica", "bold");
-    doc.setFontSize(18);
-    doc.text("CONTRATO DE LOCACION", 105, currentY, { align: "center" });
-    currentY += 15;
+    doc.setFontSize(15);
+    doc.text("CONTRATO DE LOCACION DE INMUEBLE CON DESTINO VIVIENDA", 105, currentY, { align: "center" });
+    currentY += 12;
 
     // Encabezado con fecha
     const fechaInicio = formatearFecha(lease.startDate);
     addPageIfNecessary(15);
     currentY = addText(`En Belen, Provincia de Buenos Aires, a los ${fechaInicio}`, currentY, 11, false);
-    currentY += 8;
+    currentY += 6;
 
 
-    // Datos de las partes
-    const partesText = property.socio
-      ? `Entre el Sr/Sra. ${landlord.name || 'N/A'}, CUIL ${landlord.cuil || 'N/A'}, con domicilio en ${landlord.direccion || 'N/A'}, de la ciudad de ${landlord.ciudad || 'N/A'}, en caracter de propietario junto con ${property.socio}, en adelante denominados "LOS LOCADORES", por una parte, y por la otra el Sr/Sra ${tenant.name || 'N/A'}, CUIL ${tenant.cuil || 'N/A'}, con domicilio en ${tenant.direccion || 'N/A'}, ${tenant.ciudad || 'N/A'}, ${tenant.provincia || 'N/A'}, en adelante denominado "LOCATARIO", convienen en celebrar el presente contrato de locacion, sujeto a las siguientes clausulas y condiciones:`
-      : `Entre el Sr/Sra. ${landlord.name || 'N/A'}, CUIL ${landlord.cuil || 'N/A'}, con domicilio en ${landlord.direccion || 'N/A'}, de la ciudad de ${landlord.ciudad || 'N/A'}, en adelante denominado "EL LOCADOR", por una parte, y por la otra el Sr/Sra ${tenant.name || 'N/A'}, CUIL ${tenant.cuil || 'N/A'}, con domicilio en ${tenant.direccion || 'N/A'}, ${tenant.ciudad || 'N/A'}, ${tenant.provincia || 'N/A'}, en adelante denominado "EL LOCATARIO", convienen en celebrar el presente contrato de locacion, sujeto a las siguientes clausulas y condiciones:`;
-
+    // Datos de las partes - con nombres en negrita
     addPageIfNecessary(50);
-    currentY = addText(partesText, currentY);
-    currentY += 10;
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(11);
+    
+    let partesY = currentY;
+    const leftMargin = 25;
+    
+    if (property.socio) {
+      doc.text("Entre el Sr/Sra. ", leftMargin, partesY);
+      const afterEntre = doc.getTextWidth("Entre el Sr/Sra. ");
+      doc.setFont("helvetica", "bold");
+      doc.text(landlord.name || 'N/A', leftMargin + afterEntre, partesY);
+      doc.setFont("helvetica", "normal");
+      
+      const textPart1 = `Entre el Sr/Sra. ${landlord.name || 'N/A'}, CUIL ${landlord.cuil || 'N/A'}, con domicilio en ${landlord.direccion || 'N/A'}, de la ciudad de ${landlord.ciudad || 'N/A'}, en caracter de propietario junto con ${property.socio}, en adelante denominados "LOS LOCADORES", por una parte, y por la otra el Sr/Sra `;
+      const lines1 = doc.splitTextToSize(textPart1, maxWidth);
+      partesY = addText(textPart1, partesY);
+      
+      const beforeTenant = doc.getTextWidth(lines1[lines1.length - 1]);
+      doc.setFont("helvetica", "bold");
+      const tenantNameWidth = doc.getTextWidth(tenant.name || 'N/A');
+      
+      if (beforeTenant + tenantNameWidth > maxWidth) {
+        doc.text(tenant.name || 'N/A', leftMargin, partesY);
+        partesY += lineHeight;
+      } else {
+        doc.text(tenant.name || 'N/A', leftMargin + beforeTenant, partesY - lineHeight);
+      }
+      
+      doc.setFont("helvetica", "normal");
+      const textPart2 = `, CUIL ${tenant.cuil || 'N/A'}, con domicilio en ${tenant.direccion || 'N/A'}, ${tenant.ciudad || 'N/A'}, ${tenant.provincia || 'N/A'}, en adelante denominado "LOCATARIO", convienen en celebrar el presente contrato de locacion, sujeto a las siguientes clausulas y condiciones:`;
+      partesY = addText(textPart2, partesY);
+    } else {
+      const textPart1 = `Entre el Sr/Sra. `;
+      doc.text(textPart1, leftMargin, partesY);
+      const afterEntre = doc.getTextWidth(textPart1);
+      doc.setFont("helvetica", "bold");
+      doc.text(landlord.name || 'N/A', leftMargin + afterEntre, partesY);
+      doc.setFont("helvetica", "normal");
+      
+      const fullText1 = `Entre el Sr/Sra. ${landlord.name || 'N/A'}, CUIL ${landlord.cuil || 'N/A'}, con domicilio en ${landlord.direccion || 'N/A'}, de la ciudad de ${landlord.ciudad || 'N/A'}, en adelante denominado "EL LOCADOR", por una parte, y por la otra el Sr/Sra `;
+      const lines1 = doc.splitTextToSize(fullText1, maxWidth);
+      partesY = addText(fullText1, partesY);
+      
+      const beforeTenant = doc.getTextWidth(lines1[lines1.length - 1]);
+      doc.setFont("helvetica", "bold");
+      const tenantNameWidth = doc.getTextWidth(tenant.name || 'N/A');
+      
+      if (beforeTenant + tenantNameWidth > maxWidth) {
+        doc.text(tenant.name || 'N/A', leftMargin, partesY);
+        partesY += lineHeight;
+      } else {
+        doc.text(tenant.name || 'N/A', leftMargin + beforeTenant, partesY - lineHeight);
+      }
+      
+      doc.setFont("helvetica", "normal");
+      const textPart2 = `, CUIL ${tenant.cuil || 'N/A'}, con domicilio en ${tenant.direccion || 'N/A'}, ${tenant.ciudad || 'N/A'}, ${tenant.provincia || 'N/A'}, en adelante denominado "EL LOCATARIO", convienen en celebrar el presente contrato de locacion, sujeto a las siguientes clausulas y condiciones:`;
+      partesY = addText(textPart2, partesY);
+    }
+    
+    currentY = partesY + 6;
 
     // Primera cláusula - Objeto
     const objetoText = `PRIMERA: Objeto. El locador da en locacion al locatario y el locatario acepta de conformidad el inmueble sito en ${property.address || 'N/A'}, ${property.city || 'N/A'}, en adelante denominado el "INMUEBLE LOCADO" para ser destinado a ${getUsoPropiedad(property.typeProperty)}; no pudiendose cambiar el destino de uso. Superficie cubierta: ${property.superficieCubierta || 'N/A'}, Superficie total: ${property.superficieTotal || 'N/A'}. ${property.typeProperty !== "lote" && property.typeProperty !== "terreno" && property.rooms ? `El inmueble cuenta con ${property.rooms} ambientes y ${property.bathrooms || 0} banos.` : ""}`;
 
     addPageIfNecessary(40);
     currentY = addText(objetoText, currentY);
-    currentY += 10;
+    currentY += 5;
 
     // Segunda cláusula - Manifestación
     const manifestacionText = `SEGUNDA: Manifestacion. Las personas anteriormente mencionadas manifiestan no tener capacidad restringida para este acto y convienen en celebrar el presente CONTRATO DE LOCACION DE VIVIENDA, en adelante denominado "CONTRATO", a regirse por el Codigo civil y Comercial de la Nacion, leyes aplicables y las clausulas siguientes.`;
 
     addPageIfNecessary(30);
     currentY = addText(manifestacionText, currentY);
-    currentY += 10;
+    currentY += 5;
 
     // Tercera cláusula - Descripción
     const descripcionText = `TERCERA: Descripcion. El locatario declara conocer y aceptar el inmueble en el estado en que se encuentra, prestando conformidad por haberlo visitado e inspeccionado antes de ahora, la propiedad cuenta con: ${property.description || 'Sin descripcion'} y todas las demas especificaciones contenidas en clausula anexa al presente contrato de locacion.`;
 
     addPageIfNecessary(35);
     currentY = addText(descripcionText, currentY);
-    currentY += 10;
+    currentY += 5;
 
     // Cuarta cláusula - Plazo del contrato
     const startDate = new Date(lease.startDate);
@@ -230,14 +284,14 @@ const ContratoAlquiler = ({ lease, autoGenerate = false }) => {
 
     addPageIfNecessary(60);
     currentY = addText(cuartaClausulaText, currentY);
-    currentY += 10;
+    currentY += 5;
 
     // Quinta cláusula - Precio
     const quintaClausulaText = `QUINTA: Precio: El precio del alquiler se fija de comun acuerdo entre las partes por la suma de ${formatearMonto(lease.rentAmount)} para el ${lease.updateFrequency === "semestral" ? "primer semestre" : lease.updateFrequency === "anual" ? "primer ano" : "primer cuatrimestre"} de locacion. Para los ${lease.updateFrequency === "semestral" ? "siguientes semestres" : lease.updateFrequency === "anual" ? "siguientes anos" : "siguientes cuatrimestres"} el precio sera actualizado conforme al Indice de precios al consumidor (IPC) que confecciona y publica el Instituto Nacional de Estadisticas y Censos (INDEC).`;
 
     addPageIfNecessary(45);
     currentY = addText(quintaClausulaText, currentY);
-    currentY += 15;
+    currentY += 6;
 
     // Inventario
     let inventarioLimpio = (lease.inventory || 'Sin inventario especificado')
@@ -248,7 +302,7 @@ const ContratoAlquiler = ({ lease, autoGenerate = false }) => {
     
     // Usar addLongText para manejar inventarios largos con saltos de página automáticos
     currentY = addLongText(inventarioText, currentY, 11, true);
-    currentY += 15;
+    currentY += 6;
 
     // Garantes
     if (guarantors.length > 0) {
@@ -257,7 +311,7 @@ const ContratoAlquiler = ({ lease, autoGenerate = false }) => {
         
         addPageIfNecessary(25);
         currentY = addText(guarantorText, currentY);
-        currentY += 10;
+        currentY += 5;
       });
     }
 
