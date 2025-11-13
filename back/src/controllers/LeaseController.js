@@ -420,7 +420,11 @@ exports.createLease = async (req, res) => {
       console.warn('Error obteniendo roles para debugging:', debugError.message);
     }
 
-    res.status(201).json(fullLease);
+    // Agregar leaseId a la respuesta (el modelo usa 'id' pero el frontend espera 'leaseId')
+    const response = fullLease.toJSON();
+    response.leaseId = fullLease.id;
+    
+    res.status(201).json(response);
 
   } catch (error) {
     console.error('CreateLease Error:', error);
