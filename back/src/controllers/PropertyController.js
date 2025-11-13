@@ -89,6 +89,19 @@ exports.createProperty = async (req, res) => {
         superficieCubierta: superficieCubierta || null,
         superficieTotal: superficieTotal || null
       });
+
+      // Si se proporciona idClient y role, crear la relación
+      if (req.body.idClient && req.body.role) {
+        console.log(`Creando relación: Cliente ${req.body.idClient} como ${req.body.role} de propiedad ${newProperty.propertyId}`);
+        
+        await ClientProperty.create({
+          clientId: req.body.idClient,
+          propertyId: newProperty.propertyId,
+          role: req.body.role
+        });
+
+        console.log('Relación creada exitosamente');
+      }
   
       // Responder con la propiedad creada
       res.status(201).json(newProperty);

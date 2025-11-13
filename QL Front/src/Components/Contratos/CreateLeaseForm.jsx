@@ -222,11 +222,9 @@ const CreateLeaseForm = () => {
     }
   };
 
-  const handlePropertySelect = (property) => {
+  const handlePropertySelect = async (property) => {
     console.log("=== handlePropertySelect llamado ===");
     console.log("Propiedad recibida:", property);
-    console.log("property.Clients:", property.Clients);
-    console.log("Número de clientes:", property.Clients?.length);
     
     if (!property || !property.propertyId) {
       console.error("Propiedad inválida seleccionada:", property);
@@ -238,25 +236,49 @@ const CreateLeaseForm = () => {
       return;
     }
 
-    console.log("Actualizando formData con propertyId:", property.propertyId);
-    
-    const landlord = property.Clients?.find(
-      (client) => client.ClientProperty.role === "propietario"
-    );
-    
-    console.log("Propietario encontrado:", landlord);
-    console.log("landlord.idClient:", landlord?.idClient);
-    
-    setFormData((prevData) => ({
-      ...prevData,
-      propertyId: property.propertyId,
-      landlordId: landlord?.idClient || "",
-      locador: landlord?.name || "",
-      rentAmount: property.price,
-      commission: property.comision,
-      inventory: property.inventory,
-    }));
-    console.log("FormData actualizado exitosamente");
+    try {
+      // Obtener la propiedad completa con los clientes desde el backend
+      console.log("Obteniendo datos completos de la propiedad...");
+      const fullProperty = await dispatch(getPropertiesById(property.propertyId));
+      
+      console.log("Propiedad completa recibida:", fullProperty);
+      console.log("fullProperty.Clients:", fullProperty.Clients);
+      console.log("Número de clientes:", fullProperty.Clients?.length);
+
+      const landlord = fullProperty.Clients?.find(
+        (client) => client.ClientProperty.role === "propietario"
+      );
+      
+      console.log("Propietario encontrado:", landlord);
+      console.log("landlord.idClient:", landlord?.idClient);
+
+      if (!landlord || !landlord.idClient) {
+        Swal.fire({
+          icon: "warning",
+          title: "Advertencia",
+          text: "Esta propiedad no tiene un propietario asignado. Por favor, asigne un propietario primero.",
+        });
+        return;
+      }
+      
+      setFormData((prevData) => ({
+        ...prevData,
+        propertyId: fullProperty.propertyId,
+        landlordId: landlord.idClient,
+        locador: landlord.name || "",
+        rentAmount: fullProperty.price,
+        commission: fullProperty.comision,
+        inventory: fullProperty.inventory,
+      }));
+      console.log("FormData actualizado exitosamente");
+    } catch (error) {
+      console.error("Error al obtener datos de la propiedad:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "No se pudieron cargar los datos completos de la propiedad.",
+      });
+    }
   };
 
   return (
