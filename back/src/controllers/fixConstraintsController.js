@@ -1,4 +1,4 @@
-const { sequelize } = require('../data');
+const { conn } = require('../data');
 
 exports.fixClientPropertyConstraints = async (req, res) => {
   try {
@@ -6,19 +6,19 @@ exports.fixClientPropertyConstraints = async (req, res) => {
     
     // 1. Eliminar constraints antiguos
     console.log('Eliminando constraints antiguos...');
-    await sequelize.query('ALTER TABLE "ClientProperties" DROP CONSTRAINT IF EXISTS "ClientProperties_clientId_fkey"');
-    await sequelize.query('ALTER TABLE "ClientProperties" DROP CONSTRAINT IF EXISTS "ClientProperties_propertyId_fkey"');
+    await conn.query('ALTER TABLE "ClientProperties" DROP CONSTRAINT IF EXISTS "ClientProperties_clientId_fkey"');
+    await conn.query('ALTER TABLE "ClientProperties" DROP CONSTRAINT IF EXISTS "ClientProperties_propertyId_fkey"');
     console.log('✓ Constraints antiguos eliminados');
     
     // 2. Crear constraints nuevos con referencias correctas
     console.log('Creando constraints nuevos...');
-    await sequelize.query(`
+    await conn.query(`
       ALTER TABLE "ClientProperties" 
       ADD CONSTRAINT "ClientProperties_clientId_fkey" 
       FOREIGN KEY ("clientId") REFERENCES "Client"("idClient") ON DELETE CASCADE
     `);
     
-    await sequelize.query(`
+    await conn.query(`
       ALTER TABLE "ClientProperties" 
       ADD CONSTRAINT "ClientProperties_propertyId_fkey" 
       FOREIGN KEY ("propertyId") REFERENCES "Property"("propertyId") ON DELETE CASCADE
