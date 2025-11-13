@@ -171,18 +171,12 @@ const Listado = ({ mode = "default", onSelectProperty }) => {
   }
   
   if (error) {
-    console.log("=== Listado en estado ERROR ===", error);
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
         <div className="text-red-400 text-xl">Error: {error}</div>
       </div>
     );
   }
-
-  console.log("=== Listado renderizado ===");
-  console.log("Total propiedades:", allProperties.length);
-  console.log("Propiedades disponibles:", availableProperties.length);
-  console.log("Propiedades filtradas:", filteredProperties.length);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">

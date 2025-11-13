@@ -225,6 +225,8 @@ const CreateLeaseForm = () => {
   const handlePropertySelect = (property) => {
     console.log("=== handlePropertySelect llamado ===");
     console.log("Propiedad recibida:", property);
+    console.log("property.Clients:", property.Clients);
+    console.log("Número de clientes:", property.Clients?.length);
     
     if (!property || !property.propertyId) {
       console.error("Propiedad inválida seleccionada:", property);
@@ -242,6 +244,9 @@ const CreateLeaseForm = () => {
       (client) => client.ClientProperty.role === "propietario"
     );
     
+    console.log("Propietario encontrado:", landlord);
+    console.log("landlord.idClient:", landlord?.idClient);
+    
     setFormData((prevData) => ({
       ...prevData,
       propertyId: property.propertyId,
@@ -253,10 +258,6 @@ const CreateLeaseForm = () => {
     }));
     console.log("FormData actualizado exitosamente");
   };
-
-  console.log("=== CreateLeaseForm renderizado ===");
-  console.log("formData.propertyId:", formData.propertyId);
-  console.log("¿Mostrar Listado?", !formData.propertyId);
 
   return (
     <div className="min-h-screen">
