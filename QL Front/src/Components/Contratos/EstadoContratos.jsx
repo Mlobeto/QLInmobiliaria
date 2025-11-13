@@ -2,10 +2,11 @@ import { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigate, useLocation } from "react-router-dom";
 import PropTypes from 'prop-types';
-import { getAllLeases } from "../../redux/Actions/actions";
+import { getAllLeases, updateLease } from "../../redux/Actions/actions";
 import CreateLeaseForm from "./CreateLeaseForm";
 import CompraVenta from "./CompraVenta";
 import ContratoAlquiler from "../PdfTemplates/ContratoAlquiler";
+import Swal from 'sweetalert2';
 import {
   IoArrowBackOutline,
   IoHomeOutline,
@@ -59,11 +60,30 @@ import {
     setEditedLease((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSaveClick = (leaseId) => {
-    // Aquí podrías despachar una acción para actualizar el contrato
-    console.log("Guardando contrato", leaseId, editedLease);
-    // Luego de salvar, salen del modo edición:
-    setEditingLeaseId(null);
+  const handleSaveClick = async (leaseId) => {
+    try {
+      console.log("Guardando contrato", leaseId, editedLease);
+      
+      await dispatch(updateLease(leaseId, editedLease));
+      
+      Swal.fire({
+        icon: 'success',
+        title: '¡Éxito!',
+        text: 'Contrato actualizado correctamente',
+        timer: 2000,
+        showConfirmButton: false
+      });
+      
+      setEditingLeaseId(null);
+      setEditedLease({});
+    } catch (error) {
+      console.error('Error al guardar:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: error.response?.data?.error || 'No se pudo actualizar el contrato'
+      });
+    }
   };
 
   const handleCancelEdit = () => {

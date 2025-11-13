@@ -7,6 +7,7 @@ const {
   terminateLease, 
   savePdf, 
   updateRentAmount,
+  updateLease,
   fixForeignKeyConstraints,
   createTestRentUpdate,
   debugLeaseAlerts, 
@@ -137,6 +138,7 @@ router.get('/:id/update-history', getLeaseUpdateHistory); // 🆕
 
 router.put('/:id/terminate', terminateLease);
 router.put('/:id/quick-update', quickUpdateLeaseRent); // 🆕
+router.put('/:id', updateLease); // 🆕 Actualización general de lease
 router.put('/leases/:id/rent', updateRentAmount);
 
 router.get('/:id', getLeaseById);

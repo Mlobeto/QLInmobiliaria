@@ -619,6 +619,30 @@ export const getLeasesByIdClient = (idClient) => async (dispatch) => {
   }
 };
 
+export const updateLease = (leaseId, updateData) => async (dispatch) => {
+  try {
+    dispatch({ type: 'UPDATE_LEASE_REQUEST' });
+    
+    const response = await axios.put(`/lease/${leaseId}`, updateData);
+    
+    dispatch({
+      type: 'UPDATE_LEASE_SUCCESS',
+      payload: response.data.data,
+    });
+    
+    // Refrescar la lista de contratos
+    dispatch(getAllLeases());
+    
+    return response.data;
+  } catch (error) {
+    dispatch({
+      type: 'UPDATE_LEASE_FAILURE',
+      payload: error.response?.data?.error || error.message,
+    });
+    throw error;
+  }
+};
+
 export const getAllPayments = () => async (dispatch) => {
   dispatch({ type: GET_ALL_PAYMENTS_REQUEST });
   try {

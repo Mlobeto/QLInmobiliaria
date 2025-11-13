@@ -1484,6 +1484,48 @@ exports.getExpiringLeases = async (req, res) => {
   }
 };
 
+exports.updateLease = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updateData = req.body;
+
+    console.log(`Actualizando lease ${id} con:`, updateData);
+
+    const lease = await Lease.findByPk(id);
+    
+    if (!lease) {
+      return res.status(404).json({ error: 'Contrato no encontrado' });
+    }
+
+    // Actualizar el lease con los datos proporcionados
+    await lease.update(updateData);
+
+    // Obtener el lease actualizado con todas las relaciones
+    const updatedLease = await Lease.findByPk(id, {
+      include: [
+        { model: Property },
+        { model: Garantor, required: false },
+        { model: Client, as: 'Tenant', attributes: ['name', 'cuil', 'direccion', 'ciudad', 'provincia'] },
+        { model: Client, as: 'Landlord', attributes: ['name', 'cuil', 'direccion', 'ciudad', 'provincia', 'mobilePhone'] },
+      ],
+    });
+
+    console.log('Lease actualizado exitosamente');
+
+    res.status(200).json({
+      success: true,
+      message: 'Contrato actualizado exitosamente',
+      data: updatedLease
+    });
+  } catch (error) {
+    console.error('Error al actualizar lease:', error);
+    res.status(500).json({ 
+      error: 'Error al actualizar el contrato', 
+      details: error.message 
+    });
+  }
+};
+
 module.exports = {
   createLease: exports.createLease,
   getAllLeases: exports.getAllLeases,
@@ -1493,6 +1535,7 @@ module.exports = {
   bulkUpdateLeases: exports.bulkUpdateLeases, // 🆕
   getUpdateStatistics: exports.getUpdateStatistics, // 🆕
   getExpiringLeases: exports.getExpiringLeases, // 🆕
+  updateLease: exports.updateLease, // 🆕
   getLeaseById: exports.getLeaseById,
   terminateLease: exports.terminateLease,
   checkPendingPayments: exports.checkPendingPayments,
