@@ -88,7 +88,7 @@ const ContratoEditor = ({ lease, onClose }) => {
         {/* Editor */}
         <div className="flex-1 overflow-auto p-6">
           <Editor
-            tinymceScriptSrc="https://cdn.tiny.cloud/1/no-api-key/tinymce/7/tinymce.min.js"
+            tinymceScriptSrc="https://cdn.tiny.cloud/1/se2bvqg48curpyywfqprsxuygl0ycppdzaefay32hp988nbi/tinymce/7/tinymce.min.js"
             onInit={(evt, editor) => editorRef.current = editor}
             value={contenido}
             onEditorChange={(newContent) => setContenido(newContent)}
