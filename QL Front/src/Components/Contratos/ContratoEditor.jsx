@@ -88,23 +88,16 @@ const ContratoEditor = ({ lease, onClose }) => {
         {/* Editor */}
         <div className="flex-1 overflow-auto p-6">
           <Editor
-            apiKey="your-tinymce-api-key-here" // Puedes usar sin API key en desarrollo
+            tinymceScriptSrc="https://cdn.tiny.cloud/1/no-api-key/tinymce/7/tinymce.min.js"
             onInit={(evt, editor) => editorRef.current = editor}
             value={contenido}
             onEditorChange={(newContent) => setContenido(newContent)}
             init={{
               height: 500,
-              menubar: true,
-              language: 'es',
-              plugins: [
-                'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
-                'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
-                'insertdatetime', 'media', 'table', 'code', 'help', 'wordcount', 'print'
-              ],
-              toolbar: 'undo redo | formatselect | ' +
-                'bold italic underline | alignleft aligncenter ' +
-                'alignright alignjustify | bullist numlist outdent indent | ' +
-                'removeformat | print | help',
+              menubar: false,
+              statusbar: false,
+              plugins: 'lists link code help wordcount',
+              toolbar: 'undo redo | formatselect | bold italic | alignleft aligncenter alignright | bullist numlist | removeformat | code | help',
               content_style: `
                 body { 
                   font-family: Helvetica, Arial, sans-serif; 
