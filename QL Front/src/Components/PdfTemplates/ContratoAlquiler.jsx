@@ -62,14 +62,6 @@ const ContratoAlquiler = ({ lease, autoGenerate = false }) => {
     }
 
     // Generación estándar del PDF (código original)
-    const maxWidth = 160; // Reducir para mejor formato
-    let currentY = 20;
-    const lineHeight = 3; // Reducido para fuente más pequeña
-    const bottomMargin = 20;
-    const doc = new jsPDF();
-
-    // Configurar fuente para mejor soporte de caracteres latinos
-    doc.setFont("helvetica");
     const doc = new jsPDF();
     const maxWidth = 160; // Reducir para mejor formato
     let currentY = 20;
