@@ -1,19 +1,86 @@
 import PropTypes from 'prop-types';
 import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 const ContratoAlquiler = ({ lease, autoGenerate = false }) => {
-  const generatePdf = () => {
+  const generatePdf = async () => {
+    // Si existe customContent (contrato editado), generar PDF desde HTML
+    if (lease.customContent) {
+      try {
+        // Crear un contenedor temporal para el HTML
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = lease.customContent;
+        tempDiv.style.position = 'absolute';
+        tempDiv.style.left = '-9999px';
+        tempDiv.style.width = '210mm'; // A4 width
+        tempDiv.style.padding = '20mm';
+        tempDiv.style.backgroundColor = 'white';
+        document.body.appendChild(tempDiv);
+
+        // Convertir HTML a canvas
+        const canvas = await html2canvas(tempDiv, {
+          scale: 2,
+          useCORS: true,
+          logging: false,
+          width: tempDiv.scrollWidth,
+          height: tempDiv.scrollHeight
+        });
+
+        // Remover el elemento temporal
+        document.body.removeChild(tempDiv);
+
+        // Crear PDF desde el canvas
+        const imgData = canvas.toDataURL('image/png');
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = pdf.internal.pageSize.getHeight();
+        const imgWidth = pdfWidth;
+        const imgHeight = (canvas.height * pdfWidth) / canvas.width;
+
+        let heightLeft = imgHeight;
+        let position = 0;
+
+        // Agregar la primera página
+        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pdfHeight;
+
+        // Agregar páginas adicionales si es necesario
+        while (heightLeft > 0) {
+          position = heightLeft - imgHeight;
+          pdf.addPage();
+          pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+          heightLeft -= pdfHeight;
+        }
+
+        pdf.save(`Contrato_${lease.Tenant?.name || 'Sin_Nombre'}_${new Date().toLocaleDateString().replace(/\//g, '-')}.pdf`);
+        return;
+      } catch (error) {
+        console.error('Error generando PDF desde HTML:', error);
+        alert('Error al generar el PDF del contrato editado. Se generará el PDF estándar.');
+        // Continuar con la generación normal si falla
+      }
+    }
+
+    // Generación estándar del PDF (código original)
+    const maxWidth = 160; // Reducir para mejor formato
+    let currentY = 20;
+    const lineHeight = 3; // Reducido para fuente más pequeña
+    const bottomMargin = 20;
+    const doc = new jsPDF();
+
+    // Configurar fuente para mejor soporte de caracteres latinos
+    doc.setFont("helvetica");
     const doc = new jsPDF();
     const maxWidth = 160; // Reducir para mejor formato
     let currentY = 20;
-    const lineHeight = 5; // Reducido de 6 a 5 para menos espaciado
+    const lineHeight = 3; // Reducido para fuente más pequeña
     const bottomMargin = 20;
 
     // Configurar fuente para mejor soporte de caracteres latinos
     doc.setFont("helvetica");
 
     // Función helper para agregar texto con salto de línea automático
-    const addText = (text, y, fontSize = 11, isBold = false) => {
+    const addText = (text, y, fontSize = 7, isBold = false) => {
       if (isBold) {
         doc.setFont("helvetica", "bold");
       } else {
@@ -43,7 +110,7 @@ const ContratoAlquiler = ({ lease, autoGenerate = false }) => {
     };
 
     // Función mejorada para agregar texto largo con saltos de página automáticos
-    const addLongText = (text, y, fontSize = 11, isBold = false) => {
+    const addLongText = (text, y, fontSize = 7, isBold = false) => {
       if (isBold) {
         doc.setFont("helvetica", "bold");
       } else {
@@ -178,24 +245,39 @@ const ContratoAlquiler = ({ lease, autoGenerate = false }) => {
     const landlord = lease.Landlord || {};
     const guarantors = lease.Garantors || [];
 
+    // Determinar el tipo de contrato según typeProperty
+    const getTituloContrato = (typeProperty) => {
+      const comercial = ["oficina", "local", "finca"];
+      const vivienda = ["casa", "departamento", "duplex"];
+      
+      if (comercial.includes(typeProperty)) {
+        return "CONTRATO DE LOCACION DE LOCAL COMERCIAL";
+      }
+      if (vivienda.includes(typeProperty)) {
+        return "CONTRATO DE LOCACION DE INMUEBLE CON DESTINO VIVIENDA";
+      }
+      // Para lote o terreno
+      return "CONTRATO DE LOCACION DE INMUEBLE";
+    };
+
     // === GENERAR PDF ===
 
    doc.setFont("helvetica", "bold");
-    doc.setFontSize(15);
-    doc.text("CONTRATO DE LOCACION DE INMUEBLE CON DESTINO VIVIENDA", 105, currentY, { align: "center" });
-    currentY += 12;
+    doc.setFontSize(9);
+    doc.text(getTituloContrato(property.typeProperty), 105, currentY, { align: "center" });
+    currentY += 8;
 
     // Encabezado con fecha
     const fechaInicio = formatearFecha(lease.startDate);
     addPageIfNecessary(15);
-    currentY = addText(`En Belen, Provincia de Buenos Aires, a los ${fechaInicio}`, currentY, 11, false);
-    currentY += 6;
+    currentY = addText(`En Belen, Provincia de Buenos Aires, a los ${fechaInicio}`, currentY, 7, false);
+    currentY += 4;
 
 
     // Datos de las partes - con nombres en negrita
     addPageIfNecessary(50);
     doc.setFont("helvetica", "normal");
-    doc.setFontSize(11);
+    doc.setFontSize(7);
     
     let partesY = currentY;
     const leftMargin = 25;
@@ -256,41 +338,86 @@ const ContratoAlquiler = ({ lease, autoGenerate = false }) => {
     currentY = partesY + 6;
 
     // Primera cláusula - Objeto
-    const objetoText = `PRIMERA: Objeto. El locador da en locacion al locatario y el locatario acepta de conformidad el inmueble sito en ${property.address || 'N/A'}, ${property.city || 'N/A'}, en adelante denominado el "INMUEBLE LOCADO" para ser destinado a ${getUsoPropiedad(property.typeProperty)}; no pudiendose cambiar el destino de uso. Superficie cubierta: ${property.superficieCubierta || 'N/A'}, Superficie total: ${property.superficieTotal || 'N/A'}. ${property.typeProperty !== "lote" && property.typeProperty !== "terreno" && property.rooms ? `El inmueble cuenta con ${property.rooms} ambientes y ${property.bathrooms || 0} banos.` : ""}`;
-
     addPageIfNecessary(40);
-    currentY = addText(objetoText, currentY);
+    doc.setFont("helvetica", "bold");
+    doc.text("PRIMERA: Objeto.", 25, currentY);
+    const primeraWidth = doc.getTextWidth("PRIMERA: Objeto. ");
+    doc.setFont("helvetica", "normal");
+    const objetoText = `El locador da en locacion al locatario y el locatario acepta de conformidad el inmueble sito en ${property.address || 'N/A'}, ${property.city || 'N/A'}, en adelante denominado el "INMUEBLE LOCADO" para ser destinado a ${getUsoPropiedad(property.typeProperty)}; no pudiendose cambiar el destino de uso. Superficie cubierta: ${property.superficieCubierta || 'N/A'}, Superficie total: ${property.superficieTotal || 'N/A'}. ${property.typeProperty !== "lote" && property.typeProperty !== "terreno" && property.rooms ? `El inmueble cuenta con ${property.rooms} ambientes y ${property.bathrooms || 0} banos.` : ""}`;
+    const lines = doc.splitTextToSize(objetoText, maxWidth - primeraWidth);
+    doc.text(lines[0], 25 + primeraWidth, currentY);
+    currentY += lineHeight;
+    for (let i = 1; i < lines.length; i++) {
+      doc.text(lines[i], 25, currentY);
+      currentY += lineHeight;
+    }
     currentY += 5;
 
     // Segunda cláusula - Manifestación
-    const manifestacionText = `SEGUNDA: Manifestacion. Las personas anteriormente mencionadas manifiestan no tener capacidad restringida para este acto y convienen en celebrar el presente CONTRATO DE LOCACION DE VIVIENDA, en adelante denominado "CONTRATO", a regirse por el Codigo civil y Comercial de la Nacion, leyes aplicables y las clausulas siguientes.`;
-
     addPageIfNecessary(30);
-    currentY = addText(manifestacionText, currentY);
+    doc.setFont("helvetica", "bold");
+    doc.text("SEGUNDA: Manifestacion.", 25, currentY);
+    const segundaWidth = doc.getTextWidth("SEGUNDA: Manifestacion. ");
+    doc.setFont("helvetica", "normal");
+    const manifestacionText = `Las personas anteriormente mencionadas manifiestan no tener capacidad restringida para este acto y convienen en celebrar el presente CONTRATO DE LOCACION DE VIVIENDA, en adelante denominado "CONTRATO", a regirse por el Codigo civil y Comercial de la Nacion, leyes aplicables y las clausulas siguientes.`;
+    const lines2 = doc.splitTextToSize(manifestacionText, maxWidth - segundaWidth);
+    doc.text(lines2[0], 25 + segundaWidth, currentY);
+    currentY += lineHeight;
+    for (let i = 1; i < lines2.length; i++) {
+      doc.text(lines2[i], 25, currentY);
+      currentY += lineHeight;
+    }
     currentY += 5;
 
     // Tercera cláusula - Descripción
-    const descripcionText = `TERCERA: Descripcion. El locatario declara conocer y aceptar el inmueble en el estado en que se encuentra, prestando conformidad por haberlo visitado e inspeccionado antes de ahora, la propiedad cuenta con: ${property.description || 'Sin descripcion'} y todas las demas especificaciones contenidas en clausula anexa al presente contrato de locacion.`;
-
     addPageIfNecessary(35);
-    currentY = addText(descripcionText, currentY);
+    doc.setFont("helvetica", "bold");
+    doc.text("TERCERA: Descripcion.", 25, currentY);
+    const terceraWidth = doc.getTextWidth("TERCERA: Descripcion. ");
+    doc.setFont("helvetica", "normal");
+    const descripcionText = `El locatario declara conocer y aceptar el inmueble en el estado en que se encuentra, prestando conformidad por haberlo visitado e inspeccionado antes de ahora, la propiedad cuenta con: ${property.description || 'Sin descripcion'} y todas las demas especificaciones contenidas en clausula anexa al presente contrato de locacion.`;
+    const lines3 = doc.splitTextToSize(descripcionText, maxWidth - terceraWidth);
+    doc.text(lines3[0], 25 + terceraWidth, currentY);
+    currentY += lineHeight;
+    for (let i = 1; i < lines3.length; i++) {
+      doc.text(lines3[i], 25, currentY);
+      currentY += lineHeight;
+    }
     currentY += 5;
 
     // Cuarta cláusula - Plazo del contrato
     const startDate = new Date(lease.startDate);
     const endDate = calcularFechaFin(startDate, lease.totalMonths);
 
-    const cuartaClausulaText = `CUARTA: Plazo del contrato. El plazo de la locacion sera de ${numeroALetras(lease.totalMonths)} (${lease.totalMonths}) meses, los mismos se computaran a partir del ${formatearFecha(startDate)}, y hasta el dia ${formatearFecha(endDate)}, recibiendo del locatario la tenencia del inmueble en el dia de la fecha. Es obligacion del locatario restituir al termino de la locacion el inmueble desocupado y en buen estado conforme a los art.1206 y 1207 del CCCN. Si ello no fuere cumplido se cobrara una multa equivalente al 0.4% diario sobre el ultimo alquiler hasta la entrega efectiva del inmueble locado y en las condiciones que le fue entregado.`;
-
     addPageIfNecessary(60);
-    currentY = addText(cuartaClausulaText, currentY);
+    doc.setFont("helvetica", "bold");
+    doc.text("CUARTA: Plazo del contrato.", 25, currentY);
+    const cuartaWidth = doc.getTextWidth("CUARTA: Plazo del contrato. ");
+    doc.setFont("helvetica", "normal");
+    const cuartaClausulaText = `El plazo de la locacion sera de ${numeroALetras(lease.totalMonths)} (${lease.totalMonths}) meses, los mismos se computaran a partir del ${formatearFecha(startDate)}, y hasta el dia ${formatearFecha(endDate)}, recibiendo del locatario la tenencia del inmueble en el dia de la fecha. Es obligacion del locatario restituir al termino de la locacion el inmueble desocupado y en buen estado conforme a los art.1206 y 1207 del CCCN. Si ello no fuere cumplido se cobrara una multa equivalente al 0.4% diario sobre el ultimo alquiler hasta la entrega efectiva del inmueble locado y en las condiciones que le fue entregado.`;
+    const lines4 = doc.splitTextToSize(cuartaClausulaText, maxWidth - cuartaWidth);
+    doc.text(lines4[0], 25 + cuartaWidth, currentY);
+    currentY += lineHeight;
+    for (let i = 1; i < lines4.length; i++) {
+      doc.text(lines4[i], 25, currentY);
+      currentY += lineHeight;
+    }
     currentY += 5;
 
     // Quinta cláusula - Precio
-    const quintaClausulaText = `QUINTA: Precio: El precio del alquiler se fija de comun acuerdo entre las partes por la suma de ${formatearMonto(lease.rentAmount)} para el ${lease.updateFrequency === "semestral" ? "primer semestre" : lease.updateFrequency === "anual" ? "primer ano" : "primer cuatrimestre"} de locacion. Para los ${lease.updateFrequency === "semestral" ? "siguientes semestres" : lease.updateFrequency === "anual" ? "siguientes anos" : "siguientes cuatrimestres"} el precio sera actualizado conforme al Indice de precios al consumidor (IPC) que confecciona y publica el Instituto Nacional de Estadisticas y Censos (INDEC).`;
-
     addPageIfNecessary(45);
-    currentY = addText(quintaClausulaText, currentY);
+    doc.setFont("helvetica", "bold");
+    doc.text("QUINTA: Precio:", 25, currentY);
+    const quintaWidth = doc.getTextWidth("QUINTA: Precio: ");
+    doc.setFont("helvetica", "normal");
+    const quintaClausulaText = `El precio del alquiler se fija de comun acuerdo entre las partes por la suma de ${formatearMonto(lease.rentAmount)} para el ${lease.updateFrequency === "semestral" ? "primer semestre" : lease.updateFrequency === "anual" ? "primer ano" : "primer cuatrimestre"} de locacion. Para los ${lease.updateFrequency === "semestral" ? "siguientes semestres" : lease.updateFrequency === "anual" ? "siguientes anos" : "siguientes cuatrimestres"} el precio sera actualizado conforme al Indice de precios al consumidor (IPC) que confecciona y publica el Instituto Nacional de Estadisticas y Censos (INDEC).`;
+    const lines5 = doc.splitTextToSize(quintaClausulaText, maxWidth - quintaWidth);
+    doc.text(lines5[0], 25 + quintaWidth, currentY);
+    currentY += lineHeight;
+    for (let i = 1; i < lines5.length; i++) {
+      doc.text(lines5[i], 25, currentY);
+      currentY += lineHeight;
+    }
     currentY += 6;
 
     // Inventario
@@ -298,19 +425,31 @@ const ContratoAlquiler = ({ lease, autoGenerate = false }) => {
       .replace(/\\n/g, '\n')
       .replace(/\n-/g, '\n• ');
 
-    const inventarioText = `INVENTARIO:\n${inventarioLimpio}`;
-    
     // Usar addLongText para manejar inventarios largos con saltos de página automáticos
-    currentY = addLongText(inventarioText, currentY, 11, true);
+    doc.setFont("helvetica", "bold");
+    doc.text("INVENTARIO:", 25, currentY);
+    currentY += lineHeight;
+    doc.setFont("helvetica", "normal");
+    currentY = addLongText(inventarioLimpio, currentY, 7, false);
     currentY += 6;
 
     // Garantes
     if (guarantors.length > 0) {
       guarantors.forEach((guarantor, index) => {
-        const guarantorText = `DECIMO QUINTO${index > 0 ? ` (${index + 1})` : ''}: Fianza. El Sr/Sra ${guarantor.name}, CUIL ${guarantor.cuil}, con domicilio en ${guarantor.address}, se constituye en fiador solidario, liso, llano y principal pagador de todas y cada una de las obligaciones contraidas por el LOCATARIO en el presente contrato.`;
-        
         addPageIfNecessary(25);
-        currentY = addText(guarantorText, currentY);
+        doc.setFont("helvetica", "bold");
+        const garanteTitle = `DECIMO QUINTO${index > 0 ? ` (${index + 1})` : ''}: Fianza.`;
+        doc.text(garanteTitle, 25, currentY);
+        const garanteWidth = doc.getTextWidth(garanteTitle + " ");
+        doc.setFont("helvetica", "normal");
+        const guarantorText = `El Sr/Sra ${guarantor.name}, CUIL ${guarantor.cuil}, con domicilio en ${guarantor.address}, se constituye en fiador solidario, liso, llano y principal pagador de todas y cada una de las obligaciones contraidas por el LOCATARIO en el presente contrato.`;
+        const linesG = doc.splitTextToSize(guarantorText, maxWidth - garanteWidth);
+        doc.text(linesG[0], 25 + garanteWidth, currentY);
+        currentY += lineHeight;
+        for (let i = 1; i < linesG.length; i++) {
+          doc.text(linesG[i], 25, currentY);
+          currentY += lineHeight;
+        }
         currentY += 5;
       });
     }
@@ -321,7 +460,7 @@ const ContratoAlquiler = ({ lease, autoGenerate = false }) => {
     
     // Líneas de firma
     doc.setFont("helvetica", "normal");
-    doc.setFontSize(11);
+    doc.setFontSize(7);
     doc.line(25, currentY, 85, currentY); // Línea izquierda
     doc.line(110, currentY, 170, currentY); // Línea derecha
     

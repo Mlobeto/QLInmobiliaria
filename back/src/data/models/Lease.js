@@ -72,6 +72,11 @@ module.exports = (sequelize) => {
         type: DataTypes.STRING, // Store the file path
         allowNull: true, // The PDF is not required immediately
       },
+      customContent: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+        comment: 'Contenido HTML personalizado del contrato editado manualmente'
+      },
     },
     {
       paranoid: true,

@@ -6,6 +6,7 @@ import { getAllLeases, updateLease } from "../../redux/Actions/actions";
 import CreateLeaseForm from "./CreateLeaseForm";
 import CompraVenta from "./CompraVenta";
 import ContratoAlquiler from "../PdfTemplates/ContratoAlquiler";
+import ContratoEditor from "./ContratoEditor";
 import Swal from 'sweetalert2';
 import {
   IoArrowBackOutline,
@@ -23,7 +24,8 @@ import {
   IoCloseCircleOutline,
   IoAddOutline,
   IoKeyOutline,
-  IoDownloadOutline
+  IoDownloadOutline,
+  IoCreateOutline
 } from 'react-icons/io5';const EstadoContratos = ({ onLeaseSelect }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -37,6 +39,7 @@ import {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showSaleModal, setShowSaleModal] = useState(false);
   const [pdfLease, setPdfLease] = useState(null);
+  const [editorLease, setEditorLease] = useState(null);
 
   // Detectar el contexto basado en la URL
   const isLeaseContext = location.pathname === '/contratoAlquiler';
@@ -53,6 +56,16 @@ import {
   const handleEditClick = (lease) => {
     setEditingLeaseId(lease.leaseId || lease.id);
     setEditedLease(lease);
+  };
+
+  const handleEditContract = (lease) => {
+    setEditorLease(lease);
+  };
+
+  const handleCloseEditor = () => {
+    setEditorLease(null);
+    // Recargar los leases para obtener el contenido actualizado
+    dispatch(getAllLeases());
   };
 
   const handleInputChange = (e) => {
@@ -251,9 +264,16 @@ import {
                             <button
                               onClick={() => handleEditClick(lease)}
                               className="p-2 bg-amber-500/20 hover:bg-amber-500/30 text-amber-400 rounded-lg transition-colors duration-200"
-                              title="Editar"
+                              title="Editar Datos"
                             >
                               <IoPencilOutline className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => handleEditContract(lease)}
+                              className="p-2 bg-purple-500/20 hover:bg-purple-500/30 text-purple-400 rounded-lg transition-colors duration-200"
+                              title="Editar Contrato"
+                            >
+                              <IoCreateOutline className="w-4 h-4" />
                             </button>
                             <button
                               onClick={() => handleDownloadPdf(lease)}
@@ -532,6 +552,11 @@ import {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Modal del Editor de Contrato */}
+      {editorLease && (
+        <ContratoEditor lease={editorLease} onClose={handleCloseEditor} />
       )}
     </div>
   );
