@@ -1,4 +1,4 @@
-const AdminSettings = require('../data/models/AdminSettings');
+const { AdminSettings } = require('../data');
 
 // Obtener firma actual
 exports.getSignature = async (req, res) => {
