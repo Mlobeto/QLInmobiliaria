@@ -87,12 +87,17 @@ const PaymentForm = () => {
     setIsLoading(true);
 
     try {
+      // Para pagos iniciales, generar período automáticamente
+      const period = formData.type === 'initial' 
+        ? `Pago Inicial - ${new Date(formData.paymentDate).toLocaleDateString('es-AR', { month: 'long', year: 'numeric' })}`
+        : formData.period;
+
       const paymentData = {
         idClient: formData.idClient,
         leaseId: formData.leaseId,
         paymentDate: formData.paymentDate,
         amount: parseFloat(formData.amount),
-        period: formData.period,
+        period: period,
         type: formData.type,
         totalInstallments: formData.totalInstallments ? parseInt(formData.totalInstallments) : null,
       };
@@ -249,22 +254,24 @@ const PaymentForm = () => {
                         />
                       </div>
 
-                      {/* Período */}
-                      <div className="space-y-2">
-                        <label className="flex items-center text-sm font-medium text-slate-300">
-                          <IoTimeOutline className="w-4 h-4 mr-2 text-amber-400" />
-                          Período
-                        </label>
-                        <input
-                          type="text"
-                          name="period"
-                          value={formData.period}
-                          onChange={handleChange}
-                          className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all duration-200"
-                          placeholder="Ej: Enero 2024, Cuota 1/12..."
-                          required
-                        />
-                      </div>
+                      {/* Período - Solo para cuotas y comisiones */}
+                      {formData.type !== 'initial' && (
+                        <div className="space-y-2">
+                          <label className="flex items-center text-sm font-medium text-slate-300">
+                            <IoTimeOutline className="w-4 h-4 mr-2 text-amber-400" />
+                            Período
+                          </label>
+                          <input
+                            type="text"
+                            name="period"
+                            value={formData.period}
+                            onChange={handleChange}
+                            className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all duration-200"
+                            placeholder={formData.type === 'installment' ? "Ej: Enero 2024, Cuota 1/12..." : "Ej: Comisión Noviembre 2024..."}
+                            required
+                          />
+                        </div>
+                      )}
 
                       {/* Tipo de pago */}
                       <div className="space-y-2">

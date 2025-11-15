@@ -13,9 +13,23 @@ exports.createPayment = async (req, res) => {
         totalInstallments, // opcional para "installment"
       } = req.body;
   
-      // Validación previa básica para ambos tipos
-      if (!idClient || !leaseId || !paymentDate || !amount || !period || !type) {
+      // Validación previa básica
+      if (!idClient || !leaseId || !paymentDate || !amount || !type) {
         return res.status(400).json({ error: 'Faltan datos obligatorios.' });
+      }
+
+      // Validar que period exista para installment y commission
+      if ((type === 'installment' || type === 'commission') && !period) {
+        return res.status(400).json({ error: 'El período es requerido para cuotas y comisiones.' });
+      }
+
+      // Generar período automáticamente para pagos iniciales si no se proporciona
+      let finalPeriod = period;
+      if (type === 'initial' && !period) {
+        const fecha = new Date(paymentDate);
+        const mes = fecha.toLocaleDateString('es-AR', { month: 'long' });
+        const año = fecha.getFullYear();
+        finalPeriod = `Pago Inicial - ${mes} ${año}`;
       }
   
       // Validar que solo exista un pago inicial por contrato
@@ -57,7 +71,7 @@ exports.createPayment = async (req, res) => {
         leaseId,
         paymentDate,
         amount,
-        period,
+        period: finalPeriod,
         type,
         installmentNumber: type === "installment" ? finalInstallmentNumber : null,
         totalInstallments: type === "installment" ? finalTotalInstallments : null,
