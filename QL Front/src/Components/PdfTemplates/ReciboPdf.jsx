@@ -12,7 +12,7 @@ const ReciboPdf = ({ payment, lease, autoGenerate = false }) => {
     // Cargar firma al montar el componente
     const fetchSignature = async () => {
       try {
-        const response = await fetch('https://qlinmobiliaria.onrender.com/api/admin/signature');
+        const response = await fetch('https://qlinmobiliaria.onrender.com/admin/signature');
         const data = await response.json();
         if (data.signatureUrl) {
           setSignatureUrl(data.signatureUrl);
