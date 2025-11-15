@@ -128,7 +128,7 @@ const PaymentForm = () => {
     doc.text(`Cliente: ${selectedLease?.locatario || 'N/A'}`, 20, 80);
     doc.text(`Contrato: ${payment.leaseId}`, 20, 90);
     doc.text(`Período: ${payment.period}`, 20, 100);
-    doc.text(`Tipo: ${payment.type === 'installment' ? 'Cuota' : 'Comisión'}`, 20, 110);
+    doc.text(`Tipo: ${payment.type === 'installment' ? 'Cuota' : payment.type === 'initial' ? 'Pago Inicial' : 'Comisión'}`, 20, 110);
     
     // Monto
     doc.text("Monto recibido:", 20, 130);
@@ -276,6 +276,7 @@ const PaymentForm = () => {
                           required
                         >
                           <option value="installment" className="bg-slate-800">Cuota de Alquiler</option>
+                          <option value="initial" className="bg-slate-800">Pago Inicial del Contrato</option>
                           <option value="commission" className="bg-slate-800">Comisión</option>
                         </select>
                       </div>
@@ -333,7 +334,7 @@ const PaymentForm = () => {
                       <p><span className="text-slate-400">Cliente:</span> {selectedLease?.locatario}</p>
                       <p><span className="text-slate-400">Monto:</span> ${formData.amount}</p>
                       <p><span className="text-slate-400">Período:</span> {formData.period}</p>
-                      <p><span className="text-slate-400">Tipo:</span> {formData.type === 'installment' ? 'Cuota de Alquiler' : 'Comisión'}</p>
+                      <p><span className="text-slate-400">Tipo:</span> {formData.type === 'installment' ? 'Cuota de Alquiler' : formData.type === 'initial' ? 'Pago Inicial del Contrato' : 'Comisión'}</p>
                       <p><span className="text-slate-400">Fecha:</span> {new Date(formData.paymentDate).toLocaleDateString()}</p>
                     </div>
                   </div>

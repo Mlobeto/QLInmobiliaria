@@ -90,6 +90,8 @@ const PaymentList = () => {
     switch (type) {
       case 'installment':
         return 'bg-blue-500/20 text-blue-400 border-blue-400/30';
+      case 'initial':
+        return 'bg-amber-500/20 text-amber-400 border-amber-400/30';
       case 'commission':
         return 'bg-emerald-500/20 text-emerald-400 border-emerald-400/30';
       default:
@@ -101,6 +103,8 @@ const PaymentList = () => {
     switch (type) {
       case 'installment':
         return 'Cuota';
+      case 'initial':
+        return 'Pago Inicial';
       case 'commission':
         return 'Comisión';
       default:
@@ -247,6 +251,7 @@ const PaymentList = () => {
               >
                 <option value="all" className="bg-slate-800">Todos los tipos</option>
                 <option value="installment" className="bg-slate-800">Cuotas</option>
+                <option value="initial" className="bg-slate-800">Pagos Iniciales</option>
                 <option value="commission" className="bg-slate-800">Comisiones</option>
               </select>
             </div>
