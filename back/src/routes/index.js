@@ -14,7 +14,6 @@ try {
   }
 
 router.use("/admin", require("./admin"));
-router.use("/admin", require("./adminSettings"));
 router.use("/auth", require("./auth"));
 router.use("/client", require("./client"));
 router.use("/lease", require("./lease"));
