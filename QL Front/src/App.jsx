@@ -20,6 +20,7 @@ import PaymentReport from "./Components/Pagos/PaymentReport";
 import PanelInformes from "./Components/Admin/PanelInformes";
 import ContractAlerts from "./Components/Contratos/ContractAlerts";
 import ContratoAlquiler from "./Components/PdfTemplates/ContratoAlquiler";
+import ReciboPreview from "./Components/PdfTemplates/ReciboPreview";
 
 function App() {
   return (
@@ -184,6 +185,10 @@ function App() {
         }
       />
 
+      <Route 
+        path="/preview-recibo" 
+        element={<ReciboPreview />} 
+      />
 
       <Route path="/login" element={<LoginAdmin />} />
     </Routes>
