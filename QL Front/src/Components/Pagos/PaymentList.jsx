@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { getPaymentsByLeaseId } from '../../redux/Actions/actions';
+import { getAllPayments } from '../../redux/Actions/actions';
 import {
   IoArrowBackOutline,
   IoHomeOutline,
@@ -30,8 +30,8 @@ const PaymentList = () => {
   const [dateFilter, setDateFilter] = useState('all');
 
   useEffect(() => {
-    // Obtener pagos - se puede generalizar para obtener todos los pagos
-    dispatch(getPaymentsByLeaseId(1));
+    // Obtener todos los pagos
+    dispatch(getAllPayments());
   }, [dispatch]);
 
   const handleFilterChange = (e) => {
