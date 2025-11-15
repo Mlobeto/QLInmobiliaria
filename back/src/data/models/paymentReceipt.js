@@ -24,20 +24,20 @@ module.exports = (sequelize) => {
             },
             installmentNumber: {
                 type: DataTypes.INTEGER, // Número de la cuota actual
-                allowNull: false,
+                allowNull: true, // Nullable para comisiones y pagos iniciales
                 validate: {
                     min: 1,
                 },
             },
             totalInstallments: {
                 type: DataTypes.INTEGER, // Total de cuotas del contrato
-                allowNull: false,
+                allowNull: true, // Nullable para comisiones y pagos iniciales
                 validate: {
                     min: 1,
                 },
             },
             type: {
-                type: DataTypes.ENUM("installment", "commission"),
+                type: DataTypes.ENUM("installment", "commission", "initial"),
                 allowNull: false,
                 defaultValue: "installment",
             },

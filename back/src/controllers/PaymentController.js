@@ -8,7 +8,7 @@ exports.createPayment = async (req, res) => {
         paymentDate,
         amount,
         period,
-        type, // "installment" o "commission"
+        type, // "installment", "commission" o "initial"
         installmentNumber, // opcional para "installment"
         totalInstallments, // opcional para "installment"
       } = req.body;
@@ -16,6 +16,18 @@ exports.createPayment = async (req, res) => {
       // Validación previa básica para ambos tipos
       if (!idClient || !leaseId || !paymentDate || !amount || !period || !type) {
         return res.status(400).json({ error: 'Faltan datos obligatorios.' });
+      }
+  
+      // Validar que solo exista un pago inicial por contrato
+      if (type === "initial") {
+        const existingInitial = await PaymentReceipt.findOne({
+          where: { leaseId, type: 'initial' },
+        });
+        if (existingInitial) {
+          return res.status(400).json({ 
+            error: 'Ya existe un pago inicial para este contrato. Solo se permite un pago inicial por contrato.' 
+          });
+        }
       }
   
       let finalInstallmentNumber = null;
@@ -39,7 +51,7 @@ exports.createPayment = async (req, res) => {
         }
       }
   
-      // Para comisión, no se requieren installmentNumber y totalInstallments.
+      // Para comisión y pago inicial, no se requieren installmentNumber y totalInstallments.
       const newPaymentReceipt = await PaymentReceipt.create({
         idClient,
         leaseId,
@@ -47,8 +59,8 @@ exports.createPayment = async (req, res) => {
         amount,
         period,
         type,
-        installmentNumber: type === "commission" ? null : finalInstallmentNumber,
-        totalInstallments: type === "commission" ? null : finalTotalInstallments,
+        installmentNumber: type === "installment" ? finalInstallmentNumber : null,
+        totalInstallments: type === "installment" ? finalTotalInstallments : null,
       });
   
       res.status(201).json(newPaymentReceipt);
