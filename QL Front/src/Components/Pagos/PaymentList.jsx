@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { getAllPayments } from '../../redux/Actions/actions';
+import ReciboPdf from '../PdfTemplates/ReciboPdf';
 import {
   IoArrowBackOutline,
   IoHomeOutline,
@@ -28,6 +29,7 @@ const PaymentList = () => {
   const [filter, setFilter] = useState('');
   const [typeFilter, setTypeFilter] = useState('all');
   const [dateFilter, setDateFilter] = useState('all');
+  const [downloadingPayment, setDownloadingPayment] = useState(null);
 
   useEffect(() => {
     // Obtener todos los pagos
@@ -44,6 +46,12 @@ const PaymentList = () => {
 
   const handleDateFilterChange = (e) => {
     setDateFilter(e.target.value);
+  };
+
+  const handleDownloadReceipt = (payment) => {
+    setDownloadingPayment(payment);
+    // El componente ReciboPdf se renderizará con autoGenerate y se auto-destruirá
+    setTimeout(() => setDownloadingPayment(null), 1000);
   };
 
   // Filtrar pagos según los criterios
@@ -391,7 +399,10 @@ const PaymentList = () => {
 
                   {/* Acciones */}
                   <div className="mt-4 pt-4 border-t border-white/10">
-                    <button className="w-full flex items-center justify-center px-4 py-2 bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 rounded-lg transition-colors border border-blue-400/30">
+                    <button 
+                      onClick={() => handleDownloadReceipt(payment)}
+                      className="w-full flex items-center justify-center px-4 py-2 bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 rounded-lg transition-colors border border-blue-400/30"
+                    >
                       <IoDownloadOutline className="w-4 h-4 mr-2" />
                       Descargar Recibo
                     </button>
@@ -402,6 +413,17 @@ const PaymentList = () => {
           )}
         </div>
       </div>
+
+      {/* Componente oculto para generar PDF */}
+      {downloadingPayment && downloadingPayment.Lease && (
+        <div style={{ position: 'absolute', left: '-9999px' }}>
+          <ReciboPdf 
+            payment={downloadingPayment} 
+            lease={downloadingPayment.Lease}
+            autoGenerate={true}
+          />
+        </div>
+      )}
     </div>
   );
 };

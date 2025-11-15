@@ -1,11 +1,30 @@
 import PropTypes from 'prop-types';
+import { useState, useEffect } from 'react';
 import jsPDF from 'jspdf';
 import numeroALetras from '../../utils/numeroALetras';
 import '../../utils/tahoma-normal';
 import '../../utils/nunito-normal';
 
 const ReciboPdf = ({ payment, lease, autoGenerate = false }) => {
-  const generatePdf = () => {
+  const [signatureUrl, setSignatureUrl] = useState(null);
+
+  useEffect(() => {
+    // Cargar firma al montar el componente
+    const fetchSignature = async () => {
+      try {
+        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/admin/signature`);
+        const data = await response.json();
+        if (data.signatureUrl) {
+          setSignatureUrl(data.signatureUrl);
+        }
+      } catch (error) {
+        console.error('Error al cargar firma:', error);
+      }
+    };
+    fetchSignature();
+  }, []);
+
+  const generatePdf = async () => {
     const doc = new jsPDF();
     doc.setFont("Nunito-VariableFont_wght", "normal");
 
@@ -189,7 +208,30 @@ const ReciboPdf = ({ payment, lease, autoGenerate = false }) => {
 
     doc.setFontSize(9);
     doc.line(120, 220, 180, 220);
-    doc.text("Firma", 145, 225);
+    
+    // Insertar firma si existe
+    if (signatureUrl) {
+      try {
+        // Cargar imagen de firma
+        const img = await new Promise((resolve, reject) => {
+          const image = new Image();
+          image.crossOrigin = 'Anonymous';
+          image.onload = () => resolve(image);
+          image.onerror = reject;
+          image.src = signatureUrl;
+        });
+        
+        // Agregar firma al PDF
+        doc.addImage(img, 'PNG', 125, 210, 50, 15);
+      } catch (error) {
+        console.error('Error al cargar firma:', error);
+        // Si hay error, mostrar texto por defecto
+        doc.text("Firma", 145, 218);
+      }
+    } else {
+      doc.text("Firma", 145, 218);
+    }
+    
     doc.line(120, 230, 180, 230);
     doc.text("Aclaración de la Firma", 135, 233);
 

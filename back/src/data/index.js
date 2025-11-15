@@ -207,4 +207,5 @@ RentUpdate.belongsTo(Lease, {
 module.exports = {
   ...sequelize.models, // para poder importar los modelos así: const { Product, User } = require('./db.js');
   conn: sequelize, // para importart la conexión { conn } = require('./db.js');
+  sequelize, // exportar sequelize para usar en el modelo AdminSettings
 };

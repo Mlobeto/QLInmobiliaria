@@ -21,6 +21,7 @@ import PanelInformes from "./Components/Admin/PanelInformes";
 import ContractAlerts from "./Components/Contratos/ContractAlerts";
 import ContratoAlquiler from "./Components/PdfTemplates/ContratoAlquiler";
 import ReciboPreview from "./Components/PdfTemplates/ReciboPreview";
+import SignatureManager from "./Components/Admin/SignatureManager";
 
 function App() {
   return (
@@ -188,6 +189,11 @@ function App() {
       <Route 
         path="/preview-recibo" 
         element={<ReciboPreview />} 
+      />
+
+      <Route 
+        path="/signature-manager" 
+        element={<SignatureManager />} 
       />
 
       <Route path="/login" element={<LoginAdmin />} />
