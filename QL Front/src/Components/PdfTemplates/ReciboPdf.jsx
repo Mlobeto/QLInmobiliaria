@@ -12,7 +12,7 @@ const ReciboPdf = ({ payment, lease, autoGenerate = false }) => {
     // Cargar firma al montar el componente
     const fetchSignature = async () => {
       try {
-        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/admin/signature`);
+        const response = await fetch('/api/admin/signature');
         const data = await response.json();
         if (data.signatureUrl) {
           setSignatureUrl(data.signatureUrl);

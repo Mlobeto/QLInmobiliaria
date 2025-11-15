@@ -15,7 +15,7 @@ const SignatureManager = () => {
 
   const fetchCurrentSignature = async () => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/admin/signature`);
+      const response = await fetch('/api/admin/signature');
       const data = await response.json();
       if (data.signatureUrl) {
         setSignatureUrl(data.signatureUrl);
@@ -50,7 +50,7 @@ const SignatureManager = () => {
 
       // Subir a Cloudinary
       const cloudinaryResponse = await fetch(
-        `https://api.cloudinary.com/v1_1/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload`,
+        'https://api.cloudinary.com/v1_1/dachr5i8f/image/upload',
         {
           method: 'POST',
           body: formData,
@@ -60,7 +60,7 @@ const SignatureManager = () => {
       const cloudinaryData = await cloudinaryResponse.json();
 
       // Guardar URL en backend
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/admin/signature`, {
+      const response = await fetch('/api/admin/signature', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -92,7 +92,7 @@ const SignatureManager = () => {
 
     setLoading(true);
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/admin/signature`, {
+      const response = await fetch('/api/admin/signature', {
         method: 'DELETE',
       });
 
