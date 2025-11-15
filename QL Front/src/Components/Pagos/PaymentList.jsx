@@ -20,7 +20,7 @@ import {
 const PaymentList = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const payments = useSelector(state => state.payments) || [];
+  const payments = useSelector(state => state.allPayments) || [];
   const loading = useSelector(state => state.loading);
   const error = useSelector(state => state.error);
 
