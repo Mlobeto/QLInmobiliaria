@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
+import ReactDOM from "react-dom/client";
 import { useDispatch, useSelector } from "react-redux";
 import { createPayment, getClientById } from "../../redux/Actions/actions";
 import EstadoContratos from "../Contratos/EstadoContratos";
-import { jsPDF } from "jspdf";
-import numeroALetras from "../../utils/numeroALetras";
+import ReciboPdf from "../PdfTemplates/ReciboPdf";
 import {
   IoDocumentTextOutline,
   IoReceiptOutline,
@@ -109,48 +109,31 @@ const PaymentForm = () => {
     }
   };
 
-  // Generar PDF del recibo
+  // Generar PDF del recibo usando ReciboPdf component
   const generateReceipt = () => {
     const payment = paymentCreate.payment;
-    const amount = Number(payment.amount);
-
-    const formatMoney = new Intl.NumberFormat('es-AR', {
-      style: 'currency',
-      currency: 'ARS',
-      minimumFractionDigits: 2
-    });
-
-    const montoFormateado = formatMoney.format(amount);
-    const montoEnLetras = numeroALetras(amount);
-
-    const doc = new jsPDF();
-
-    // Encabezado
-    doc.setFontSize(20);
-    doc.text("RECIBO DE PAGO", 70, 30);
     
-    doc.setFontSize(12);
-    doc.text(`Fecha: ${new Date(payment.paymentDate).toLocaleDateString()}`, 20, 50);
-    doc.text(`Recibo N°: ${payment.id}`, 20, 60);
+    // Crear elemento temporal para renderizar el componente
+    const tempDiv = document.createElement('div');
+    tempDiv.style.position = 'absolute';
+    tempDiv.style.left = '-9999px';
+    document.body.appendChild(tempDiv);
     
-    // Información del cliente y contrato
-    doc.text(`Cliente: ${selectedLease?.locatario || 'N/A'}`, 20, 80);
-    doc.text(`Contrato: ${payment.leaseId}`, 20, 90);
-    doc.text(`Período: ${payment.period}`, 20, 100);
-    doc.text(`Tipo: ${payment.type === 'installment' ? 'Cuota' : payment.type === 'initial' ? 'Pago Inicial' : 'Comisión'}`, 20, 110);
+    // Renderizar ReciboPdf y triggear la generación automática
+    const root = ReactDOM.createRoot(tempDiv);
+    root.render(
+      <ReciboPdf 
+        payment={payment}
+        lease={selectedLease}
+        autoGenerate={true}
+      />
+    );
     
-    // Monto
-    doc.text("Monto recibido:", 20, 130);
-    doc.text(`${montoFormateado.replace('ARS', '$')}`, 80, 130);
-    
-    doc.text("Son $:", 20, 150);
-    doc.text(`${montoEnLetras} (${montoFormateado.replace('ARS', '$')})`, 30, 160);
-    
-    // Firma
-    doc.text("Firma y aclaración", 130, 200);
-    doc.line(120, 210, 180, 210);
-
-    doc.save(`Recibo_${payment.id}.pdf`);
+    // Limpiar después de un pequeño delay para dar tiempo a la generación
+    setTimeout(() => {
+      root.unmount();
+      document.body.removeChild(tempDiv);
+    }, 100);
   };
 
   // Resetear formulario
