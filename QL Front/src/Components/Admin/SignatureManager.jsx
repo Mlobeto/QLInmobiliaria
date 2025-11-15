@@ -15,7 +15,7 @@ const SignatureManager = () => {
 
   const fetchCurrentSignature = async () => {
     try {
-      const response = await fetch('/api/admin/signature');
+      const response = await fetch('https://qlinmobiliaria.onrender.com/api/admin/signature');
       const data = await response.json();
       if (data.signatureUrl) {
         setSignatureUrl(data.signatureUrl);
@@ -60,7 +60,7 @@ const SignatureManager = () => {
       const cloudinaryData = await cloudinaryResponse.json();
 
       // Guardar URL en backend
-      const response = await fetch('/api/admin/signature', {
+      const response = await fetch('https://qlinmobiliaria.onrender.com/api/admin/signature', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -92,7 +92,7 @@ const SignatureManager = () => {
 
     setLoading(true);
     try {
-      const response = await fetch('/api/admin/signature', {
+      const response = await fetch('https://qlinmobiliaria.onrender.com/api/admin/signature', {
         method: 'DELETE',
       });
 
