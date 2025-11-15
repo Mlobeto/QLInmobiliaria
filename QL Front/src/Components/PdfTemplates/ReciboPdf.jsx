@@ -25,17 +25,17 @@ const ReciboPdf = ({ payment, lease, autoGenerate = false }) => {
     // Logo Q+L
     doc.setFontSize(24);
     doc.setFont("helvetica", "bold");
-    doc.text("Q+L", 20, 25);
+    doc.text("QUINTERO + LOBETO", 20, 25);
     
     doc.setFontSize(8);
     doc.setFont("helvetica", "normal");
-    doc.text("SERVICIOS INMOBILIARIOS", 20, 30);
+    doc.text("PROPIEDADES", 20, 30);
 
     // Datos de la empresa
     doc.setFontSize(9);
     doc.text("de LOBETO MARIANA", 20, 40);
     doc.text("ARQUITECTA", 20, 45);
-    doc.text("M.P. Nº 678", 20, 50);
+    doc.text("M.P. Nº 275", 20, 50);
     
     doc.setFontSize(10);
     doc.setFont("helvetica", "bold");
