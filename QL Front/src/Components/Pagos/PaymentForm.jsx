@@ -48,7 +48,11 @@ const PaymentForm = () => {
 
   // Función para seleccionar contrato desde EstadoContratos
   const handleLeaseSelect = (lease) => {
-    if (!lease || !lease.leaseId) {
+    // El contrato puede venir con 'id' o 'leaseId'
+    const leaseId = lease?.id || lease?.leaseId;
+    const tenantId = lease?.tenantId || lease?.locatarioId || lease?.idClient;
+    
+    if (!lease || !leaseId) {
       console.error('Contrato inválido seleccionado:', lease);
       return;
     }
@@ -56,15 +60,15 @@ const PaymentForm = () => {
     setSelectedLease(lease);
     setFormData(prev => ({
       ...prev,
-      leaseId: lease.leaseId,
-      idClient: lease.locatarioId || lease.idClient,
+      leaseId: leaseId,
+      idClient: tenantId,
       amount: lease.rentAmount || "",
     }));
     setShowPaymentForm(true);
 
     // Cargar datos del cliente si es necesario
-    if (lease.locatarioId || lease.idClient) {
-      dispatch(getClientById(lease.locatarioId || lease.idClient));
+    if (tenantId) {
+      dispatch(getClientById(tenantId));
     }
   };
 
@@ -198,10 +202,10 @@ const PaymentForm = () => {
                       Contrato Seleccionado
                     </h3>
                     <div className="space-y-1 text-white">
-                      <p><span className="text-slate-400">ID:</span> {selectedLease?.leaseId}</p>
-                      <p><span className="text-slate-400">Inquilino:</span> {selectedLease?.locatario}</p>
+                      <p><span className="text-slate-400">ID:</span> {selectedLease?.id || selectedLease?.leaseId}</p>
+                      <p><span className="text-slate-400">Inquilino:</span> {selectedLease?.Tenant?.name || selectedLease?.locatario}</p>
                       <p><span className="text-slate-400">Propiedad:</span> {selectedLease?.Property?.address}</p>
-                      <p><span className="text-slate-400">Monto Alquiler:</span> ${selectedLease?.rentAmount}</p>
+                      <p><span className="text-slate-400">Monto Alquiler:</span> ${Number(selectedLease?.rentAmount || 0).toLocaleString('es-AR')}</p>
                     </div>
                   </div>
 
@@ -331,8 +335,8 @@ const PaymentForm = () => {
                     </h4>
                     <div className="space-y-2 text-white">
                       <p><span className="text-slate-400">Contrato:</span> {formData.leaseId}</p>
-                      <p><span className="text-slate-400">Cliente:</span> {selectedLease?.locatario}</p>
-                      <p><span className="text-slate-400">Monto:</span> ${formData.amount}</p>
+                      <p><span className="text-slate-400">Cliente:</span> {selectedLease?.Tenant?.name || selectedLease?.locatario}</p>
+                      <p><span className="text-slate-400">Monto:</span> ${Number(formData.amount || 0).toLocaleString('es-AR')}</p>
                       <p><span className="text-slate-400">Período:</span> {formData.period}</p>
                       <p><span className="text-slate-400">Tipo:</span> {formData.type === 'installment' ? 'Cuota de Alquiler' : formData.type === 'initial' ? 'Pago Inicial del Contrato' : 'Comisión'}</p>
                       <p><span className="text-slate-400">Fecha:</span> {new Date(formData.paymentDate).toLocaleDateString()}</p>
