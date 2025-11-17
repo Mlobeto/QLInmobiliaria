@@ -44,7 +44,7 @@ const ReciboPdf = ({ payment, lease, autoGenerate = false }) => {
     const tenant = lease?.Tenant || {};
     const amount = Number(payment.amount);
     const { day, month, year } = formatDate(payment.paymentDate);
-    const receiptNumber = String(payment.id).padStart(5, "0");
+    const receiptNumber = String(payment.id || 0).padStart(8, "0");
 
     // === HEADER ===
     doc.setFont("Nunito-VariableFont_wght", "normal");
@@ -83,7 +83,7 @@ const ReciboPdf = ({ payment, lease, autoGenerate = false }) => {
     doc.text("X", 100, 40);
 
     doc.setFontSize(12);
-    doc.text(`Nº ${receiptNumber} - 00000692`, 138, 25);
+    doc.text(`Nº ${receiptNumber}`, 138, 25);
 
     doc.setFontSize(20);
     doc.setCharSpace(2);
