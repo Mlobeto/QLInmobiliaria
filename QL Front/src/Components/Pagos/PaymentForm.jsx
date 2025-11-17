@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import ReactDOM from "react-dom/client";
 import { useDispatch, useSelector } from "react-redux";
 import { createPayment, getClientById } from "../../redux/Actions/actions";
 import EstadoContratos from "../Contratos/EstadoContratos";
@@ -107,33 +106,6 @@ const PaymentForm = () => {
       console.error('Error al crear el pago:', error);
       setIsLoading(false);
     }
-  };
-
-  // Generar PDF del recibo usando ReciboPdf component
-  const generateReceipt = () => {
-    const payment = paymentCreate.payment;
-    
-    // Crear elemento temporal para renderizar el componente
-    const tempDiv = document.createElement('div');
-    tempDiv.style.position = 'absolute';
-    tempDiv.style.left = '-9999px';
-    document.body.appendChild(tempDiv);
-    
-    // Renderizar ReciboPdf y triggear la generación automática
-    const root = ReactDOM.createRoot(tempDiv);
-    root.render(
-      <ReciboPdf 
-        payment={payment}
-        lease={selectedLease}
-        autoGenerate={true}
-      />
-    );
-    
-    // Limpiar después de un pequeño delay para dar tiempo a la generación
-    setTimeout(() => {
-      root.unmount();
-      document.body.removeChild(tempDiv);
-    }, 100);
   };
 
   // Resetear formulario
@@ -333,15 +305,16 @@ const PaymentForm = () => {
                     </div>
                   </div>
                   
+                  {/* ReciboPdf component con botón de descarga */}
+                  <div className="flex justify-center pt-6">
+                    <ReciboPdf 
+                      payment={paymentCreate.payment}
+                      lease={selectedLease}
+                      autoGenerate={false}
+                    />
+                  </div>
+                  
                   <div className="flex gap-4 justify-center pt-6">
-                    <button
-                      type="button"
-                      onClick={generateReceipt}
-                      className="px-6 py-3 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white rounded-xl font-medium transition-all duration-300 flex items-center"
-                    >
-                      <IoDownloadOutline className="w-5 h-5 mr-2" />
-                      Descargar Recibo
-                    </button>
                     <button
                       type="button"
                       onClick={resetForm}
