@@ -69,7 +69,7 @@ const ReciboPdf = ({ payment, lease, autoGenerate = false }) => {
     doc.setFontSize(10);
     doc.text("AVDA. CUBA Nº 50 / Tel. 3835 503166", 20, 50);
     doc.text("C.P. 4750 - Belen - Catamarca", 28, 54);
-    doc.text("arquitecturalobeto@gmail.com", 28, 58);
+    doc.text("qlinmobiliaria@gmail.com", 29, 58);
 
     doc.setFont("Nunito-VariableFont_wght", "normal");
     doc.setFontSize(11);
