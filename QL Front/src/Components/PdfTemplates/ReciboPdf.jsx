@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import jsPDF from 'jspdf';
 import numeroALetras from '../../utils/numeroALetras';
 import '../../utils/tahoma-normal';
@@ -8,6 +8,7 @@ import '../../utils/nunito-normal';
 const ReciboPdf = ({ payment, lease, autoGenerate = false }) => {
   const [signatureUrl, setSignatureUrl] = useState(null);
   const [signatureLoaded, setSignatureLoaded] = useState(false);
+  const [pdfGenerated, setPdfGenerated] = useState(false);
 
   useEffect(() => {
     // Cargar firma al montar el componente
@@ -27,7 +28,7 @@ const ReciboPdf = ({ payment, lease, autoGenerate = false }) => {
     fetchSignature();
   }, []);
 
-  const generatePdf = useCallback(async () => {
+  const generatePdf = async () => {
     const doc = new jsPDF();
     doc.setFont("Nunito-VariableFont_wght", "normal");
 
@@ -242,14 +243,16 @@ const ReciboPdf = ({ payment, lease, autoGenerate = false }) => {
     doc.text("ORIGINAL", 165, 260);
 
     doc.save(`Recibo_${receiptNumber}_${tenant.name || "Cliente"}.pdf`);
-  }, [signatureUrl, payment, lease]);
+    setPdfGenerated(true);
+  };
 
   // Efecto para auto-generar cuando la firma esté cargada
   useEffect(() => {
-    if (autoGenerate && signatureLoaded) {
+    if (autoGenerate && signatureLoaded && !pdfGenerated) {
       generatePdf();
     }
-  }, [autoGenerate, signatureLoaded, generatePdf]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoGenerate, signatureLoaded, pdfGenerated]);
 
   if (autoGenerate) {
     return null;
