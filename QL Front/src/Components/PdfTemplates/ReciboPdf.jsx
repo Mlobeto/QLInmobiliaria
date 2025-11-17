@@ -258,10 +258,15 @@ const ReciboPdf = ({ payment, lease, autoGenerate = false }) => {
     return null;
   }
 
+  const handleGenerate = () => {
+    console.log('Descargar Recibo PDF', { paymentId: payment?.id, leaseId: lease?.id });
+    generatePdf();
+  };
+
   return (
     <div className="mt-4">
       <button
-        onClick={generatePdf}
+        onClick={handleGenerate}
         className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
       >
         Generar Recibo PDF
