@@ -1,3 +1,4 @@
+/* eslint-disable react/no-unescaped-entities */
 import { useState, useRef, useEffect } from 'react';
 import SignatureCanvas from 'react-signature-canvas';
 import { IoCreateOutline, IoTrashOutline, IoSaveOutline, IoImageOutline, IoCheckmarkCircleOutline } from 'react-icons/io5';

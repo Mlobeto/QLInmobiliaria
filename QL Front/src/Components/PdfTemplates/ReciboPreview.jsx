@@ -1,3 +1,4 @@
+/* eslint-disable react/no-unescaped-entities */
 import { useState } from "react";
 import ReciboPdf from "./ReciboPdf";
 import jsPDF from "jspdf";
