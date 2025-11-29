@@ -1,6 +1,8 @@
 import PropTypes from 'prop-types';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
+import '../../utils/tahoma-normal';
+import '../../utils/nunito-normal';
 
 const ContratoAlquiler = ({ lease, autoGenerate = false }) => {
   const generatePdf = async () => {
@@ -69,14 +71,14 @@ const ContratoAlquiler = ({ lease, autoGenerate = false }) => {
     const bottomMargin = 20;
 
     // Configurar fuente para mejor soporte de caracteres latinos
-    doc.setFont("helvetica");
+    doc.setFont("Nunito-VariableFont_wght", "normal");
 
     // Función helper para agregar texto con salto de línea automático
     const addText = (text, y, fontSize = 7, isBold = false) => {
       if (isBold) {
-        doc.setFont("helvetica", "bold");
+        doc.setFont("Nunito-VariableFont_wght", "bold");
       } else {
-        doc.setFont("helvetica", "normal");
+        doc.setFont("Nunito-VariableFont_wght", "normal");
       }
       doc.setFontSize(fontSize);
       
@@ -104,9 +106,9 @@ const ContratoAlquiler = ({ lease, autoGenerate = false }) => {
     // Función mejorada para agregar texto largo con saltos de página automáticos
     const addLongText = (text, y, fontSize = 7, isBold = false) => {
       if (isBold) {
-        doc.setFont("helvetica", "bold");
+        doc.setFont("Nunito-VariableFont_wght", "bold");
       } else {
-        doc.setFont("helvetica", "normal");
+        doc.setFont("Nunito-VariableFont_wght", "normal");
       }
       doc.setFontSize(fontSize);
       
@@ -254,7 +256,7 @@ const ContratoAlquiler = ({ lease, autoGenerate = false }) => {
 
     // === GENERAR PDF ===
 
-   doc.setFont("helvetica", "bold");
+   doc.setFont("Nunito-VariableFont_wght", "bold");
     doc.setFontSize(9);
     doc.text(getTituloContrato(property.typeProperty), 105, currentY, { align: "center" });
     currentY += 8;
@@ -268,7 +270,7 @@ const ContratoAlquiler = ({ lease, autoGenerate = false }) => {
 
     // Datos de las partes - con nombres en negrita
     addPageIfNecessary(50);
-    doc.setFont("helvetica", "normal");
+    doc.setFont("Nunito-VariableFont_wght", "normal");
     doc.setFontSize(7);
     
     let partesY = currentY;
@@ -277,16 +279,16 @@ const ContratoAlquiler = ({ lease, autoGenerate = false }) => {
     if (property.socio) {
       doc.text("Entre el Sr/Sra. ", leftMargin, partesY);
       const afterEntre = doc.getTextWidth("Entre el Sr/Sra. ");
-      doc.setFont("helvetica", "bold");
+      doc.setFont("Nunito-VariableFont_wght", "bold");
       doc.text(landlord.name || 'N/A', leftMargin + afterEntre, partesY);
-      doc.setFont("helvetica", "normal");
+      doc.setFont("Nunito-VariableFont_wght", "normal");
       
-      const textPart1 = `Entre el Sr/Sra. ${landlord.name || 'N/A'}, CUIL ${landlord.cuil || 'N/A'}, con domicilio en ${landlord.direccion || 'N/A'}, de la ciudad de ${landlord.ciudad || 'N/A'}, en caracter de propietario junto con ${property.socio}, en adelante denominados "LOS LOCADORES", por una parte, y por la otra el Sr/Sra `;
+      const textPart1 = `Entre el Sr/Sra. ${landlord.name || 'N/A'}, CUIL ${landlord.cuil || 'N/A'}, con domicilio en ${landlord.direccion || 'N/A'}, de la ciudad de ${landlord.ciudad || 'N/A'}, correo electrónico ${landlord.email || 'N/A'}, teléfono ${landlord.mobilePhone || 'N/A'}, en caracter de propietario junto con ${property.socio}, en adelante denominados "LOS LOCADORES", por una parte, y por la otra el Sr/Sra `;
       const lines1 = doc.splitTextToSize(textPart1, maxWidth);
       partesY = addText(textPart1, partesY);
       
       const beforeTenant = doc.getTextWidth(lines1[lines1.length - 1]);
-      doc.setFont("helvetica", "bold");
+      doc.setFont("Nunito-VariableFont_wght", "bold");
       const tenantNameWidth = doc.getTextWidth(tenant.name || 'N/A');
       
       if (beforeTenant + tenantNameWidth > maxWidth) {
@@ -296,23 +298,23 @@ const ContratoAlquiler = ({ lease, autoGenerate = false }) => {
         doc.text(tenant.name || 'N/A', leftMargin + beforeTenant, partesY - lineHeight);
       }
       
-      doc.setFont("helvetica", "normal");
+      doc.setFont("Nunito-VariableFont_wght", "normal");
       const textPart2 = `, CUIL ${tenant.cuil || 'N/A'}, con domicilio en ${tenant.direccion || 'N/A'}, ${tenant.ciudad || 'N/A'}, ${tenant.provincia || 'N/A'}, en adelante denominado "LOCATARIO", convienen en celebrar el presente contrato de locacion, sujeto a las siguientes clausulas y condiciones:`;
       partesY = addText(textPart2, partesY);
     } else {
       const textPart1 = `Entre el Sr/Sra. `;
       doc.text(textPart1, leftMargin, partesY);
       const afterEntre = doc.getTextWidth(textPart1);
-      doc.setFont("helvetica", "bold");
+      doc.setFont("Nunito-VariableFont_wght", "bold");
       doc.text(landlord.name || 'N/A', leftMargin + afterEntre, partesY);
-      doc.setFont("helvetica", "normal");
+      doc.setFont("Nunito-VariableFont_wght", "normal");
       
       const fullText1 = `Entre el Sr/Sra. ${landlord.name || 'N/A'}, CUIL ${landlord.cuil || 'N/A'}, con domicilio en ${landlord.direccion || 'N/A'}, de la ciudad de ${landlord.ciudad || 'N/A'}, en adelante denominado "EL LOCADOR", por una parte, y por la otra el Sr/Sra `;
       const lines1 = doc.splitTextToSize(fullText1, maxWidth);
       partesY = addText(fullText1, partesY);
       
       const beforeTenant = doc.getTextWidth(lines1[lines1.length - 1]);
-      doc.setFont("helvetica", "bold");
+      doc.setFont("Nunito-VariableFont_wght", "bold");
       const tenantNameWidth = doc.getTextWidth(tenant.name || 'N/A');
       
       if (beforeTenant + tenantNameWidth > maxWidth) {
@@ -322,7 +324,7 @@ const ContratoAlquiler = ({ lease, autoGenerate = false }) => {
         doc.text(tenant.name || 'N/A', leftMargin + beforeTenant, partesY - lineHeight);
       }
       
-      doc.setFont("helvetica", "normal");
+      doc.setFont("Nunito-VariableFont_wght", "normal");
       const textPart2 = `, CUIL ${tenant.cuil || 'N/A'}, con domicilio en ${tenant.direccion || 'N/A'}, ${tenant.ciudad || 'N/A'}, ${tenant.provincia || 'N/A'}, en adelante denominado "EL LOCATARIO", convienen en celebrar el presente contrato de locacion, sujeto a las siguientes clausulas y condiciones:`;
       partesY = addText(textPart2, partesY);
     }
@@ -331,10 +333,10 @@ const ContratoAlquiler = ({ lease, autoGenerate = false }) => {
 
     // Primera cláusula - Objeto
     addPageIfNecessary(40);
-    doc.setFont("helvetica", "bold");
+    doc.setFont("Nunito-VariableFont_wght", "bold");
     doc.text("PRIMERA: Objeto.", 25, currentY);
     const primeraWidth = doc.getTextWidth("PRIMERA: Objeto. ");
-    doc.setFont("helvetica", "normal");
+    doc.setFont("Nunito-VariableFont_wght", "normal");
     const objetoText = `El locador da en locacion al locatario y el locatario acepta de conformidad el inmueble sito en ${property.address || 'N/A'}, ${property.city || 'N/A'}, en adelante denominado el "INMUEBLE LOCADO" para ser destinado a ${getUsoPropiedad(property.typeProperty)}; no pudiendose cambiar el destino de uso. Superficie cubierta: ${property.superficieCubierta || 'N/A'}, Superficie total: ${property.superficieTotal || 'N/A'}. ${property.typeProperty !== "lote" && property.typeProperty !== "terreno" && property.rooms ? `El inmueble cuenta con ${property.rooms} ambientes y ${property.bathrooms || 0} banos.` : ""}`;
     const lines = doc.splitTextToSize(objetoText, maxWidth - primeraWidth);
     doc.text(lines[0], 25 + primeraWidth, currentY);
@@ -347,10 +349,10 @@ const ContratoAlquiler = ({ lease, autoGenerate = false }) => {
 
     // Segunda cláusula - Manifestación
     addPageIfNecessary(30);
-    doc.setFont("helvetica", "bold");
+    doc.setFont("Nunito-VariableFont_wght", "bold");
     doc.text("SEGUNDA: Manifestacion.", 25, currentY);
     const segundaWidth = doc.getTextWidth("SEGUNDA: Manifestacion. ");
-    doc.setFont("helvetica", "normal");
+    doc.setFont("Nunito-VariableFont_wght", "normal");
     const manifestacionText = `Las personas anteriormente mencionadas manifiestan no tener capacidad restringida para este acto y convienen en celebrar el presente CONTRATO DE LOCACION DE VIVIENDA, en adelante denominado "CONTRATO", a regirse por el Codigo civil y Comercial de la Nacion, leyes aplicables y las clausulas siguientes.`;
     const lines2 = doc.splitTextToSize(manifestacionText, maxWidth - segundaWidth);
     doc.text(lines2[0], 25 + segundaWidth, currentY);
@@ -363,10 +365,10 @@ const ContratoAlquiler = ({ lease, autoGenerate = false }) => {
 
     // Tercera cláusula - Descripción
     addPageIfNecessary(35);
-    doc.setFont("helvetica", "bold");
+    doc.setFont("Nunito-VariableFont_wght", "bold");
     doc.text("TERCERA: Descripcion.", 25, currentY);
     const terceraWidth = doc.getTextWidth("TERCERA: Descripcion. ");
-    doc.setFont("helvetica", "normal");
+    doc.setFont("Nunito-VariableFont_wght", "normal");
     const descripcionText = `El locatario declara conocer y aceptar el inmueble en el estado en que se encuentra, prestando conformidad por haberlo visitado e inspeccionado antes de ahora, la propiedad cuenta con: ${property.description || 'Sin descripcion'} y todas las demas especificaciones contenidas en clausula anexa al presente contrato de locacion.`;
     const lines3 = doc.splitTextToSize(descripcionText, maxWidth - terceraWidth);
     doc.text(lines3[0], 25 + terceraWidth, currentY);
@@ -382,10 +384,10 @@ const ContratoAlquiler = ({ lease, autoGenerate = false }) => {
     const endDate = calcularFechaFin(startDate, lease.totalMonths);
 
     addPageIfNecessary(60);
-    doc.setFont("helvetica", "bold");
+    doc.setFont("Nunito-VariableFont_wght", "bold");
     doc.text("CUARTA: Plazo del contrato.", 25, currentY);
     const cuartaWidth = doc.getTextWidth("CUARTA: Plazo del contrato. ");
-    doc.setFont("helvetica", "normal");
+    doc.setFont("Nunito-VariableFont_wght", "normal");
     const cuartaClausulaText = `El plazo de la locacion sera de ${numeroALetras(lease.totalMonths)} (${lease.totalMonths}) meses, los mismos se computaran a partir del ${formatearFecha(startDate)}, y hasta el dia ${formatearFecha(endDate)}, recibiendo del locatario la tenencia del inmueble en el dia de la fecha. Es obligacion del locatario restituir al termino de la locacion el inmueble desocupado y en buen estado conforme a los art.1206 y 1207 del CCCN. Si ello no fuere cumplido se cobrara una multa equivalente al 0.4% diario sobre el ultimo alquiler hasta la entrega efectiva del inmueble locado y en las condiciones que le fue entregado.`;
     const lines4 = doc.splitTextToSize(cuartaClausulaText, maxWidth - cuartaWidth);
     doc.text(lines4[0], 25 + cuartaWidth, currentY);
@@ -398,10 +400,10 @@ const ContratoAlquiler = ({ lease, autoGenerate = false }) => {
 
     // Quinta cláusula - Precio
     addPageIfNecessary(45);
-    doc.setFont("helvetica", "bold");
+    doc.setFont("Nunito-VariableFont_wght", "bold");
     doc.text("QUINTA: Precio:", 25, currentY);
     const quintaWidth = doc.getTextWidth("QUINTA: Precio: ");
-    doc.setFont("helvetica", "normal");
+    doc.setFont("Nunito-VariableFont_wght", "normal");
     const quintaClausulaText = `El precio del alquiler se fija de comun acuerdo entre las partes por la suma de ${formatearMonto(lease.rentAmount)} para el ${lease.updateFrequency === "semestral" ? "primer semestre" : lease.updateFrequency === "anual" ? "primer ano" : "primer cuatrimestre"} de locacion. Para los ${lease.updateFrequency === "semestral" ? "siguientes semestres" : lease.updateFrequency === "anual" ? "siguientes anos" : "siguientes cuatrimestres"} el precio sera actualizado conforme al Indice de precios al consumidor (IPC) que confecciona y publica el Instituto Nacional de Estadisticas y Censos (INDEC).`;
     const lines5 = doc.splitTextToSize(quintaClausulaText, maxWidth - quintaWidth);
     doc.text(lines5[0], 25 + quintaWidth, currentY);
@@ -418,10 +420,10 @@ const ContratoAlquiler = ({ lease, autoGenerate = false }) => {
       .replace(/\n-/g, '\n• ');
 
     // Usar addLongText para manejar inventarios largos con saltos de página automáticos
-    doc.setFont("helvetica", "bold");
+    doc.setFont("Nunito-VariableFont_wght", "bold");
     doc.text("INVENTARIO:", 25, currentY);
     currentY += lineHeight;
-    doc.setFont("helvetica", "normal");
+    doc.setFont("Nunito-VariableFont_wght", "normal");
     currentY = addLongText(inventarioLimpio, currentY, 7, false);
     currentY += 6;
 
@@ -429,11 +431,11 @@ const ContratoAlquiler = ({ lease, autoGenerate = false }) => {
     if (guarantors.length > 0) {
       guarantors.forEach((guarantor, index) => {
         addPageIfNecessary(25);
-        doc.setFont("helvetica", "bold");
+        doc.setFont("Nunito-VariableFont_wght", "bold");
         const garanteTitle = `DECIMO QUINTO${index > 0 ? ` (${index + 1})` : ''}: Fianza.`;
         doc.text(garanteTitle, 25, currentY);
         const garanteWidth = doc.getTextWidth(garanteTitle + " ");
-        doc.setFont("helvetica", "normal");
+        doc.setFont("Nunito-VariableFont_wght", "normal");
         const guarantorText = `El Sr/Sra ${guarantor.name}, CUIL ${guarantor.cuil}, con domicilio en ${guarantor.address}, se constituye en fiador solidario, liso, llano y principal pagador de todas y cada una de las obligaciones contraidas por el LOCATARIO en el presente contrato.`;
         const linesG = doc.splitTextToSize(guarantorText, maxWidth - garanteWidth);
         doc.text(linesG[0], 25 + garanteWidth, currentY);
@@ -451,7 +453,7 @@ const ContratoAlquiler = ({ lease, autoGenerate = false }) => {
     currentY += 20;
     
     // Líneas de firma
-    doc.setFont("helvetica", "normal");
+    doc.setFont("Nunito-VariableFont_wght", "normal");
     doc.setFontSize(7);
     doc.line(25, currentY, 85, currentY); // Línea izquierda
     doc.line(110, currentY, 170, currentY); // Línea derecha
