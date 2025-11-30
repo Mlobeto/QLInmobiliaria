@@ -15,8 +15,10 @@ const ContratoAlquiler = ({ lease, autoGenerate = false }) => {
         tempDiv.style.position = 'absolute';
         tempDiv.style.left = '-9999px';
         tempDiv.style.width = '210mm'; // A4 width
-        tempDiv.style.padding = '20mm';
+        tempDiv.style.padding = '20mm 25mm'; // Top/Bottom 20mm, Left/Right 25mm
         tempDiv.style.backgroundColor = 'white';
+        tempDiv.style.boxSizing = 'border-box';
+        tempDiv.style.fontFamily = 'Nunito, Arial, sans-serif';
         document.body.appendChild(tempDiv);
 
         // Convertir HTML a canvas
@@ -31,11 +33,13 @@ const ContratoAlquiler = ({ lease, autoGenerate = false }) => {
         // Remover el elemento temporal
         document.body.removeChild(tempDiv);
 
-        // Crear PDF desde el canvas
+        // Crear PDF desde el canvas manteniendo márgenes
         const imgData = canvas.toDataURL('image/png');
         const pdf = new jsPDF('p', 'mm', 'a4');
         const pdfWidth = pdf.internal.pageSize.getWidth();
         const pdfHeight = pdf.internal.pageSize.getHeight();
+        
+        // Calcular dimensiones respetando los márgenes del tempDiv
         const imgWidth = pdfWidth;
         const imgHeight = (canvas.height * pdfWidth) / canvas.width;
 
@@ -43,14 +47,14 @@ const ContratoAlquiler = ({ lease, autoGenerate = false }) => {
         let position = 0;
 
         // Agregar la primera página
-        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight, undefined, 'FAST');
         heightLeft -= pdfHeight;
 
         // Agregar páginas adicionales si es necesario
         while (heightLeft > 0) {
           position = heightLeft - imgHeight;
           pdf.addPage();
-          pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+          pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight, undefined, 'FAST');
           heightLeft -= pdfHeight;
         }
 
@@ -185,7 +189,7 @@ const ContratoAlquiler = ({ lease, autoGenerate = false }) => {
         doc.text(lines[i], 25, currentY, { align: 'justify', maxWidth: maxWidth });
         currentY += lineHeight;
       }
-      currentY += 5;
+      currentY += 8; // Aumentado de 5 a 8 para más espacio entre cláusulas
     };
 
     // Helper function para formatear fecha en español
@@ -329,7 +333,7 @@ const ContratoAlquiler = ({ lease, autoGenerate = false }) => {
       doc.text(landlord.name || 'N/A', leftMargin + afterEntre, partesY);
       doc.setFont("Nunito-VariableFont_wght", "normal");
       
-      const textPart1 = `Entre el Sr/Sra. ${landlord.name || 'N/A'}, CUIL ${landlord.cuil || 'N/A'}, con domicilio en ${landlord.direccion || 'N/A'}, de la ciudad de ${landlord.ciudad || 'N/A'}, correo electrónico ${landlord.email || 'N/A'}, teléfono ${landlord.mobilePhone || 'N/A'}, en caracter de propietario junto con ${property.socio}, en adelante denominados "LOS LOCADORES", por una parte, y por la otra el Sr/Sra `;
+      const textPart1 = `Entre el Sr/Sra. ${landlord.name || 'N/A'}, CUIL ${landlord.cuil || 'N/A'}, con domicilio en ${landlord.direccion || 'N/A'}, de la ciudad de ${landlord.ciudad || 'N/A'}, correo electronico ${landlord.email || 'N/A'}, telefono ${landlord.mobilePhone || 'N/A'}, en caracter de propietario junto con ${property.socio}, en adelante denominados "LOS LOCADORES", por una parte, y por la otra el Sr/Sra `;
       const lines1 = doc.splitTextToSize(textPart1, maxWidth);
       partesY = addText(textPart1, partesY);
       
@@ -345,7 +349,7 @@ const ContratoAlquiler = ({ lease, autoGenerate = false }) => {
       }
       
       doc.setFont("Nunito-VariableFont_wght", "normal");
-      const textPart2 = `, CUIL ${tenant.cuil || 'N/A'}, con domicilio en ${tenant.direccion || 'N/A'}, ${tenant.ciudad || 'N/A'}, ${tenant.provincia || 'N/A'} , correo electrónico ${tenant.email || 'N/A'}, teléfono ${tenant.mobilePhone || 'N/A'}, en adelante denominado "LOCATARIO", convienen en celebrar el presente contrato de locacion, sujeto a las siguientes clausulas y condiciones:`;
+      const textPart2 = `, CUIL ${tenant.cuil || 'N/A'}, con domicilio en ${tenant.direccion || 'N/A'}, ${tenant.ciudad || 'N/A'}, ${tenant.provincia || 'N/A'} , correo electronico ${tenant.email || 'N/A'}, telefono ${tenant.mobilePhone || 'N/A'}, en adelante denominado "LOCATARIO", convienen en celebrar el presente contrato de locacion, sujeto a las siguientes clausulas y condiciones:`;
       partesY = addText(textPart2, partesY);
     } else {
       const textPart1 = `Entre el Sr/Sra. `;
@@ -371,7 +375,7 @@ const ContratoAlquiler = ({ lease, autoGenerate = false }) => {
       }
       
       doc.setFont("Nunito-VariableFont_wght", "normal");
-      const textPart2 = `, CUIL ${tenant.cuil || 'N/A'}, con domicilio en ${tenant.direccion || 'N/A'}, ${tenant.ciudad || 'N/A'}, ${tenant.provincia || 'N/A'}, en adelante denominado "EL LOCATARIO", convienen en celebrar el presente contrato de locacion, sujeto a las siguientes clausulas y condiciones:`;
+      const textPart2 = `, CUIL ${tenant.cuil || 'N/A'}, con domicilio en ${tenant.direccion || 'N/A'}, ${tenant.ciudad || 'N/A'}, ${tenant.provincia || 'N/A'}, correo electronico ${tenant.email || 'N/A'}, telefono ${tenant.mobilePhone || 'N/A'}, en adelante denominado "EL LOCATARIO", convienen en celebrar el presente contrato de locacion, sujeto a las siguientes clausulas y condiciones:`;
       partesY = addText(textPart2, partesY);
     }
     
@@ -379,12 +383,12 @@ const ContratoAlquiler = ({ lease, autoGenerate = false }) => {
 
     // Primera cláusula - Objeto
     addPageIfNecessary(40);
-    const objetoText = `Por el Presente contrato, el locador cede el uso del inmueble sito en  ${property.address || 'N/A'}, ${property.city || 'N/A'}, en adelante denominado el "INMUEBLE LOCADO" para ser destinado a ${getUsoPropiedad(property.typeProperty)}; no pudiendose cambiar el destino de uso. Superficie cubierta: ${property.superficieCubierta || 'N/A'}, Superficie total: ${property.superficieTotal || 'N/A'}. ${property.typeProperty !== "lote" && property.typeProperty !== "terreno" && property.rooms ? `El inmueble cuenta con ${property.rooms} ambientes y ${property.bathrooms || 0} banos.` : ""}`;
+    const objetoText = `Por el Presente contrato, el locador cede el uso del inmueble sito en  ${property.address || 'N/A'}, ${property.city || 'N/A'}, por lo que, en contraprestación, EL LOCATARIO se obliga a pagar a EL LOCADOR en calidad de renta el monto referido en la cláusula Nº4, en la forma y oportunidad convenidas}`;
     addClause("PRIMERA: Objeto.", objetoText);
 
     // Segunda cláusula - Manifestación
     addPageIfNecessary(30);
-    const manifestacionText = `Las partes convienen que el inmueble referido en la clausula primera sera destinado ${getDestinoLocacion(property.typeProperty)}. El Inmueble tiene Superficie cubierta: ${property.superficieCubierta || 'N/A'}, Superficie total: ${property.superficieTotal || 'N/A'}. ${property.typeProperty !== "lote" && property.typeProperty !== "terreno" && property.rooms ? `El inmueble cuenta con ${property.rooms} ambientes y ${property.bathrooms || 0} banos, ` : ""}y todas las demas especificaciones contenidas en clausula anexa al presente contrato de locacion.`;
+    const manifestacionText = `Las partes convienen que el inmueble referido en la clausula primera sera destinado ${getDestinoLocacion(property.typeProperty)}. El Inmueble tiene Superficie cubierta: ${property.superficieCubierta || 'N/A'} m2, Superficie total: ${property.superficieTotal || 'N/A'} m2. ${property.typeProperty !== "lote" && property.typeProperty !== "terreno" && property.rooms ? `El inmueble cuenta con ${property.rooms} ambientes y ${property.bathrooms || 0} banos, ` : ""}y todas las demas especificaciones contenidas en clausula anexa al presente contrato de locacion.`;
     addClause("SEGUNDA: Destino de la locacion.", manifestacionText);
 
     // Tercera cláusula - Plazo del contrato
