@@ -51,11 +51,15 @@ const CreateLeaseForm = () => {
     guarantor1Name: "",
     guarantor1Cuil: "",
     guarantor1Direccion: "",
+    guarantor1Email: "",
+    guarantor1MobilePhone: "",
     guarantor1Description: "",
     guarantor1CertificationEntity: "",
     guarantor2Name: "",
     guarantor2Cuil: "",
     guarantor2Direccion: "",
+    guarantor2Email: "",
+    guarantor2MobilePhone: "",
     guarantor2Description: "",
     guarantor2CertificationEntity: "",
   });
@@ -156,7 +160,9 @@ const CreateLeaseForm = () => {
           guarantorsData.push({
             name: formData.guarantor1Name,
             cuil: formData.guarantor1Cuil,
-            direccion: formData.guarantor1Direccion,
+            address: formData.guarantor1Direccion,
+            email: formData.guarantor1Email,
+            mobilePhone: formData.guarantor1MobilePhone,
             description: formData.guarantor1Description,
             certificationEntity: formData.guarantor1CertificationEntity || null,
           });
@@ -166,7 +172,9 @@ const CreateLeaseForm = () => {
           guarantorsData.push({
             name: formData.guarantor2Name,
             cuil: formData.guarantor2Cuil,
-            direccion: formData.guarantor2Direccion,
+            address: formData.guarantor2Direccion,
+            email: formData.guarantor2Email,
+            mobilePhone: formData.guarantor2MobilePhone,
             description: formData.guarantor2Description,
             certificationEntity: formData.guarantor2CertificationEntity || null,
           });
@@ -499,6 +507,23 @@ const CreateLeaseForm = () => {
                           className="px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
                           placeholder="Dirección"
                         />
+                        <input
+                          type="email"
+                          name="guarantor1Email"
+                          value={formData.guarantor1Email}
+                          onChange={handleInputChange}
+                          className="px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                          placeholder="Email"
+                        />
+                        <input
+                          type="tel"
+                          name="guarantor1MobilePhone"
+                          value={formData.guarantor1MobilePhone}
+                          onChange={handleInputChange}
+                          className="px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                          placeholder="Teléfono (10 dígitos)"
+                          maxLength="10"
+                        />
                         <select
                           name="guarantor1Description"
                           value={formData.guarantor1Description}
@@ -552,6 +577,23 @@ const CreateLeaseForm = () => {
                           onChange={handleInputChange}
                           className="px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
                           placeholder="Dirección"
+                        />
+                        <input
+                          type="email"
+                          name="guarantor2Email"
+                          value={formData.guarantor2Email}
+                          onChange={handleInputChange}
+                          className="px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                          placeholder="Email"
+                        />
+                        <input
+                          type="tel"
+                          name="guarantor2MobilePhone"
+                          value={formData.guarantor2MobilePhone}
+                          onChange={handleInputChange}
+                          className="px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                          placeholder="Teléfono (10 dígitos)"
+                          maxLength="10"
                         />
                         <select
                           name="guarantor2Description"

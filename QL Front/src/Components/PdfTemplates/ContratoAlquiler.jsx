@@ -74,7 +74,7 @@ const ContratoAlquiler = ({ lease, autoGenerate = false }) => {
     doc.setFont("Nunito-VariableFont_wght", "normal");
 
     // Función helper para agregar texto con salto de línea automático
-    const addText = (text, y, fontSize = 7, isBold = false) => {
+    const addText = (text, y, fontSize = 7, isBold = false, justify = false) => {
       if (isBold) {
         doc.setFont("Nunito-VariableFont_wght", "bold");
       } else {
@@ -99,12 +99,16 @@ const ContratoAlquiler = ({ lease, autoGenerate = false }) => {
         .replace(/[Ñ]/g, 'N');
 
       const lines = doc.splitTextToSize(cleanText, maxWidth);
-      doc.text(lines, 25, y);
+      if (justify) {
+        doc.text(lines, 25, y, { align: 'justify', maxWidth: maxWidth });
+      } else {
+        doc.text(lines, 25, y);
+      }
       return y + (lines.length * lineHeight);
     };
 
     // Función mejorada para agregar texto largo con saltos de página automáticos
-    const addLongText = (text, y, fontSize = 7, isBold = false) => {
+    const addLongText = (text, y, fontSize = 7, isBold = false, justify = false) => {
       if (isBold) {
         doc.setFont("Nunito-VariableFont_wght", "bold");
       } else {
@@ -137,7 +141,11 @@ const ContratoAlquiler = ({ lease, autoGenerate = false }) => {
           doc.addPage();
           currentLineY = 20;
         }
-        doc.text(line, 25, currentLineY);
+        if (justify) {
+          doc.text(line, 25, currentLineY, { align: 'justify', maxWidth: maxWidth });
+        } else {
+          doc.text(line, 25, currentLineY);
+        }
         currentLineY += lineHeight;
       });
       
@@ -155,6 +163,29 @@ const ContratoAlquiler = ({ lease, autoGenerate = false }) => {
         doc.addPage();
         currentY = 20;
       }
+    };
+
+    // Helper function para agregar cláusula con título en negrita y texto justificado
+    const addClause = (title, text, titleWidth = null) => {
+      doc.setFont("Nunito-VariableFont_wght", "bold");
+      doc.text(title, 25, currentY);
+      
+      const width = titleWidth || doc.getTextWidth(title + " ");
+      doc.setFont("Nunito-VariableFont_wght", "normal");
+      
+      const lines = doc.splitTextToSize(text, maxWidth - width);
+      doc.text(lines[0], 25 + width, currentY, { align: 'justify', maxWidth: maxWidth - width });
+      currentY += lineHeight;
+      
+      for (let i = 1; i < lines.length; i++) {
+        if (currentY + lineHeight + bottomMargin > doc.internal.pageSize.getHeight()) {
+          doc.addPage();
+          currentY = 20;
+        }
+        doc.text(lines[i], 25, currentY, { align: 'justify', maxWidth: maxWidth });
+        currentY += lineHeight;
+      }
+      currentY += 5;
     };
 
     // Helper function para formatear fecha en español
@@ -279,7 +310,7 @@ const ContratoAlquiler = ({ lease, autoGenerate = false }) => {
     // Encabezado con fecha
     const fechaInicio = formatearFecha(lease.startDate);
     addPageIfNecessary(15);
-    currentY = addText(`En Belen, Provincia de Buenos Aires, a los ${fechaInicio}`, currentY, 7, false);
+    currentY = addText(`En Belen, Provincia de Buenos Aires, a los ${fechaInicio}`, currentY, 7, false, true);
     currentY += 4;
 
 
@@ -348,210 +379,63 @@ const ContratoAlquiler = ({ lease, autoGenerate = false }) => {
 
     // Primera cláusula - Objeto
     addPageIfNecessary(40);
-    doc.setFont("Nunito-VariableFont_wght", "bold");
-    doc.text("PRIMERA: Objeto.", 25, currentY);
-    const primeraWidth = doc.getTextWidth("PRIMERA: Objeto. ");
-    doc.setFont("Nunito-VariableFont_wght", "normal");
     const objetoText = `Por el Presente contrato, el locador cede el uso del inmueble sito en  ${property.address || 'N/A'}, ${property.city || 'N/A'}, en adelante denominado el "INMUEBLE LOCADO" para ser destinado a ${getUsoPropiedad(property.typeProperty)}; no pudiendose cambiar el destino de uso. Superficie cubierta: ${property.superficieCubierta || 'N/A'}, Superficie total: ${property.superficieTotal || 'N/A'}. ${property.typeProperty !== "lote" && property.typeProperty !== "terreno" && property.rooms ? `El inmueble cuenta con ${property.rooms} ambientes y ${property.bathrooms || 0} banos.` : ""}`;
-    const lines = doc.splitTextToSize(objetoText, maxWidth - primeraWidth);
-    doc.text(lines[0], 25 + primeraWidth, currentY);
-    currentY += lineHeight;
-    for (let i = 1; i < lines.length; i++) {
-      doc.text(lines[i], 25, currentY);
-      currentY += lineHeight;
-    }
-    currentY += 5;
+    addClause("PRIMERA: Objeto.", objetoText);
 
     // Segunda cláusula - Manifestación
     addPageIfNecessary(30);
-    doc.setFont("Nunito-VariableFont_wght", "bold");
-    doc.text("SEGUNDA: Destino de la locacion.", 25, currentY);
-    const segundaWidth = doc.getTextWidth("SEGUNDA: Destino de la locacion. ");
-    doc.setFont("Nunito-VariableFont_wght", "normal");
     const manifestacionText = `Las partes convienen que el inmueble referido en la clausula primera sera destinado ${getDestinoLocacion(property.typeProperty)}. El Inmueble tiene Superficie cubierta: ${property.superficieCubierta || 'N/A'}, Superficie total: ${property.superficieTotal || 'N/A'}. ${property.typeProperty !== "lote" && property.typeProperty !== "terreno" && property.rooms ? `El inmueble cuenta con ${property.rooms} ambientes y ${property.bathrooms || 0} banos, ` : ""}y todas las demas especificaciones contenidas en clausula anexa al presente contrato de locacion.`;
-    const lines2 = doc.splitTextToSize(manifestacionText, maxWidth - segundaWidth);
-    doc.text(lines2[0], 25 + segundaWidth, currentY);
-    currentY += lineHeight;
-    for (let i = 1; i < lines2.length; i++) {
-      doc.text(lines2[i], 25, currentY);
-      currentY += lineHeight;
-    }
-    currentY += 5;
+    addClause("SEGUNDA: Destino de la locacion.", manifestacionText);
 
     // Tercera cláusula - Plazo del contrato
     const startDate = new Date(lease.startDate);
     const endDate = calcularFechaFin(startDate, lease.totalMonths);
 
     addPageIfNecessary(60);
-    doc.setFont("Nunito-VariableFont_wght", "bold");
-    doc.text("TERCERA: Plazo del contrato.", 25, currentY);
-    const terceraWidth = doc.getTextWidth("TERCERA: Plazo del contrato. ");
-    doc.setFont("Nunito-VariableFont_wght", "normal");
     const cuartaClausulaText = `Las partes convienen fijar un plazo de duración determinada por el presente contrato. El cual será de  ${numeroALetras(lease.totalMonths)} (${lease.totalMonths}) meses, los mismos se computaran a partir del ${formatearFecha(startDate)}, y hasta el dia ${formatearFecha(endDate)}, recibiendo del locatario la tenencia del inmueble en el dia de la fecha. Es obligacion del locatario restituir al termino de la locacion el inmueble desocupado y en buen estado conforme a los art.1206 y 1207 del CCCN. Si ello no fuere cumplido se cobrara una multa equivalente al 0.4% diario sobre el ultimo alquiler hasta la entrega efectiva del inmueble locado y en las condiciones que le fue entregado.`;
-    const lines4 = doc.splitTextToSize(cuartaClausulaText, maxWidth - terceraWidth);
-    doc.text(lines4[0], 25 + terceraWidth, currentY);
-    currentY += lineHeight;
-    for (let i = 1; i < lines4.length; i++) {
-      doc.text(lines4[i], 25, currentY);
-      currentY += lineHeight;
-    }
-    currentY += 5;
+    addClause("TERCERA: Plazo del contrato.", cuartaClausulaText);
 
     // Cuarta cláusula - Precio
     addPageIfNecessary(45);
-    doc.setFont("Nunito-VariableFont_wght", "bold");
-    doc.text("CUARTA: Precio:", 25, currentY);
-    const cuartaWidth = doc.getTextWidth("CUARTA: Precio: ");
-    doc.setFont("Nunito-VariableFont_wght", "normal");
     const quintaClausulaText = `El precio del alquiler se fija de comun acuerdo entre las partes por la suma de ${formatearMonto(lease.rentAmount)} para el ${lease.updateFrequency === "semestral" ? "primer semestre" : lease.updateFrequency === "anual" ? "primer ano" : "primer cuatrimestre"} de locacion. Para los ${lease.updateFrequency === "semestral" ? "siguientes semestres" : lease.updateFrequency === "anual" ? "siguientes anos" : "siguientes cuatrimestres"} el precio sera actualizado conforme al Indice de precios al consumidor (IPC) que confecciona y publica el Instituto Nacional de Estadisticas y Censos (INDEC). Si por una disposicion legal y futura, los alquileres se vieren grabados con el pago del impuesto al valor agregado (IVA), EL LOCATARIO debera adicionar al monto mensual a pagar en concepto de canon locativo, el porcentual correspondiente al IVA. El LOCATARIO abonara el alquiler en efectivo en moneda de curso legal, y por adelantado del 1° al 10° del mes en el local comercial de Q+L Servicios Inmobiliarios sito en Av. Gobernador Cubas N° 50 de la ciudad de Belen, o bien en el domicilio que en un futuro designe el LOCADOR. Por el presente acto el LOCADOR comunica al LOCATARIO que constituye a Q+L Servicios inmobiliarios, en adelante EL ADMINISTRADOR como su representante, quedando este facultado para actuar en su nombre en cualquier cuestion que emane del presente, percibir los alquileres mensuales y extender los correspondientes recibos de pago, tambien para conservar y archivar los comprobantes de pago de todos los impuestos, y servicios a cargo del LOCATARIO, quien tendra por constancia de pago el asiento de los mismos en los recibos de pago del alquiler. La falta de pago producira un interes equivalente al 1% diario contado a partir del primer dia del mes en mora.`;
-    const lines5 = doc.splitTextToSize(quintaClausulaText, maxWidth - cuartaWidth);
-    doc.text(lines5[0], 25 + cuartaWidth, currentY);
-    currentY += lineHeight;
-    for (let i = 1; i < lines5.length; i++) {
-      doc.text(lines5[i], 25, currentY);
-      currentY += lineHeight;
-    }
-    currentY += 6;
+    addClause("CUARTA: Precio:", quintaClausulaText);
+    currentY += 1;
 
     // Quinta cláusula - Modificaciones
     addPageIfNecessary(30);
-    doc.setFont("Nunito-VariableFont_wght", "bold");
-    doc.text("QUINTA: MODIFICACIONES:", 25, currentY);
-    const quintaModifWidth = doc.getTextWidth("QUINTA: MODIFICACIONES: ");
-    doc.setFont("Nunito-VariableFont_wght", "normal");
     const modificacionesText = `El LOCATARIO tiene expresamente prohibido efectuar mejoras o modificaciones que alteren la estructura del inmueble sin autorizacion previa y por escrito del LOCADOR. De autorizarse la realizacion de mejoras, estas quedan a beneficio del inmueble sin derecho para el Locatario a ninguna indemnizacion reembolso, compensacion y/o retribucion.`;
-    const linesQuinta = doc.splitTextToSize(modificacionesText, maxWidth - quintaModifWidth);
-    doc.text(linesQuinta[0], 25 + quintaModifWidth, currentY);
-    currentY += lineHeight;
-    for (let i = 1; i < linesQuinta.length; i++) {
-      if (currentY + lineHeight + bottomMargin > doc.internal.pageSize.getHeight()) {
-        doc.addPage();
-        currentY = 20;
-      }
-      doc.text(linesQuinta[i], 25, currentY);
-      currentY += lineHeight;
-    }
-    currentY += 5;
+    addClause("QUINTA: Modificaciones:", modificacionesText);
 
     // Sexta cláusula - Impuestos y Servicios
     addPageIfNecessary(60);
-    doc.setFont("Nunito-VariableFont_wght", "bold");
-    doc.text("SEXTA: IMPUESTOS y SERVICIOS:", 25, currentY);
-    const sextaWidth = doc.getTextWidth("SEXTA: IMPUESTOS y SERVICIOS: ");
-    doc.setFont("Nunito-VariableFont_wght", "normal");
     const impuestosText = `El LOCATARIO debe pagar en tiempo y forma los servicios de luz que debe estar a su nombre dando de baja al termino del presente Contrato como tambien cualquier otro servicio domiciliario y/o tributo que grave el inmueble en el futuro, entregando mensualmente al Locador o a la empresa inmobiliaria las boletas y/o facturas pagadas. Seran a cargo del LOCATARIO el pago del servicio de Agua (Medido o No Medido) durante todo el tiempo de duracion del contrato hasta su efectiva desocupacion. Seran a Cargo del LOCADOR Las Cargas y Contribuciones que graven el Inmueble: Impuestos Municipal - Impuesto Provincial, como asi tambien cualquier sobretasa, derecho adicional o impuestos nacionales, provinciales o municipales que pudieran crearse y afecten a la misma.`;
-    const linesSexta = doc.splitTextToSize(impuestosText, maxWidth - sextaWidth);
-    doc.text(linesSexta[0], 25 + sextaWidth, currentY);
-    currentY += lineHeight;
-    for (let i = 1; i < linesSexta.length; i++) {
-      if (currentY + lineHeight + bottomMargin > doc.internal.pageSize.getHeight()) {
-        doc.addPage();
-        currentY = 20;
-      }
-      doc.text(linesSexta[i], 25, currentY);
-      currentY += lineHeight;
-    }
-    currentY += 5;
+    addClause("SEXTA: Impuestos y Servicios:", impuestosText);
 
     // Séptima cláusula - Incumplimiento
     addPageIfNecessary(70);
-    doc.setFont("Nunito-VariableFont_wght", "bold");
-    doc.text("SEPTIMA: INCUMPLIMIENTO:", 25, currentY);
-    const septimaWidth = doc.getTextWidth("SEPTIMA: INCUMPLIMIENTO: ");
-    doc.setFont("Nunito-VariableFont_wght", "normal");
     const incumplimientoText = `En cualquiera de los casos de incumplimiento del LOCATARIO, sin perjuicio de las penalidades que se establecen en las demas clausulas, el LOCADOR podra pedir el cumplimiento de este contrato o resolverlo por culpa del LOCATARIO y solicitar el inmediato desalojo de este o quienes ocupen el inmueble (sanciones ART.1086 CC y C). En ambos casos y para el evento de que el LOCATARIO dejare abandonada la unidad, o depositare judicialmente las llaves debera abonar al LOCADOR una multa igual al alquiler pactado desde la iniciacion del juicio hasta el dia en que el LOCADOR tome libre y efectiva tenencia definitiva de la propiedad, debiendo indemnizarlo tambien por danos y perjuicios sufridos. Sin perjuicio de lo expuesto en caso de abandono, y para evitar los posibles deterioros que pudieran producirse y/o la ocupacion ilegal de terceros, queda facultado el LOCADOR a tomar posesion anticipada de la propiedad con auxilio del cerrajero, labrandose acta en tal sentido por Oficial Publico, y constituyendose en depositario de los bienes propiedad del LOCATARIO, que pudieron hallarse en el lugar, por el termino de tres meses contados desde el dia de practicamente la diligencia. Vencido el plazo del deposito, se entendera que el locatario.`;
-    const linesSeptima = doc.splitTextToSize(incumplimientoText, maxWidth - septimaWidth);
-    doc.text(linesSeptima[0], 25 + septimaWidth, currentY);
-    currentY += lineHeight;
-    for (let i = 1; i < linesSeptima.length; i++) {
-      if (currentY + lineHeight + bottomMargin > doc.internal.pageSize.getHeight()) {
-        doc.addPage();
-        currentY = 20;
-      }
-      doc.text(linesSeptima[i], 25, currentY);
-      currentY += lineHeight;
-    }
-    currentY += 5;
+    addClause("SEPTIMA: Incumplimiento:", incumplimientoText);
 
     // Octava cláusula - Irresponsabilidad
     addPageIfNecessary(50);
-    doc.setFont("Nunito-VariableFont_wght", "bold");
-    doc.text("OCTAVA: IRRESPONSABILIDAD:", 25, currentY);
-    const octavaWidth = doc.getTextWidth("OCTAVA: IRRESPONSABILIDAD: ");
-    doc.setFont("Nunito-VariableFont_wght", "normal");
     const irresponsabilidadText = `El LOCADOR no se responsabiliza por danos, perjuicio, lesiones que puedan producirse al LOCATARIO o a las personas que pudieren encontrarse en el inmueble, que resulten como consecuencia de la accion u omision del Locatario y/o terceros por el uso y goce del inmueble, ni como consecuencia de inundaciones, filtraciones, incendios total o parcial, ruinas, desprendimientos roturas, desperfecto de cualquier tipo y/o por caso fortuito o de fuerza mayor y sus consecuencias.`;
-    const linesOctava = doc.splitTextToSize(irresponsabilidadText, maxWidth - octavaWidth);
-    doc.text(linesOctava[0], 25 + octavaWidth, currentY);
-    currentY += lineHeight;
-    for (let i = 1; i < linesOctava.length; i++) {
-      if (currentY + lineHeight + bottomMargin > doc.internal.pageSize.getHeight()) {
-        doc.addPage();
-        currentY = 20;
-      }
-      doc.text(linesOctava[i], 25, currentY);
-      currentY += lineHeight;
-    }
-    currentY += 5;
+    addClause("OCTAVA: Irresponsabilidad:", irresponsabilidadText);
 
     // Novena cláusula - Resolución Anticipada
     addPageIfNecessary(50);
-    doc.setFont("Nunito-VariableFont_wght", "bold");
-    doc.text("NOVENA: RESOLUCION ANTICIPADA:", 25, currentY);
-    const novenaWidth = doc.getTextWidth("NOVENA: RESOLUCION ANTICIPADA: ");
-    doc.setFont("Nunito-VariableFont_wght", "normal");
     const resolucionText = `1 El LOCATARIO podra resolver este contrato sin expresion de causa y de forma anticipada luego de transcurridos los primeros seis (6) meses de locacion, notificando su decision al LOCADOR con un (1) mes de anticipacion. 2- si la resolucion fuere durante el primer ano de contrato, el locatario abonara al locador como indemnizacion el monto de un mes y medio (1,5) de alquiler. 3-cuando la resolucion fuese pasado el primer ano, la indemnizacion sera de un (1) mes de alquiler. 4 a todos los efectos los meses seran indivisibles y enteros o completos.`;
-    const linesNovena = doc.splitTextToSize(resolucionText, maxWidth - novenaWidth);
-    doc.text(linesNovena[0], 25 + novenaWidth, currentY);
-    currentY += lineHeight;
-    for (let i = 1; i < linesNovena.length; i++) {
-      if (currentY + lineHeight + bottomMargin > doc.internal.pageSize.getHeight()) {
-        doc.addPage();
-        currentY = 20;
-      }
-      doc.text(linesNovena[i], 25, currentY);
-      currentY += lineHeight;
-    }
-    currentY += 5;
+    addClause("NOVENA: Resolución Anticipada:", resolucionText);
 
     // Décima cláusula - Intransferibilidad
     addPageIfNecessary(30);
-    doc.setFont("Nunito-VariableFont_wght", "bold");
-    doc.text("DECIMA: INTRANSFERIBILIDAD:", 25, currentY);
-    const decimaWidth = doc.getTextWidth("DECIMA: INTRANSFERIBILIDAD: ");
-    doc.setFont("Nunito-VariableFont_wght", "normal");
     const intransferibilidadText = `EL LOCATARIO no podra subarrendar, permutar, prestar o ceder en todo o en parte el inmueble objeto de este acto, ni transferir los derechos del presente contrato constituyendo su incumplimiento como causal de rescision del presente contrato.`;
-    const linesDecima = doc.splitTextToSize(intransferibilidadText, maxWidth - decimaWidth);
-    doc.text(linesDecima[0], 25 + decimaWidth, currentY);
-    currentY += lineHeight;
-    for (let i = 1; i < linesDecima.length; i++) {
-      if (currentY + lineHeight + bottomMargin > doc.internal.pageSize.getHeight()) {
-        doc.addPage();
-        currentY = 20;
-      }
-      doc.text(linesDecima[i], 25, currentY);
-      currentY += lineHeight;
-    }
-    currentY += 5;
+    addClause("DECIMA: Intransferibilidad:", intransferibilidadText);
 
     // Décima Primera cláusula - Sanciones
     addPageIfNecessary(40);
-    doc.setFont("Nunito-VariableFont_wght", "bold");
-    doc.text("DECIMA PRIMERA: SANCIONES:", 25, currentY);
-    const decimaPrimeraWidth = doc.getTextWidth("DECIMA PRIMERA: SANCIONES: ");
-    doc.setFont("Nunito-VariableFont_wght", "normal");
     const sancionesText = `Conforme a lo establecido en la clausula septima, la violacion por parte del LOCATARIO de cualquiera de las obligaciones que asume en el presente, dara derecho al LOCADOR para optar entre exigir su cabal cumplimiento o dar por resuelto el presente contrato y exigir el inmediato desalojo del inmueble, con mas el pago de las clausulas penales pactadas y/o danos y perjuicios pertinentes. Pudiendo accionar contra la totalidad del patrimonio del LOCATARIO.`;
-    const linesDecimaPrimera = doc.splitTextToSize(sancionesText, maxWidth - decimaPrimeraWidth);
-    doc.text(linesDecimaPrimera[0], 25 + decimaPrimeraWidth, currentY);
-    currentY += lineHeight;
-    for (let i = 1; i < linesDecimaPrimera.length; i++) {
-      if (currentY + lineHeight + bottomMargin > doc.internal.pageSize.getHeight()) {
-        doc.addPage();
-        currentY = 20;
-      }
-      doc.text(linesDecimaPrimera[i], 25, currentY);
-      currentY += lineHeight;
-    }
-    currentY += 6;
+    addClause("DECIMA PRIMERA: Sanciones:", sancionesText);
+    currentY += 1;
 
     // Décima Segunda cláusula - Fianza (Garantes)
     if (guarantors.length > 0) {
@@ -576,43 +460,14 @@ const ContratoAlquiler = ({ lease, autoGenerate = false }) => {
 
     // Décima Tercera cláusula - Renovación
     addPageIfNecessary(30);
-    doc.setFont("Nunito-VariableFont_wght", "bold");
-    doc.text("DECIMA TERCERA: RENOVACION:", 25, currentY);
-    const decimaTerceraWidth = doc.getTextWidth("DECIMA TERCERA: RENOVACION: ");
-    doc.setFont("Nunito-VariableFont_wght", "normal");
     const renovacionText = `Este contrato no puede ser prorrogado total o parcialmente ni renovado por identico periodo sin previo acuerdo escrito de las partes acerca de las nuevas condiciones del arrendamiento, especialmente sobre el precio del alquiler.`;
-    const linesDecimaTercera = doc.splitTextToSize(renovacionText, maxWidth - decimaTerceraWidth);
-    doc.text(linesDecimaTercera[0], 25 + decimaTerceraWidth, currentY);
-    currentY += lineHeight;
-    for (let i = 1; i < linesDecimaTercera.length; i++) {
-      if (currentY + lineHeight + bottomMargin > doc.internal.pageSize.getHeight()) {
-        doc.addPage();
-        currentY = 20;
-      }
-      doc.text(linesDecimaTercera[i], 25, currentY);
-      currentY += lineHeight;
-    }
-    currentY += 5;
+    addClause("DECIMA TERCERA: Renovación:", renovacionText);
 
     // Décima Cuarta cláusula - Estado del Bien Locado
     addPageIfNecessary(70);
-    doc.setFont("Nunito-VariableFont_wght", "bold");
-    doc.text("DECIMA CUARTA: ESTADO DEL BIEN LOCADO:", 25, currentY);
-    const decimaCuartaWidth = doc.getTextWidth("DECIMA CUARTA: ESTADO DEL BIEN LOCADO: ");
-    doc.setFont("Nunito-VariableFont_wght", "normal");
     const estadoBienText = `A los efectos de la restitucion del inmueble, una vez vencido el termino contractual, se aclara que el LOCATARIO debera proceder de la siguiente manera: 1) El inmueble debera restituirse en el mismo buen estado de conservacion higiene en que fue entregado y segun consta en el anexo N°1. El LOCATARIO no podra eludir esta obligacion contraida en el presente, dejando aclarado que el LOCADOR y/o sus representantes no estan obligados a recibir el inmueble si no se diera cumplimiento a lo estipulado anteriormente, haciendose punible el LOCATARIO de la penalidad establecida en el presente o la demora en la entrega del inmueble y a satisfacer el importe de alquiler mensual por todo el tiempo necesario que transcurra hasta que los desperfectos o deterioros sean reparados, o hasta que las deudas por servicios e impuestos sean canceladas.`;
-    const linesDecimaCuarta = doc.splitTextToSize(estadoBienText, maxWidth - decimaCuartaWidth);
-    doc.text(linesDecimaCuarta[0], 25 + decimaCuartaWidth, currentY);
-    currentY += lineHeight;
-    for (let i = 1; i < linesDecimaCuarta.length; i++) {
-      if (currentY + lineHeight + bottomMargin > doc.internal.pageSize.getHeight()) {
-        doc.addPage();
-        currentY = 20;
-      }
-      doc.text(linesDecimaCuarta[i], 25, currentY);
-      currentY += lineHeight;
-    }
-    currentY += 6;
+    addClause("DECIMA CUARTA: Estado del Bien Locado:", estadoBienText);
+    currentY += 1;
 
     // Inventario
     let inventarioLimpio = (lease.inventory || 'Sin inventario especificado')
@@ -624,7 +479,7 @@ const ContratoAlquiler = ({ lease, autoGenerate = false }) => {
     doc.text("INVENTARIO:", 25, currentY);
     currentY += lineHeight;
     doc.setFont("Nunito-VariableFont_wght", "normal");
-    currentY = addLongText(inventarioLimpio, currentY, 7, false);
+    currentY = addLongText(inventarioLimpio, currentY, 7, false, true);
     currentY += 6;
 
     // Décima Quinta cláusula - Competencia
@@ -640,7 +495,7 @@ const ContratoAlquiler = ({ lease, autoGenerate = false }) => {
         doc.addPage();
         currentY = 20;
       }
-      doc.text(line, 25, currentY);
+      doc.text(line, 25, currentY, { align: 'justify', maxWidth: maxWidth });
       currentY += lineHeight;
     });
     currentY += 5;
@@ -658,7 +513,7 @@ const ContratoAlquiler = ({ lease, autoGenerate = false }) => {
         doc.addPage();
         currentY = 20;
       }
-      doc.text(line, 25, currentY);
+      doc.text(line, 25, currentY, { align: 'justify', maxWidth: maxWidth });
       currentY += lineHeight;
     });
     currentY += 6;
