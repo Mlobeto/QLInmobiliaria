@@ -22,6 +22,8 @@ const ContratoPreview = () => {
       nacionalidad: "Argentina",
       estadoCivil: "Soltero",
       ocupacion: "Empleado",
+      email: "ruben.olvera@example.com",
+      mobilePhone: "+54 9 3834 123456",
     },
     Owner: {
       name: "MARIA JOSE QUINTERO",
@@ -62,11 +64,11 @@ const ContratoPreview = () => {
     };
 
     // TÍTULO
-    addText("CONTRATO DE LOCACION", 14, true);
+    addText("CONTRATO DE LOCACION DE INMUEBLE CON DESTINO VIVIENDA", 14, true);
     currentY += 5;
 
     // PARTES
-    addText("Entre la Sra. " + mockLease.Owner.name + " en adelante LA LOCADORA, con CUIL " + mockLease.Owner.cuil + ", representada en este acto por la Arq. MARIANA LOBETO, M.P. 275, en su carácter de Administrador y Mandatario General de la propiedad ubicada en " + mockLease.Property.address + ", " + mockLease.Property.city + ", " + mockLease.Property.province + ", por una parte; y por la otra el/la Sr/a " + mockLease.Tenant.name + ", CUIL " + mockLease.Tenant.cuil + ", con domicilio en " + mockLease.Tenant.direccion + ", " + mockLease.Tenant.ciudad + ", " + mockLease.Tenant.provincia + ", en adelante EL/LA LOCATARIO/A, convienen celebrar el presente CONTRATO DE LOCACION, sujeto a las siguientes cláusulas:", 10, false, true);
+    addText("Entre el S./Sra. " + mockLease.Owner.name + " en adelante LA LOCADORA, con CUIL " + mockLease.Owner.cuil + ", representada en este acto por la Arq. MARIANA LOBETO, M.P. 275, en su carácter de Administrador y Mandatario General de la propiedad ubicada en " + mockLease.Property.address + ", " + mockLease.Property.city + ", " + mockLease.Property.province + ", por una parte; y por la otra el/la Sr/a " + mockLease.Tenant.name + ", CUIL " + mockLease.Tenant.cuil + ", con domicilio en " + mockLease.Tenant.direccion + ", " + mockLease.Tenant.ciudad + ", " + mockLease.Tenant.provincia + ", en adelante EL/LA LOCATARIO/A, convienen celebrar el presente CONTRATO DE LOCACION, sujeto a las siguientes cláusulas:", 10, false, true);
     
     currentY += 5;
 
