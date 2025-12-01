@@ -33,7 +33,8 @@ const ReciboPdf = ({ payment, lease, autoGenerate = false }) => {
     doc.setFont("Nunito-VariableFont_wght", "normal");
 
     const formatDate = (dateString) => {
-      const date = new Date(dateString);
+      // Corregir timezone: forzar hora al mediodía para evitar desfase
+      const date = new Date(dateString.split('T')[0] + 'T12:00:00');
       return {
         day: date.getDate(),
         month: date.getMonth() + 1,

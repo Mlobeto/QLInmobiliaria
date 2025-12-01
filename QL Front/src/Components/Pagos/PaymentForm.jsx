@@ -97,7 +97,10 @@ const PaymentForm = () => {
         amount: parseFloat(formData.amount),
         period: period,
         type: formData.type,
-        totalInstallments: formData.totalInstallments ? parseInt(formData.totalInstallments) : null,
+        // Solo incluir totalInstallments si el tipo es "installment" y tiene valor
+        totalInstallments: formData.type === 'installment' && formData.totalInstallments 
+          ? parseInt(formData.totalInstallments) 
+          : null,
       };
 
       await dispatch(createPayment(paymentData));
