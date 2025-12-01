@@ -338,10 +338,10 @@ const ContratoAlquiler = ({ lease, autoGenerate = false }) => {
     
     if (property.socio) {
       const textPart1 = `Entre el Sr/Sra. ${landlord.name || 'N/A'}, CUIL ${landlord.cuil || 'N/A'}, con domicilio en ${landlord.direccion || 'N/A'}, de la ciudad de ${landlord.ciudad || 'N/A'}, correo electronico ${landlord.email || 'N/A'}, telefono ${landlord.mobilePhone || 'N/A'}, en caracter de propietario junto con ${property.socio}, en adelante denominados "LOS LOCADORES", por una parte, y por la otra el Sr/Sra ${tenant.name || 'N/A'}, CUIL ${tenant.cuil || 'N/A'}, con domicilio en ${tenant.direccion || 'N/A'}, ${tenant.ciudad || 'N/A'}, ${tenant.provincia || 'N/A'}, correo electronico ${tenant.email || 'N/A'}, telefono ${tenant.mobilePhone || 'N/A'}, en adelante denominado "LOCATARIO", convienen en celebrar el presente contrato de locacion, sujeto a las siguientes clausulas y condiciones:`;
-      partesY = addText(textPart1, partesY, 9, false, true);
+      partesY = addText(textPart1, partesY);
     } else {
       const fullText1 = `Entre el Sr/Sra. ${landlord.name || 'N/A'}, CUIL ${landlord.cuil || 'N/A'}, con domicilio en ${landlord.direccion || 'N/A'}, de la ciudad de ${landlord.ciudad || 'N/A'}, correo electronico ${landlord.email || 'N/A'}, telefono ${landlord.mobilePhone || 'N/A'}, en adelante denominado "EL LOCADOR", por una parte, y por la otra el Sr/Sra ${tenant.name || 'N/A'}, CUIL ${tenant.cuil || 'N/A'}, con domicilio en ${tenant.direccion || 'N/A'}, ${tenant.ciudad || 'N/A'}, ${tenant.provincia || 'N/A'}, correo electronico ${tenant.email || 'N/A'}, telefono ${tenant.mobilePhone || 'N/A'}, en adelante denominado "EL LOCATARIO", convienen en celebrar el presente contrato de locacion, sujeto a las siguientes clausulas y condiciones:`;
-      partesY = addText(fullText1, partesY, 9, false, true);
+      partesY = addText(fullText1, partesY);
     }
     
     currentY = partesY + 8;
