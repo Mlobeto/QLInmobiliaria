@@ -3,6 +3,7 @@ const numeroALetras = (numero) => {
     
     const unidades = ['', 'un', 'dos', 'tres', 'cuatro', 'cinco', 'seis', 'siete', 'ocho', 'nueve'];
     const decenas = ['', 'diez', 'veinte', 'treinta', 'cuarenta', 'cincuenta', 'sesenta', 'setenta', 'ochenta', 'noventa'];
+    const centenas = ['', 'ciento', 'doscientos', 'trescientos', 'cuatrocientos', 'quinientos', 'seiscientos', 'setecientos', 'ochocientos', 'novecientos'];
     const especiales = {
       11: 'once', 12: 'doce', 13: 'trece', 14: 'catorce', 15: 'quince',
       16: 'dieciséis', 17: 'diecisiete', 18: 'dieciocho', 19: 'diecinueve'
@@ -36,11 +37,11 @@ const numeroALetras = (numero) => {
     }
     
     // Manejar centenas
-    const centenas = Math.floor(restantes / 100);
-    if (centenas === 1) {
+    const centenasNum = Math.floor(restantes / 100);
+    if (centenasNum === 1) {
       resultado += (restantes % 100 === 0) ? ' cien' : ' ciento';
-    } else if (centenas > 1) {
-      resultado += ' ' + unidades[centenas] + 'cientos';
+    } else if (centenasNum > 1) {
+      resultado += ' ' + centenas[centenasNum];
     }
     
     // Manejar decenas y unidades

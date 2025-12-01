@@ -78,7 +78,7 @@ const ContratoAlquiler = ({ lease, autoGenerate = false }) => {
     doc.setFont("Nunito-VariableFont_wght", "normal");
 
     // Función helper para agregar texto con salto de línea automático
-    const addText = (text, y, fontSize = 7, isBold = false, justify = false) => {
+    const addText = (text, y, fontSize = 9, isBold = false, justify = false) => {
       if (isBold) {
         doc.setFont("Nunito-VariableFont_wght", "bold");
       } else {
@@ -112,7 +112,7 @@ const ContratoAlquiler = ({ lease, autoGenerate = false }) => {
     };
 
     // Función mejorada para agregar texto largo con saltos de página automáticos
-    const addLongText = (text, y, fontSize = 7, isBold = false, justify = false) => {
+    const addLongText = (text, y, fontSize = 9, isBold = false, justify = false) => {
       if (isBold) {
         doc.setFont("Nunito-VariableFont_wght", "bold");
       } else {
@@ -228,16 +228,16 @@ const ContratoAlquiler = ({ lease, autoGenerate = false }) => {
       return fecha;
     };
 
-    const getUsoPropiedad = (typeProperty) => {
-      const usoComercial = ["oficina", "local", "finca"];
-      const usoVivienda = ["casa", "departamento", "duplex"];
-      const usoTerreno = ["lote", "terreno"];
+    // const getUsoPropiedad = (typeProperty) => {
+    //   const usoComercial = ["oficina", "local", "finca"];
+    //   const usoVivienda = ["casa", "departamento", "duplex"];
+    //   const usoTerreno = ["lote", "terreno"];
 
-      if (usoComercial.includes(typeProperty)) return "comercial";
-      if (usoVivienda.includes(typeProperty)) return "vivienda particular";
-      if (usoTerreno.includes(typeProperty)) return "terreno";
-      return "vivienda particular";
-    };
+    //   if (usoComercial.includes(typeProperty)) return "comercial";
+    //   if (usoVivienda.includes(typeProperty)) return "vivienda particular";
+    //   if (usoTerreno.includes(typeProperty)) return "terreno";
+    //   return "vivienda particular";
+    // };
 
     const numeroALetras = (numero) => {
       const unidades = ["", "uno", "dos", "tres", "cuatro", "cinco", "seis", "siete", "ocho", "nueve"];
@@ -326,18 +326,15 @@ const ContratoAlquiler = ({ lease, autoGenerate = false }) => {
     // === GENERAR PDF ===
 
    doc.setFont("Nunito-VariableFont_wght", "bold");
-    doc.setFontSize(9);
+    doc.setFontSize(11);
     doc.text(getTituloContrato(property.typeProperty), 105, currentY, { align: "center" });
     currentY += 8;
 
-    // Encabezado con fecha
-    const fechaInicio = formatearFecha(lease.startDate);
-    addPageIfNecessary(15);
-    currentY = addText(`En Belen, Provincia de Buenos Aires, a los ${fechaInicio}`, currentY, 7, false, true);
-    currentY += 4;
-
-
     // Datos de las partes - con nombres en negrita
+    // Debug: verificar datos del landlord
+    console.log('Landlord data:', landlord);
+    console.log('Landlord email:', landlord.email);
+    console.log('Landlord mobilePhone:', landlord.mobilePhone);
     addPageIfNecessary(50);
     doc.setFont("Nunito-VariableFont_wght", "normal");
     doc.setFontSize(7);
@@ -346,12 +343,6 @@ const ContratoAlquiler = ({ lease, autoGenerate = false }) => {
     const leftMargin = 25;
     
     if (property.socio) {
-      doc.text("Entre el Sr/Sra. ", leftMargin, partesY);
-      const afterEntre = doc.getTextWidth("Entre el Sr/Sra. ");
-      doc.setFont("Nunito-VariableFont_wght", "bold");
-      doc.text(landlord.name || 'N/A', leftMargin + afterEntre, partesY);
-      doc.setFont("Nunito-VariableFont_wght", "normal");
-      
       const textPart1 = `Entre el Sr/Sra. ${landlord.name || 'N/A'}, CUIL ${landlord.cuil || 'N/A'}, con domicilio en ${landlord.direccion || 'N/A'}, de la ciudad de ${landlord.ciudad || 'N/A'}, correo electronico ${landlord.email || 'N/A'}, telefono ${landlord.mobilePhone || 'N/A'}, en caracter de propietario junto con ${property.socio}, en adelante denominados "LOS LOCADORES", por una parte, y por la otra el Sr/Sra `;
       const lines1 = doc.splitTextToSize(textPart1, maxWidth);
       partesY = addText(textPart1, partesY);
@@ -371,14 +362,7 @@ const ContratoAlquiler = ({ lease, autoGenerate = false }) => {
       const textPart2 = `, CUIL ${tenant.cuil || 'N/A'}, con domicilio en ${tenant.direccion || 'N/A'}, ${tenant.ciudad || 'N/A'}, ${tenant.provincia || 'N/A'} , correo electronico ${tenant.email || 'N/A'}, telefono ${tenant.mobilePhone || 'N/A'}, en adelante denominado "LOCATARIO", convienen en celebrar el presente contrato de locacion, sujeto a las siguientes clausulas y condiciones:`;
       partesY = addText(textPart2, partesY);
     } else {
-      const textPart1 = `Entre el Sr/Sra. `;
-      doc.text(textPart1, leftMargin, partesY);
-      const afterEntre = doc.getTextWidth(textPart1);
-      doc.setFont("Nunito-VariableFont_wght", "bold");
-      doc.text(landlord.name || 'N/A', leftMargin + afterEntre, partesY);
-      doc.setFont("Nunito-VariableFont_wght", "normal");
-      
-      const fullText1 = `Entre el Sr/Sra. ${landlord.name || 'N/A'}, CUIL ${landlord.cuil || 'N/A'}, con domicilio en ${landlord.direccion || 'N/A'}, de la ciudad de ${landlord.ciudad || 'N/A'}, en adelante denominado "EL LOCADOR", por una parte, y por la otra el Sr/Sra `;
+      const fullText1 = `Entre el Sr/Sra. ${landlord.name || 'N/A'}, CUIL ${landlord.cuil || 'N/A'}, con domicilio en ${landlord.direccion || 'N/A'}, de la ciudad de ${landlord.ciudad || 'N/A'}, correo electronico ${landlord.email || 'N/A'}, telefono ${landlord.mobilePhone || 'N/A'}, en adelante denominado "EL LOCADOR", por una parte, y por la otra el Sr/Sra `;
       const lines1 = doc.splitTextToSize(fullText1, maxWidth);
       partesY = addText(fullText1, partesY);
       
@@ -555,7 +539,7 @@ const ContratoAlquiler = ({ lease, autoGenerate = false }) => {
     addPageIfNecessary(50);
     currentY += 20;
     
-    // Líneas de firma
+    // Líneas de firma del locador y locatario
     doc.setFont("Nunito-VariableFont_wght", "normal");
     doc.setFontSize(7);
     doc.line(25, currentY, 85, currentY); // Línea izquierda
@@ -564,6 +548,23 @@ const ContratoAlquiler = ({ lease, autoGenerate = false }) => {
     currentY += 8;
     doc.text("Firma del LOCADOR", 55, currentY, { align: "center" });
     doc.text("Firma del LOCATARIO", 140, currentY, { align: "center" });
+    
+    // Agregar líneas de firma para los fiadores si existen
+    if (guarantors.length > 0) {
+      currentY += 20;
+      guarantors.forEach((guarantor, index) => {
+        if (index % 2 === 0 && index > 0) {
+          // Nueva línea cada 2 garantes
+          currentY += 15;
+        }
+        
+        const xPos = index % 2 === 0 ? 25 : 110;
+        const labelXPos = index % 2 === 0 ? 55 : 140;
+        
+        doc.line(xPos, currentY, xPos + 60, currentY);
+        doc.text(`Firma del FIADOR${guarantors.length > 1 ? ` ${index + 1}` : ''}`, labelXPos, currentY + 8, { align: "center" });
+      });
+    }
 
     // Guardar el PDF
     const fechaArchivo = new Date(lease.startDate).toLocaleDateString("es-AR").replace(/\//g, '_');
