@@ -335,46 +335,13 @@ const ContratoAlquiler = ({ lease, autoGenerate = false }) => {
     doc.setFontSize(9);
     
     let partesY = currentY;
-    const leftMargin = 25;
     
     if (property.socio) {
-      const textPart1 = `Entre el Sr/Sra. ${landlord.name || 'N/A'}, CUIL ${landlord.cuil || 'N/A'}, con domicilio en ${landlord.direccion || 'N/A'}, de la ciudad de ${landlord.ciudad || 'N/A'}, telefono ${landlord.mobilePhone || 'N/A'}, en caracter de propietario junto con ${property.socio}, en adelante denominados "LOS LOCADORES", por una parte, y por la otra el Sr/Sra `;
-      const lines1 = doc.splitTextToSize(textPart1, maxWidth);
-      partesY = addText(textPart1, partesY);
-      
-      const beforeTenant = doc.getTextWidth(lines1[lines1.length - 1]);
-      doc.setFont("tahoma", "bold");
-      const tenantNameWidth = doc.getTextWidth(tenant.name || 'N/A');
-      
-      if (beforeTenant + tenantNameWidth > maxWidth) {
-        doc.text(tenant.name || 'N/A', leftMargin, partesY);
-        partesY += lineHeight;
-      } else {
-        doc.text(tenant.name || 'N/A', leftMargin + beforeTenant, partesY - lineHeight);
-      }
-      
-      doc.setFont("tahoma", "normal");
-      const textPart2 = `, CUIL ${tenant.cuil || 'N/A'}, con domicilio en ${tenant.direccion || 'N/A'}, ${tenant.ciudad || 'N/A'}, ${tenant.provincia || 'N/A'}, en adelante denominado "LOCATARIO", convienen en celebrar el presente contrato de locacion, sujeto a las siguientes clausulas y condiciones:`;
-      partesY = addText(textPart2, partesY);
+      const textPart1 = `Entre el Sr/Sra. ${landlord.name || 'N/A'}, CUIL ${landlord.cuil || 'N/A'}, con domicilio en ${landlord.direccion || 'N/A'}, de la ciudad de ${landlord.ciudad || 'N/A'}, correo electronico ${landlord.email || 'N/A'}, telefono ${landlord.mobilePhone || 'N/A'}, en caracter de propietario junto con ${property.socio}, en adelante denominados "LOS LOCADORES", por una parte, y por la otra el Sr/Sra ${tenant.name || 'N/A'}, CUIL ${tenant.cuil || 'N/A'}, con domicilio en ${tenant.direccion || 'N/A'}, ${tenant.ciudad || 'N/A'}, ${tenant.provincia || 'N/A'}, correo electronico ${tenant.email || 'N/A'}, telefono ${tenant.mobilePhone || 'N/A'}, en adelante denominado "LOCATARIO", convienen en celebrar el presente contrato de locacion, sujeto a las siguientes clausulas y condiciones:`;
+      partesY = addText(textPart1, partesY, 9, false, true);
     } else {
-      const fullText1 = `Entre el Sr/Sra. ${landlord.name || 'N/A'}, CUIL ${landlord.cuil || 'N/A'}, con domicilio en ${landlord.direccion || 'N/A'}, de la ciudad de ${landlord.ciudad || 'N/A'}, telefono ${landlord.mobilePhone || 'N/A'}, en adelante denominado "EL LOCADOR", por una parte, y por la otra el Sr/Sra `;
-      const lines1 = doc.splitTextToSize(fullText1, maxWidth);
-      partesY = addText(fullText1, partesY);
-      
-      const beforeTenant = doc.getTextWidth(lines1[lines1.length - 1]);
-      doc.setFont("tahoma", "bold");
-      const tenantNameWidth = doc.getTextWidth(tenant.name || 'N/A');
-      
-      if (beforeTenant + tenantNameWidth > maxWidth) {
-        doc.text(tenant.name || 'N/A', leftMargin, partesY);
-        partesY += lineHeight;
-      } else {
-        doc.text(tenant.name || 'N/A', leftMargin + beforeTenant, partesY - lineHeight);
-      }
-      
-      doc.setFont("tahoma", "normal");
-      const textPart2 = `, CUIL ${tenant.cuil || 'N/A'}, con domicilio en ${tenant.direccion || 'N/A'}, ${tenant.ciudad || 'N/A'}, ${tenant.provincia || 'N/A'}, en adelante denominado "EL LOCATARIO", convienen en celebrar el presente contrato de locacion, sujeto a las siguientes clausulas y condiciones:`;
-      partesY = addText(textPart2, partesY);
+      const fullText1 = `Entre el Sr/Sra. ${landlord.name || 'N/A'}, CUIL ${landlord.cuil || 'N/A'}, con domicilio en ${landlord.direccion || 'N/A'}, de la ciudad de ${landlord.ciudad || 'N/A'}, correo electronico ${landlord.email || 'N/A'}, telefono ${landlord.mobilePhone || 'N/A'}, en adelante denominado "EL LOCADOR", por una parte, y por la otra el Sr/Sra ${tenant.name || 'N/A'}, CUIL ${tenant.cuil || 'N/A'}, con domicilio en ${tenant.direccion || 'N/A'}, ${tenant.ciudad || 'N/A'}, ${tenant.provincia || 'N/A'}, correo electronico ${tenant.email || 'N/A'}, telefono ${tenant.mobilePhone || 'N/A'}, en adelante denominado "EL LOCATARIO", convienen en celebrar el presente contrato de locacion, sujeto a las siguientes clausulas y condiciones:`;
+      partesY = addText(fullText1, partesY, 9, false, true);
     }
     
     currentY = partesY + 8;

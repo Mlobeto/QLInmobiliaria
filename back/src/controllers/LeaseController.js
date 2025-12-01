@@ -369,8 +369,8 @@ exports.createLease = async (req, res) => {
         { model: Property },
         { model: PaymentReceipt, required: false },
         { model: Garantor, required: false },
-        { model: Client, as: 'Tenant', attributes: ['name', 'cuil', 'direccion','ciudad','provincia'] },
-        { model: Client, as: 'Landlord', attributes: ['name', 'cuil', 'direccion','ciudad','provincia','mobilePhone'] }
+        { model: Client, as: 'Tenant', attributes: ['name', 'cuil', 'direccion','ciudad','provincia','email','mobilePhone'] },
+        { model: Client, as: 'Landlord', attributes: ['name', 'cuil', 'direccion','ciudad','provincia','email','mobilePhone'] }
       ]
     });
 
@@ -563,8 +563,8 @@ exports.getAllLeases = async (req, res) => {
         { model: Property },
         { model: PaymentReceipt, required: false },
         { model: Garantor, required: false },
-        { model: Client, as: 'Tenant', attributes: ['name', 'cuil', 'direccion', 'ciudad', 'provincia'] },
-        { model: Client, as: 'Landlord', attributes: ['name', 'cuil', 'direccion', 'ciudad', 'provincia', 'mobilePhone'] },
+        { model: Client, as: 'Tenant', attributes: ['name', 'cuil', 'direccion', 'ciudad', 'provincia', 'email', 'mobilePhone'] },
+        { model: Client, as: 'Landlord', attributes: ['name', 'cuil', 'direccion', 'ciudad', 'provincia', 'email', 'mobilePhone'] },
         { model: RentUpdate, required: false, order: [['updateDate', 'DESC']] }
       ],
     });
@@ -636,8 +636,8 @@ exports.checkPendingPayments = async (req, res) => {
             ],
           },
         },
-        { model: Client, as: 'Tenant', attributes: ['name', 'cuil', 'direccion', 'ciudad', 'provincia'] },
-        { model: Client, as: 'Landlord', attributes: ['name', 'cuil', 'direccion', 'ciudad', 'provincia', 'mobilePhone'] },
+        { model: Client, as: 'Tenant', attributes: ['name', 'cuil', 'direccion', 'ciudad', 'provincia', 'email', 'mobilePhone'] },
+        { model: Client, as: 'Landlord', attributes: ['name', 'cuil', 'direccion', 'ciudad', 'provincia', 'email', 'mobilePhone'] },
       ],
     });
 
@@ -863,8 +863,8 @@ const debugLeaseAlerts = async (req, res) => {
         { model: Property },
         { model: PaymentReceipt, required: false },
         { model: Garantor, required: false },
-        { model: Client, as: 'Tenant', attributes: ['name', 'cuil', 'direccion', 'ciudad', 'provincia'] },
-        { model: Client, as: 'Landlord', attributes: ['name', 'cuil', 'direccion', 'ciudad', 'provincia', 'mobilePhone'] }
+        { model: Client, as: 'Tenant', attributes: ['name', 'cuil', 'direccion', 'ciudad', 'provincia', 'email', 'mobilePhone'] },
+        { model: Client, as: 'Landlord', attributes: ['name', 'cuil', 'direccion', 'ciudad', 'provincia', 'email', 'mobilePhone'] }
       ],
     });
 
@@ -924,8 +924,8 @@ exports.getLeasesPendingUpdate = async (req, res) => {
       where: { status: 'active' },
       include: [
         { model: Property },
-        { model: Client, as: 'Tenant', attributes: ['name', 'cuil', 'direccion', 'ciudad', 'provincia'] },
-        { model: Client, as: 'Landlord', attributes: ['name', 'cuil', 'direccion', 'ciudad', 'provincia', 'mobilePhone'] },
+        { model: Client, as: 'Tenant', attributes: ['name', 'cuil', 'direccion', 'ciudad', 'provincia', 'email', 'mobilePhone'] },
+        { model: Client, as: 'Landlord', attributes: ['name', 'cuil', 'direccion', 'ciudad', 'provincia', 'email', 'mobilePhone'] },
         { model: RentUpdate, required: false, order: [['updateDate', 'DESC']] }
       ],
     });
@@ -1025,8 +1025,8 @@ exports.getLeaseUpdateHistory = async (req, res) => {
     const lease = await Lease.findByPk(id, {
       include: [
         { model: Property, attributes: ['address'] },
-        { model: Client, as: 'Tenant', attributes: ['name', 'cuil', 'direccion', 'ciudad', 'provincia'] },
-        { model: Client, as: 'Landlord', attributes: ['name', 'cuil', 'direccion', 'ciudad', 'provincia', 'mobilePhone'] }
+        { model: Client, as: 'Tenant', attributes: ['name', 'cuil', 'direccion', 'ciudad', 'provincia', 'email', 'mobilePhone'] },
+        { model: Client, as: 'Landlord', attributes: ['name', 'cuil', 'direccion', 'ciudad', 'provincia', 'email', 'mobilePhone'] }
       ]
     });
     
@@ -1127,8 +1127,8 @@ exports.quickUpdateLeaseRent = async (req, res) => {
     const lease = await Lease.findByPk(id, {
       include: [
         { model: Property, attributes: ['address'] },
-        { model: Client, as: 'Tenant', attributes: ['name', 'cuil', 'direccion', 'ciudad', 'provincia'] },
-        { model: Client, as: 'Landlord', attributes: ['name', 'cuil', 'direccion', 'ciudad', 'provincia', 'mobilePhone'] }
+        { model: Client, as: 'Tenant', attributes: ['name', 'cuil', 'direccion', 'ciudad', 'provincia', 'email', 'mobilePhone'] },
+        { model: Client, as: 'Landlord', attributes: ['name', 'cuil', 'direccion', 'ciudad', 'provincia', 'email', 'mobilePhone'] }
       ]
     });
     
@@ -1325,7 +1325,7 @@ exports.getUpdateStatistics = async (req, res) => {
         model: Lease,
         include: [
           { model: Property, attributes: ['address'] },
-          { model: Client, as: 'Tenant', attributes: ['name', 'cuil', 'direccion', 'ciudad', 'provincia'] }
+          { model: Client, as: 'Tenant', attributes: ['name', 'cuil', 'direccion', 'ciudad', 'provincia', 'email', 'mobilePhone'] }
         ]
       }]
     });
@@ -1363,8 +1363,8 @@ exports.getUpdateStatistics = async (req, res) => {
         model: Lease,
         include: [
           { model: Property, attributes: ['address'] },
-          { model: Client, as: 'Tenant', attributes: ['name', 'cuil', 'direccion', 'ciudad', 'provincia'] },
-          { model: Client, as: 'Landlord', attributes: ['name', 'cuil', 'direccion', 'ciudad', 'provincia', 'mobilePhone'] }
+          { model: Client, as: 'Tenant', attributes: ['name', 'cuil', 'direccion', 'ciudad', 'provincia', 'email', 'mobilePhone'] },
+          { model: Client, as: 'Landlord', attributes: ['name', 'cuil', 'direccion', 'ciudad', 'provincia', 'email', 'mobilePhone'] }
         ]
       }]
     });
@@ -1431,8 +1431,8 @@ exports.getExpiringLeases = async (req, res) => {
       where: { status: 'active' },
       include: [
         { model: Property, attributes: ['address'] },
-        { model: Client, as: 'Tenant', attributes: ['name', 'cuil', 'direccion', 'ciudad', 'provincia'] },
-        { model: Client, as: 'Landlord', attributes: ['name', 'cuil', 'direccion', 'ciudad', 'provincia', 'mobilePhone'] }
+        { model: Client, as: 'Tenant', attributes: ['name', 'cuil', 'direccion', 'ciudad', 'provincia', 'email', 'mobilePhone'] },
+        { model: Client, as: 'Landlord', attributes: ['name', 'cuil', 'direccion', 'ciudad', 'provincia', 'email', 'mobilePhone'] }
       ]
     });
     
@@ -1505,8 +1505,8 @@ exports.updateLease = async (req, res) => {
       include: [
         { model: Property },
         { model: Garantor, required: false },
-        { model: Client, as: 'Tenant', attributes: ['name', 'cuil', 'direccion', 'ciudad', 'provincia'] },
-        { model: Client, as: 'Landlord', attributes: ['name', 'cuil', 'direccion', 'ciudad', 'provincia', 'mobilePhone'] },
+        { model: Client, as: 'Tenant', attributes: ['name', 'cuil', 'direccion', 'ciudad', 'provincia', 'email', 'mobilePhone'] },
+        { model: Client, as: 'Landlord', attributes: ['name', 'cuil', 'direccion', 'ciudad', 'provincia', 'email', 'mobilePhone'] },
       ],
     });
 
