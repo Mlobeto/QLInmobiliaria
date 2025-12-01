@@ -19,7 +19,7 @@
     "jspdf": "^2.5.2",
     "lodash": "^4.17.21",
     "pdf-lib": "^1.17.1",
-    "pdfmake": "^0.2.18",
+    "pdfmake": "^0.2.20",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-icons": "^5.5.0",
