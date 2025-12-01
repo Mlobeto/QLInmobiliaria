@@ -186,7 +186,7 @@ const ReciboPdf = ({ payment, lease, autoGenerate = false }) => {
         ? `Honorarios - ${lease.Property?.address || ""}`
         : payment.type === "commission"
         ? `Comision - ${lease.Property?.address || ""}`
-        : `${payment.period} - Cuota ${payment.installmentNumber}/${payment.totalInstallments} - ${lease.Property?.address || ""}`;
+        : `Cuota ${payment.installmentNumber}/${lease.totalMonths} ${payment.period} - ${lease.Property?.address || ""}`;
     doc.text(concepto, 55, 159);
 
     doc.line(20, 170, 190, 170);

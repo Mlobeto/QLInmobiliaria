@@ -2,7 +2,6 @@ import PropTypes from 'prop-types';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import '../../utils/tahoma-normal';
-import '../../utils/nunito-normal';
 
 const ContratoAlquiler = ({ lease, autoGenerate = false }) => {
   const generatePdf = async () => {
@@ -18,7 +17,7 @@ const ContratoAlquiler = ({ lease, autoGenerate = false }) => {
         tempDiv.style.padding = '20mm 25mm'; // Top/Bottom 20mm, Left/Right 25mm
         tempDiv.style.backgroundColor = 'white';
         tempDiv.style.boxSizing = 'border-box';
-        tempDiv.style.fontFamily = 'Nunito, Arial, sans-serif';
+        tempDiv.style.fontFamily = 'Tahoma, Arial, sans-serif';
         document.body.appendChild(tempDiv);
 
         // Convertir HTML a canvas
@@ -71,18 +70,18 @@ const ContratoAlquiler = ({ lease, autoGenerate = false }) => {
     const doc = new jsPDF();
     const maxWidth = 160; // Reducir para mejor formato
     let currentY = 20;
-    const lineHeight = 3; // Reducido para fuente más pequeña
+    const lineHeight = 4; // Aumentado para más espaciado
     const bottomMargin = 20;
 
-    // Configurar fuente para mejor soporte de caracteres latinos
-    doc.setFont("Nunito-VariableFont_wght", "normal");
+    // Configurar fuente Tahoma
+    doc.setFont("tahoma", "normal");
 
     // Función helper para agregar texto con salto de línea automático
     const addText = (text, y, fontSize = 9, isBold = false, justify = false) => {
       if (isBold) {
-        doc.setFont("Nunito-VariableFont_wght", "bold");
+        doc.setFont("tahoma", "bold");
       } else {
-        doc.setFont("Nunito-VariableFont_wght", "normal");
+        doc.setFont("tahoma", "normal");
       }
       doc.setFontSize(fontSize);
       
@@ -114,9 +113,9 @@ const ContratoAlquiler = ({ lease, autoGenerate = false }) => {
     // Función mejorada para agregar texto largo con saltos de página automáticos
     const addLongText = (text, y, fontSize = 9, isBold = false, justify = false) => {
       if (isBold) {
-        doc.setFont("Nunito-VariableFont_wght", "bold");
+        doc.setFont("tahoma", "bold");
       } else {
-        doc.setFont("Nunito-VariableFont_wght", "normal");
+        doc.setFont("tahoma", "normal");
       }
       doc.setFontSize(fontSize);
       
@@ -171,11 +170,11 @@ const ContratoAlquiler = ({ lease, autoGenerate = false }) => {
 
     // Helper function para agregar cláusula con título en negrita y texto justificado
     const addClause = (title, text, titleWidth = null) => {
-      doc.setFont("Nunito-VariableFont_wght", "bold");
+      doc.setFont("tahoma", "bold");
       doc.text(title, 25, currentY);
       
       const width = titleWidth || doc.getTextWidth(title + " ");
-      doc.setFont("Nunito-VariableFont_wght", "normal");
+      doc.setFont("tahoma", "normal");
       
       const lines = doc.splitTextToSize(text, maxWidth - width);
       doc.text(lines[0], 25 + width, currentY, { align: 'justify', maxWidth: maxWidth - width });
@@ -325,30 +324,26 @@ const ContratoAlquiler = ({ lease, autoGenerate = false }) => {
 
     // === GENERAR PDF ===
 
-   doc.setFont("Nunito-VariableFont_wght", "bold");
+   doc.setFont("tahoma", "bold");
     doc.setFontSize(11);
     doc.text(getTituloContrato(property.typeProperty), 105, currentY, { align: "center" });
-    currentY += 8;
+    currentY += 10;
 
     // Datos de las partes - con nombres en negrita
-    // Debug: verificar datos del landlord
-    console.log('Landlord data:', landlord);
-    console.log('Landlord email:', landlord.email);
-    console.log('Landlord mobilePhone:', landlord.mobilePhone);
     addPageIfNecessary(50);
-    doc.setFont("Nunito-VariableFont_wght", "normal");
-    doc.setFontSize(7);
+    doc.setFont("tahoma", "normal");
+    doc.setFontSize(9);
     
     let partesY = currentY;
     const leftMargin = 25;
     
     if (property.socio) {
-      const textPart1 = `Entre el Sr/Sra. ${landlord.name || 'N/A'}, CUIL ${landlord.cuil || 'N/A'}, con domicilio en ${landlord.direccion || 'N/A'}, de la ciudad de ${landlord.ciudad || 'N/A'}, correo electronico ${landlord.email || 'N/A'}, telefono ${landlord.mobilePhone || 'N/A'}, en caracter de propietario junto con ${property.socio}, en adelante denominados "LOS LOCADORES", por una parte, y por la otra el Sr/Sra `;
+      const textPart1 = `Entre el Sr/Sra. ${landlord.name || 'N/A'}, CUIL ${landlord.cuil || 'N/A'}, con domicilio en ${landlord.direccion || 'N/A'}, de la ciudad de ${landlord.ciudad || 'N/A'}, telefono ${landlord.mobilePhone || 'N/A'}, en caracter de propietario junto con ${property.socio}, en adelante denominados "LOS LOCADORES", por una parte, y por la otra el Sr/Sra `;
       const lines1 = doc.splitTextToSize(textPart1, maxWidth);
       partesY = addText(textPart1, partesY);
       
       const beforeTenant = doc.getTextWidth(lines1[lines1.length - 1]);
-      doc.setFont("Nunito-VariableFont_wght", "bold");
+      doc.setFont("tahoma", "bold");
       const tenantNameWidth = doc.getTextWidth(tenant.name || 'N/A');
       
       if (beforeTenant + tenantNameWidth > maxWidth) {
@@ -358,16 +353,16 @@ const ContratoAlquiler = ({ lease, autoGenerate = false }) => {
         doc.text(tenant.name || 'N/A', leftMargin + beforeTenant, partesY - lineHeight);
       }
       
-      doc.setFont("Nunito-VariableFont_wght", "normal");
-      const textPart2 = `, CUIL ${tenant.cuil || 'N/A'}, con domicilio en ${tenant.direccion || 'N/A'}, ${tenant.ciudad || 'N/A'}, ${tenant.provincia || 'N/A'} , correo electronico ${tenant.email || 'N/A'}, telefono ${tenant.mobilePhone || 'N/A'}, en adelante denominado "LOCATARIO", convienen en celebrar el presente contrato de locacion, sujeto a las siguientes clausulas y condiciones:`;
+      doc.setFont("tahoma", "normal");
+      const textPart2 = `, CUIL ${tenant.cuil || 'N/A'}, con domicilio en ${tenant.direccion || 'N/A'}, ${tenant.ciudad || 'N/A'}, ${tenant.provincia || 'N/A'}, en adelante denominado "LOCATARIO", convienen en celebrar el presente contrato de locacion, sujeto a las siguientes clausulas y condiciones:`;
       partesY = addText(textPart2, partesY);
     } else {
-      const fullText1 = `Entre el Sr/Sra. ${landlord.name || 'N/A'}, CUIL ${landlord.cuil || 'N/A'}, con domicilio en ${landlord.direccion || 'N/A'}, de la ciudad de ${landlord.ciudad || 'N/A'}, correo electronico ${landlord.email || 'N/A'}, telefono ${landlord.mobilePhone || 'N/A'}, en adelante denominado "EL LOCADOR", por una parte, y por la otra el Sr/Sra `;
+      const fullText1 = `Entre el Sr/Sra. ${landlord.name || 'N/A'}, CUIL ${landlord.cuil || 'N/A'}, con domicilio en ${landlord.direccion || 'N/A'}, de la ciudad de ${landlord.ciudad || 'N/A'}, telefono ${landlord.mobilePhone || 'N/A'}, en adelante denominado "EL LOCADOR", por una parte, y por la otra el Sr/Sra `;
       const lines1 = doc.splitTextToSize(fullText1, maxWidth);
       partesY = addText(fullText1, partesY);
       
       const beforeTenant = doc.getTextWidth(lines1[lines1.length - 1]);
-      doc.setFont("Nunito-VariableFont_wght", "bold");
+      doc.setFont("tahoma", "bold");
       const tenantNameWidth = doc.getTextWidth(tenant.name || 'N/A');
       
       if (beforeTenant + tenantNameWidth > maxWidth) {
@@ -377,12 +372,12 @@ const ContratoAlquiler = ({ lease, autoGenerate = false }) => {
         doc.text(tenant.name || 'N/A', leftMargin + beforeTenant, partesY - lineHeight);
       }
       
-      doc.setFont("Nunito-VariableFont_wght", "normal");
-      const textPart2 = `, CUIL ${tenant.cuil || 'N/A'}, con domicilio en ${tenant.direccion || 'N/A'}, ${tenant.ciudad || 'N/A'}, ${tenant.provincia || 'N/A'}, correo electronico ${tenant.email || 'N/A'}, telefono ${tenant.mobilePhone || 'N/A'}, en adelante denominado "EL LOCATARIO", convienen en celebrar el presente contrato de locacion, sujeto a las siguientes clausulas y condiciones:`;
+      doc.setFont("tahoma", "normal");
+      const textPart2 = `, CUIL ${tenant.cuil || 'N/A'}, con domicilio en ${tenant.direccion || 'N/A'}, ${tenant.ciudad || 'N/A'}, ${tenant.provincia || 'N/A'}, en adelante denominado "EL LOCATARIO", convienen en celebrar el presente contrato de locacion, sujeto a las siguientes clausulas y condiciones:`;
       partesY = addText(textPart2, partesY);
     }
     
-    currentY = partesY + 6;
+    currentY = partesY + 8;
 
     // Primera cláusula - Objeto
     addPageIfNecessary(40);
@@ -471,19 +466,19 @@ const ContratoAlquiler = ({ lease, autoGenerate = false }) => {
       .replace(/\n-/g, '\n• ');
 
     // Usar addLongText para manejar inventarios largos con saltos de página automáticos
-    doc.setFont("Nunito-VariableFont_wght", "bold");
+    doc.setFont("tahoma", "bold");
     doc.text("INVENTARIO:", 25, currentY);
     currentY += lineHeight;
-    doc.setFont("Nunito-VariableFont_wght", "normal");
+    doc.setFont("tahoma", "normal");
     currentY = addLongText(inventarioLimpio, currentY, 7, false, true);
     currentY += 6;
 
     // Décima Quinta cláusula - Competencia
     addPageIfNecessary(60);
-    doc.setFont("Nunito-VariableFont_wght", "bold");
+    doc.setFont("tahoma", "bold");
     doc.text("DECIMA QUINTA: COMPETENCIA - Domicilios - Jurisdiccion y Competencia:", 25, currentY);
     currentY += lineHeight;
-    doc.setFont("Nunito-VariableFont_wght", "normal");
+    doc.setFont("tahoma", "normal");
     const competenciaText = `Las partes que suscriben este contrato renuncian al fuero federal o a cualquier otro que pudiera corresponder y se someten a la jurisdiccion de la justicia ordinaria de la ciudad de Belen para cualquier cuestion que se suscite entre las mismas, constituyendo domicilio para todos los efectos: el LOCADOR fija domicilio en el constituido como domicilio de pago en la clausula sexta del presente, el FIADOR y el COMERCIANTE lo hacen en la propiedad por el presente locada, renunciando expresamente todos ellos al Fuero Federal, en caso de corresponderles, sometiendose para cualquier cuestion derivada del presente a la jurisdiccion de los Tribunales ordinarios de la provincia de Catamarca.`;
     const linesCompetencia = doc.splitTextToSize(competenciaText, maxWidth);
     linesCompetencia.forEach(line => {
@@ -498,10 +493,10 @@ const ContratoAlquiler = ({ lease, autoGenerate = false }) => {
 
     // Décima Sexta cláusula - Firma y Ejemplares
     addPageIfNecessary(40);
-    doc.setFont("Nunito-VariableFont_wght", "bold");
+    doc.setFont("tahoma", "bold");
     doc.text("DECIMA SEXTA: FIRMA Y EJEMPLARES:", 25, currentY);
     currentY += lineHeight;
-    doc.setFont("Nunito-VariableFont_wght", "normal");
+    doc.setFont("tahoma", "normal");
     const firmaEjemplaresText = `Se pacta expresamente que el impuesto de sello provincial sera abonado integramente por el LOCATARIO. Leido, las partes, declaran su conformidad y firman tres (3) ejemplares de un mismo tenor y a un solo efecto, en la Ciudad de Belen ${formatearFecha(new Date())}.`;
     const linesFirmaEjemplares = doc.splitTextToSize(firmaEjemplaresText, maxWidth);
     linesFirmaEjemplares.forEach(line => {
@@ -518,11 +513,11 @@ const ContratoAlquiler = ({ lease, autoGenerate = false }) => {
     if (guarantors.length > 0) {
       guarantors.forEach((guarantor, index) => {
         addPageIfNecessary(25);
-        doc.setFont("Nunito-VariableFont_wght", "bold");
+        doc.setFont("tahoma", "bold");
         const garanteTitle = `DECIMO QUINTO${index > 0 ? ` (${index + 1})` : ''}: Fianza.`;
         doc.text(garanteTitle, 25, currentY);
         const garanteWidth = doc.getTextWidth(garanteTitle + " ");
-        doc.setFont("Nunito-VariableFont_wght", "normal");
+        doc.setFont("tahoma", "normal");
         const guarantorText = `El Sr/Sra ${guarantor.name}, CUIL ${guarantor.cuil}, con domicilio en ${guarantor.address}, se constituye en fiador solidario, liso, llano y principal pagador de todas y cada una de las obligaciones contraidas por el LOCATARIO en el presente contrato.`;
         const linesG = doc.splitTextToSize(guarantorText, maxWidth - garanteWidth);
         doc.text(linesG[0], 25 + garanteWidth, currentY);
@@ -540,7 +535,7 @@ const ContratoAlquiler = ({ lease, autoGenerate = false }) => {
     currentY += 20;
     
     // Líneas de firma del locador y locatario
-    doc.setFont("Nunito-VariableFont_wght", "normal");
+    doc.setFont("tahoma", "normal");
     doc.setFontSize(7);
     doc.line(25, currentY, 85, currentY); // Línea izquierda
     doc.line(110, currentY, 170, currentY); // Línea derecha
