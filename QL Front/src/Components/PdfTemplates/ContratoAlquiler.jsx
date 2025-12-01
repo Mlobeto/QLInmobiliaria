@@ -1,9 +1,15 @@
 import PropTypes from 'prop-types';
 import pdfMake from 'pdfmake/build/pdfmake';
-import pdfFonts from 'pdfmake/build/vfs_fonts';
+import * as pdfFonts from 'pdfmake/build/vfs_fonts';
 
 // Configurar las fuentes de pdfMake
-pdfMake.vfs = pdfFonts.pdfMake.vfs;
+if (pdfFonts.pdfMake && pdfFonts.pdfMake.vfs) {
+  pdfMake.vfs = pdfFonts.pdfMake.vfs;
+} else if (pdfFonts.default && pdfFonts.default.pdfMake) {
+  pdfMake.vfs = pdfFonts.default.pdfMake.vfs;
+} else {
+  pdfMake.vfs = pdfFonts;
+}
 
 const ContratoAlquiler = ({ lease, autoGenerate = false }) => {
   
