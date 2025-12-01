@@ -10,7 +10,6 @@ import {
   IoCashOutline,
   IoCloseOutline,
   IoSaveOutline,
-  IoDownloadOutline,
   IoCheckmarkCircleOutline,
   IoListOutline,
   IoTimeOutline,
@@ -88,7 +87,7 @@ const PaymentForm = () => {
     try {
       // Para pagos iniciales, generar período automáticamente
       const period = formData.type === 'initial' 
-        ? `Pago Inicial - ${new Date(formData.paymentDate).toLocaleDateString('es-AR', { month: 'long', year: 'numeric' })}`
+        ? `Pago Inicial - ${new Date(formData.paymentDate.split('T')[0] + 'T12:00:00').toLocaleDateString('es-AR', { month: 'long', year: 'numeric' })}`
         : formData.period;
 
       const paymentData = {
@@ -301,7 +300,7 @@ const PaymentForm = () => {
                       <p><span className="text-slate-400">Monto:</span> ${Number(formData.amount || 0).toLocaleString('es-AR')}</p>
                       <p><span className="text-slate-400">Período:</span> {formData.period}</p>
                       <p><span className="text-slate-400">Tipo:</span> {formData.type === 'installment' ? 'Cuota de Alquiler' : formData.type === 'initial' ? 'Pago Inicial del Contrato' : 'Comisión'}</p>
-                      <p><span className="text-slate-400">Fecha:</span> {new Date(formData.paymentDate).toLocaleDateString()}</p>
+                      <p><span className="text-slate-400">Fecha:</span> {new Date(formData.paymentDate.split('T')[0] + 'T12:00:00').toLocaleDateString('es-AR')}</p>
                     </div>
                   </div>
                   
