@@ -507,8 +507,8 @@ exports.getLeaseById = async (req, res) => {
         { model: Property },
         { model: PaymentReceipt, required: false },
         { model: Garantor, required: false },
-        { model: Client, as: 'Tenant', attributes: ['name', 'cuil', 'direccion','ciudad','provincia'] },
-        { model: Client, as: 'Landlord', attributes: ['name', 'cuil', 'direccion','ciudad','provincia','mobilePhone'] }
+        { model: Client, as: 'Tenant', attributes: ['name', 'cuil', 'direccion','ciudad','provincia','email','mobilePhone'] },
+        { model: Client, as: 'Landlord', attributes: ['name', 'cuil', 'direccion','ciudad','provincia','email','mobilePhone'] }
       ]
     });
 

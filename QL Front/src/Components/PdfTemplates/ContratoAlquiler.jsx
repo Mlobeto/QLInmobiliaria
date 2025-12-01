@@ -189,6 +189,19 @@ const ContratoAlquiler = ({ lease, autoGenerate = false }) => {
         doc.text(lines[i], 25, currentY, { align: 'justify', maxWidth: maxWidth });
         currentY += lineHeight;
       }
+      
+      // Agregar línea de guiones al final de la última línea de texto
+      const lastLine = lines[lines.length - 1];
+      const lastLineWidth = doc.getTextWidth(lastLine);
+      const remainingWidth = maxWidth - lastLineWidth;
+      
+      if (remainingWidth > 5) { // Solo si queda espacio significativo
+        const guionWidth = doc.getTextWidth('-');
+        const numGuiones = Math.floor(remainingWidth / guionWidth);
+        const guiones = '-'.repeat(numGuiones);
+        doc.text(guiones, 25 + lastLineWidth + 1, currentY - lineHeight);
+      }
+      
       currentY += 8; // Aumentado de 5 a 8 para más espacio entre cláusulas
     };
 
@@ -198,13 +211,19 @@ const ContratoAlquiler = ({ lease, autoGenerate = false }) => {
         'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
         'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'
       ];
-      const f = new Date(fecha);
+      // Manejar fechas que vienen como string de la BD
+      const f = typeof fecha === 'string' 
+        ? new Date(fecha.split('T')[0] + 'T12:00:00')
+        : new Date(fecha);
       return `${f.getDate()} de ${meses[f.getMonth()]} de ${f.getFullYear()}`;
     };
 
     // Helper function para calcular fecha fin
     const calcularFechaFin = (fechaInicio, meses) => {
-      const fecha = new Date(fechaInicio);
+      // Crear fecha sin considerar zona horaria para evitar problemas
+      const fecha = typeof fechaInicio === 'string' 
+        ? new Date(fechaInicio.split('T')[0] + 'T12:00:00')
+        : new Date(fechaInicio);
       fecha.setMonth(fecha.getMonth() + meses);
       return fecha;
     };
