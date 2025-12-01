@@ -304,7 +304,7 @@ const ContratoAlquiler = ({ lease, autoGenerate = false }) => {
       content: content,
       styles: styles,
       pageSize: 'A4',
-      pageMargins: [40, 40, 40, 40],
+      pageMargins: [40, 60, 40, 60], // [izquierda, superior, derecha, inferior]
       defaultStyle: {
         font: 'Roboto'
       }
