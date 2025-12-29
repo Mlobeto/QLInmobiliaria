@@ -89,6 +89,16 @@ const ActualizarAlquileres = () => {
     lease.status === 'active' && necesitaActualizacion(lease)
   );
 
+  // Todos los contratos activos ordenados por fecha de próxima actualización
+  const todosContratosOrdenados = (leases || [])
+    .filter(lease => lease.status === 'active')
+    .map(lease => ({
+      ...lease,
+      proximaActualizacion: calcularProximaActualizacion(lease),
+      necesitaActualizacion: necesitaActualizacion(lease)
+    }))
+    .sort((a, b) => new Date(a.proximaActualizacion) - new Date(b.proximaActualizacion));
+
   // Manejar cambio en inputs de actualización
   const handleActualizacionChange = (leaseId, field, value) => {
     setActualizaciones(prev => ({
@@ -485,15 +495,9 @@ const ActualizarAlquileres = () => {
           </div>
         </div>
 
-        {/* Lista de contratos */}
-        {contratosParaActualizar.length === 0 ? (
-          <div className="bg-green-500/10 border border-green-500/20 rounded-xl p-12 text-center">
-            <IoCheckmarkCircleOutline className="w-16 h-16 text-green-400 mx-auto mb-4" />
-            <p className="text-green-400 text-xl font-medium mb-2">¡Todo al día!</p>
-            <p className="text-slate-400">No hay contratos pendientes de actualización</p>
-          </div>
-        ) : (
-          <div className="space-y-4">
+        {/* Lista de contratos pendientes */}
+        {contratosParaActualizar.length > 0 && (
+          <div className="space-y-4 mb-8">
             <h3 className="text-xl font-semibold text-white mb-4 flex items-center">
               <IoTimeOutline className="w-6 h-6 mr-2 text-amber-400" />
               Contratos Pendientes de Actualización ({contratosParaActualizar.length})
@@ -620,6 +624,80 @@ const ActualizarAlquileres = () => {
             ))}
           </div>
         )}
+
+        {/* Listado completo de contratos ordenados por fecha */}
+        <div className="space-y-4">
+          <h3 className="text-xl font-semibold text-white mb-4 flex items-center">
+            <IoDocumentTextOutline className="w-6 h-6 mr-2 text-blue-400" />
+            Todos los Contratos Activos ({todosContratosOrdenados.length})
+            <span className="ml-3 text-sm text-slate-400 font-normal">
+              Ordenados por próxima fecha de actualización
+            </span>
+          </h3>
+
+          {todosContratosOrdenados.length === 0 ? (
+            <div className="bg-white/5 border border-white/10 rounded-xl p-12 text-center">
+              <IoDocumentTextOutline className="w-16 h-16 text-slate-400 mx-auto mb-4" />
+              <p className="text-slate-400 text-lg">No hay contratos activos</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl">
+                <thead className="bg-white/10">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-slate-300">Propiedad</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-slate-300">Inquilino</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-slate-300">Monto Actual</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-slate-300">Frecuencia</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-slate-300">Próxima Actualización</th>
+                    <th className="px-4 py-3 text-center text-sm font-semibold text-slate-300">Estado</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {todosContratosOrdenados.map((lease, index) => (
+                    <tr 
+                      key={lease.id}
+                      className={`border-t border-white/10 hover:bg-white/5 transition-colors ${
+                        lease.necesitaActualizacion ? 'bg-amber-500/5' : ''
+                      }`}
+                    >
+                      <td className="px-4 py-3 text-sm text-white">
+                        {lease.Property?.address || 'Propiedad sin dirección'}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-slate-300">
+                        {lease.Tenant?.name || 'N/A'}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-white font-semibold">
+                        {formatearMonto(lease.rentAmount)}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-slate-300 capitalize">
+                        {lease.updateFrequency}
+                      </td>
+                      <td className="px-4 py-3 text-sm">
+                        <span className={lease.necesitaActualizacion ? 'text-amber-400 font-semibold' : 'text-slate-300'}>
+                          {formatearFecha(lease.proximaActualizacion)}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        {lease.necesitaActualizacion ? (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-500/20 text-amber-400 border border-amber-500/30">
+                            <IoAlertCircleOutline className="w-4 h-4 mr-1" />
+                            Pendiente
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-500/20 text-green-400 border border-green-500/30">
+                            <IoCheckmarkCircleOutline className="w-4 h-4 mr-1" />
+                            Al día
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
