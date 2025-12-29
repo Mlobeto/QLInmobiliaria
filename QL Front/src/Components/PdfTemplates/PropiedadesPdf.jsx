@@ -29,7 +29,7 @@ const PropiedadesPDF = ({ property }) => {
 
     doc.text("Av. Cuba Nº 50", 90, 18);
     doc.setFontSize(9);
-    doc.text("Tel:3835 5036166", 90, 22);
+    doc.text("Tel:3835 503166", 90, 22);
 
     // Etiqueta tipo
     if (property.type === "venta") {
