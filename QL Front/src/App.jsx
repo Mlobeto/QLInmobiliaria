@@ -19,14 +19,18 @@ import PaymentList from "./Components/Pagos/PaymentList";
 import PaymentReport from "./Components/Pagos/PaymentReport";
 import PanelInformes from "./Components/Admin/PanelInformes";
 import ContractAlerts from "./Components/Contratos/ContractAlerts";
+import ActualizarAlquileres from "./Components/Contratos/ActualizarAlquileres";
 import ContratoAlquiler from "./Components/PdfTemplates/ContratoAlquiler";
 import ReciboPreview from "./Components/PdfTemplates/ReciboPreview";
 import ContratoPreview from "./Components/PdfTemplates/ContratoPreview";
 import SignatureManager from "./Components/Admin/SignatureManager";
+import InstallPWA from "./Components/InstallPWA";
 
 function App() {
   return (
-    <Routes>
+    <>
+      <InstallPWA />
+      <Routes>
       <Route path="/" element={<Landing />} />
       {/* Ruta protegida: solo los administradores pueden ver el Panel */}
       <Route
@@ -187,6 +191,15 @@ function App() {
         }
       />
 
+      <Route
+        path="/actualizarAlquileres"
+        element={
+          //  <ProtectedRoutes>
+          <ActualizarAlquileres />
+          //  </ProtectedRoutes>
+        }
+      />
+
       <Route 
         path="/preview-recibo" 
         element={<ReciboPreview />} 
@@ -204,6 +217,7 @@ function App() {
 
       <Route path="/login" element={<LoginAdmin />} />
     </Routes>
+    </>
   );
 }
 

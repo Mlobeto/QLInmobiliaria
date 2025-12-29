@@ -1,77 +1,324 @@
-import React from "react";
-import PropTypes from "prop-types";
-import jsPDF from "jspdf";
+import PropTypes from 'prop-types';
+import pdfMake from 'pdfmake/build/pdfmake';
+import * as pdfFonts from 'pdfmake/build/vfs_fonts';
 
-const UpdateRentAmount = ({ lease, newRentAmount, updateDate }) => {
-  const generatePdf = () => {
-    const doc = new jsPDF();
-    const maxWidth = 170;
-    let currentY = 10;
+// Configurar las fuentes de pdfMake
+if (pdfFonts.pdfMake && pdfFonts.pdfMake.vfs) {
+  pdfMake.vfs = pdfFonts.pdfMake.vfs;
+} else if (pdfFonts.default && pdfFonts.default.pdfMake) {
+  pdfMake.vfs = pdfFonts.default.pdfMake.vfs;
+} else {
+  pdfMake.vfs = pdfFonts;
+}
 
-    // Helper function to add bold text
-    const addBoldText = (text, y) => {
-      doc.setFont("helvetica", "bold");
-      doc.text(text, 20, y);
-      doc.setFont("helvetica", "normal");
-      return y + 7;
-    };
-
-    // Helper function to add text with automatic line breaks
-    const addText = (text, y) => {
-      const lines = doc.splitTextToSize(text, maxWidth);
-      doc.text(lines, 20, y);
-      return y + lines.length * 7;
-    };
-
-    // Helper function to format date in Spanish
-    const formatDate = (date) => {
-      const options = { year: "numeric", month: "long", day: "numeric" };
-      return new Date(date).toLocaleDateString("es-ES", options);
-    };
-
-    // Title
-    doc.setFontSize(16);
-    doc.text("Actualización de Alquiler", 105, currentY, { align: "center" });
-    doc.setFontSize(10);
-    currentY += 15;
-
-    // Contract details
-    currentY = addBoldText(`ID del Contrato: ${lease.id}`, currentY);
-    currentY = addText(`Fecha de Actualización: ${formatDate(updateDate)}`, currentY);
-    currentY = addText(`Monto Anterior: ${lease.rentAmount} ARS`, currentY);
-    currentY = addText(`Nuevo Monto: ${newRentAmount} ARS`, currentY);
-
-    // Update frequency and period
-    const calculatePeriod = () => {
-      const startDate = new Date(lease.startDate);
-      const updateDateObj = new Date(updateDate);
-      let monthsSinceStart =
-        (updateDateObj.getFullYear() - startDate.getFullYear()) * 12 +
-        (updateDateObj.getMonth() - startDate.getMonth());
-
-      if (lease.updateFrequency === "semestral") {
-        return `Semestre ${Math.floor(monthsSinceStart / 6) + 1}`;
-      } else if (lease.updateFrequency === "cuatrimestral") {
-        return `Cuatrimestre ${Math.floor(monthsSinceStart / 4) + 1}`;
-      } else if (lease.updateFrequency === "anual") {
-        return `Año ${Math.floor(monthsSinceStart / 12) + 1}`;
-      }
-      return "Período desconocido";
-    };
-
-    currentY = addText(`Frecuencia de Actualización: ${lease.updateFrequency}`, currentY);
-    currentY = addText(`Período: ${calculatePeriod()}`, currentY);
-
-    // Footer
-    currentY += 10;
-    currentY = addText(
-      "Cálculo realizado según el índice de alquileres publicado en https://alquiler.com",
-      currentY
-    );
-
-    // Save the PDF
-    doc.save(`Actualizacion_Alquiler_${lease.id}_${updateDate}.pdf`);
+const UpdateRentAmount = ({ lease, newRentAmount, updateDate, ipcIndex, autoGenerate = false }) => {
+  
+  // Función para formatear fecha
+  const formatearFecha = (date) => {
+    const d = typeof date === 'string' ? new Date(date.split('T')[0] + 'T12:00:00') : new Date(date);
+    const dia = String(d.getDate()).padStart(2, '0');
+    const mes = String(d.getMonth() + 1).padStart(2, '0');
+    const anio = d.getFullYear();
+    return `${dia}/${mes}/${anio}`;
   };
+
+  // Función para formatear montos
+  const formatearMonto = (monto) => {
+    return new Intl.NumberFormat('es-AR', {
+      style: 'currency',
+      currency: 'ARS',
+      minimumFractionDigits: 2
+    }).format(monto);
+  };
+
+  // Calcular período
+  const calcularPeriodo = () => {
+    const startDate = new Date(lease.startDate);
+    const updateDateObj = new Date(updateDate);
+    let monthsSinceStart =
+      (updateDateObj.getFullYear() - startDate.getFullYear()) * 12 +
+      (updateDateObj.getMonth() - startDate.getMonth());
+
+    if (lease.updateFrequency === "semestral") {
+      return `Semestre ${Math.floor(monthsSinceStart / 6) + 1}`;
+    } else if (lease.updateFrequency === "cuatrimestral") {
+      return `Cuatrimestre ${Math.floor(monthsSinceStart / 4) + 1}`;
+    } else if (lease.updateFrequency === "anual") {
+      return `Año ${Math.floor(monthsSinceStart / 12) + 1}`;
+    }
+    return "Período desconocido";
+  };
+
+  // Calcular porcentaje de aumento
+  const calcularPorcentaje = () => {
+    const anterior = parseFloat(lease.rentAmount || 0);
+    const nuevo = parseFloat(newRentAmount || 0);
+    if (anterior === 0) return 0;
+    return ((nuevo - anterior) / anterior * 100).toFixed(2);
+  };
+
+  const generatePdf = () => {
+    if (!lease || !newRentAmount) {
+      alert('Faltan datos para generar el PDF');
+      return;
+    }
+
+    const porcentajeAumento = calcularPorcentaje();
+    const periodo = calcularPeriodo();
+
+    // Definición del documento
+    const docDefinition = {
+      content: [
+        // Logo/Encabezado
+        {
+          text: 'QUINTERO+LOBETO PROPIEDADES',
+          style: 'header',
+          margin: [0, 0, 0, 20]
+        },
+        
+        // Título
+        {
+          text: 'ACTUALIZACIÓN DE ALQUILER',
+          style: 'title',
+          margin: [0, 0, 0, 30]
+        },
+
+        // Información del contrato
+        {
+          table: {
+            widths: ['30%', '70%'],
+            body: [
+              [
+                { text: 'ID del Contrato:', style: 'label' },
+                { text: lease.id || 'N/A', style: 'value' }
+              ],
+              [
+                { text: 'Fecha de Actualización:', style: 'label' },
+                { text: formatearFecha(updateDate), style: 'value' }
+              ],
+              [
+                { text: 'Período:', style: 'label' },
+                { text: periodo, style: 'value' }
+              ],
+              [
+                { text: 'Frecuencia:', style: 'label' },
+                { text: (lease.updateFrequency || 'N/A').toUpperCase(), style: 'value' }
+              ]
+            ]
+          },
+          layout: 'noBorders',
+          margin: [0, 0, 0, 20]
+        },
+
+        // Propiedad e Inquilino
+        {
+          table: {
+            widths: ['30%', '70%'],
+            body: [
+              [
+                { text: 'Propiedad:', style: 'label' },
+                { text: lease.Property?.address || 'N/A', style: 'value' }
+              ],
+              [
+                { text: 'Inquilino:', style: 'label' },
+                { text: lease.Tenant?.name || 'N/A', style: 'value' }
+              ],
+              [
+                { text: 'Propietario:', style: 'label' },
+                { text: lease.Landlord?.name || 'N/A', style: 'value' }
+              ]
+            ]
+          },
+          layout: 'noBorders',
+          margin: [0, 0, 0, 30]
+        },
+
+        // Detalles financieros destacados
+        {
+          table: {
+            widths: ['*'],
+            body: [
+              [{ text: 'DETALLES DE LA ACTUALIZACIÓN', style: 'sectionHeader' }]
+            ]
+          },
+          layout: {
+            fillColor: '#3B82F6',
+            hLineWidth: () => 0,
+            vLineWidth: () => 0,
+          },
+          margin: [0, 0, 0, 15]
+        },
+
+        {
+          columns: [
+            {
+              width: '50%',
+              stack: [
+                { text: 'Monto Anterior', style: 'amountLabel' },
+                { text: formatearMonto(lease.rentAmount || 0), style: 'amountOld' }
+              ]
+            },
+            {
+              width: '50%',
+              stack: [
+                { text: 'Nuevo Monto', style: 'amountLabel' },
+                { text: formatearMonto(newRentAmount), style: 'amountNew' }
+              ]
+            }
+          ],
+          margin: [0, 0, 0, 20]
+        },
+
+        {
+          text: `Aumento: ${porcentajeAumento}% ${ipcIndex ? `(IPC: ${ipcIndex})` : ''}`,
+          style: 'percentage',
+          margin: [0, 0, 0, 30]
+        },
+
+        // Información del IPC
+        {
+          canvas: [
+            {
+              type: 'line',
+              x1: 0, y1: 0,
+              x2: 515, y2: 0,
+              lineWidth: 1,
+              lineColor: '#E5E7EB'
+            }
+          ],
+          margin: [0, 0, 0, 10]
+        },
+
+        {
+          text: 'Cálculo realizado según índice de alquileres',
+          style: 'footer',
+          margin: [0, 10, 0, 5]
+        },
+
+        {
+          text: [
+            { text: 'Fuente: ', style: 'footer' },
+            {
+              text: 'https://arquiler.com/',
+              style: 'link',
+              link: 'https://arquiler.com/'
+            }
+          ],
+          margin: [0, 0, 0, 30]
+        },
+
+        // Firma
+        {
+          columns: [
+            {
+              width: '50%',
+              stack: [
+                { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 200, y2: 0, lineWidth: 0.5 }] },
+                { text: 'Firma del Propietario', style: 'signatureLabel', margin: [0, 5, 0, 0] }
+              ]
+            },
+            {
+              width: '50%',
+              stack: [
+                { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 200, y2: 0, lineWidth: 0.5 }] },
+                { text: 'Firma del Inquilino', style: 'signatureLabel', margin: [0, 5, 0, 0] }
+              ]
+            }
+          ],
+          margin: [0, 40, 0, 0]
+        }
+      ],
+      
+      styles: {
+        header: {
+          fontSize: 18,
+          bold: true,
+          alignment: 'center',
+          color: '#1F2937'
+        },
+        title: {
+          fontSize: 16,
+          bold: true,
+          alignment: 'center',
+          color: '#3B82F6'
+        },
+        label: {
+          fontSize: 10,
+          bold: true,
+          color: '#6B7280',
+          margin: [0, 3, 0, 3]
+        },
+        value: {
+          fontSize: 10,
+          color: '#1F2937',
+          margin: [0, 3, 0, 3]
+        },
+        sectionHeader: {
+          fontSize: 12,
+          bold: true,
+          color: '#FFFFFF',
+          alignment: 'center',
+          margin: [10, 10, 10, 10]
+        },
+        amountLabel: {
+          fontSize: 11,
+          color: '#6B7280',
+          alignment: 'center',
+          margin: [0, 0, 0, 5]
+        },
+        amountOld: {
+          fontSize: 18,
+          color: '#EF4444',
+          alignment: 'center',
+          decoration: 'lineThrough'
+        },
+        amountNew: {
+          fontSize: 22,
+          bold: true,
+          color: '#10B981',
+          alignment: 'center'
+        },
+        percentage: {
+          fontSize: 14,
+          bold: true,
+          color: '#3B82F6',
+          alignment: 'center'
+        },
+        footer: {
+          fontSize: 9,
+          color: '#6B7280',
+          alignment: 'center'
+        },
+        link: {
+          fontSize: 9,
+          color: '#3B82F6',
+          decoration: 'underline',
+          alignment: 'center'
+        },
+        signatureLabel: {
+          fontSize: 9,
+          alignment: 'center',
+          color: '#6B7280'
+        }
+      },
+      
+      pageSize: 'A4',
+      pageMargins: [40, 60, 40, 60],
+      defaultStyle: {
+        font: 'Roboto'
+      }
+    };
+
+    // Generar y descargar el PDF
+    const fechaArchivo = formatearFecha(updateDate).replace(/\//g, '_');
+    pdfMake.createPdf(docDefinition).download(`Actualizacion_Alquiler_${lease.id}_${fechaArchivo}.pdf`);
+  };
+
+  // Si autoGenerate es true, generar automáticamente
+  if (autoGenerate) {
+    setTimeout(() => generatePdf(), 100);
+    return null;
+  }
 
   return (
     <div className="mt-4">
@@ -91,9 +338,14 @@ UpdateRentAmount.propTypes = {
     rentAmount: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
     startDate: PropTypes.string.isRequired,
     updateFrequency: PropTypes.string.isRequired,
+    Property: PropTypes.object,
+    Tenant: PropTypes.object,
+    Landlord: PropTypes.object
   }).isRequired,
   newRentAmount: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
   updateDate: PropTypes.string.isRequired,
+  ipcIndex: PropTypes.string,
+  autoGenerate: PropTypes.bool,
 };
 
 export default UpdateRentAmount;

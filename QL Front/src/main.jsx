@@ -11,7 +11,18 @@ import 'react-toastify/dist/ReactToastify.css';
 //axios.defaults.baseURL = "http://localhost:3001";
 axios.defaults.baseURL = "https://qlinmobiliaria.onrender.com";
 
-
+// Registrar Service Worker para PWA
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/service-worker.js')
+      .then((registration) => {
+        console.log('✅ Service Worker registrado:', registration.scope);
+      })
+      .catch((error) => {
+        console.log('❌ Error al registrar Service Worker:', error);
+      });
+  });
+}
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <Provider store={store}>
