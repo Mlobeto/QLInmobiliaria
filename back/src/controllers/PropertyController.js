@@ -450,3 +450,41 @@ Estamos a tu disposición por dudas, precio o consultas.`;
     });
   }
 };
+
+// PUT: Actualizar plantilla de WhatsApp en todas las propiedades
+exports.updateAllWhatsAppTemplates = async (req, res) => {
+  try {
+    const newTemplate = `{descripcion}
+
+Precio: AR$ {precio}
+Ubicación: {direccion}
+
+{destacados}
+
+📍 Ver ubicación: {linkMaps}
+
+📸 Ver más fotos: {linkInstagram}
+
+Estamos a tu disposición por dudas, precio o consultas.`;
+
+    // Actualizar todas las propiedades
+    const [updatedCount] = await Property.update(
+      { whatsappTemplate: newTemplate },
+      { where: {} } // Sin condición where = actualizar todas
+    );
+
+    res.status(200).json({
+      success: true,
+      message: `Se actualizaron ${updatedCount} propiedades con el nuevo template de WhatsApp`,
+      updatedCount: updatedCount,
+      newTemplate: newTemplate
+    });
+
+  } catch (error) {
+    console.error('Error al actualizar templates de WhatsApp:', error);
+    res.status(500).json({
+      error: 'Error al actualizar templates de WhatsApp',
+      details: error.message
+    });
+  }
+};

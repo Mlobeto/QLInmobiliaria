@@ -42,6 +42,7 @@ module.exports = {
   updateProperty: catchedAsync(PropertyController.updateProperty),
   getFilteredProperties: catchedAsync(PropertyController.getFilteredProperties),
   getWhatsAppText: catchedAsync(PropertyController.getWhatsAppText),
+  updateAllWhatsAppTemplates: catchedAsync(PropertyController.updateAllWhatsAppTemplates),
   createGarantorsForLease: catchedAsync(garantorController.createGarantorsForLease),
   updateGarantor:catchedAsync(garantorController.updateGarantor),
   getGarantorsByLeaseId: catchedAsync(garantorController.getGarantorsByLeaseId),
