@@ -359,16 +359,18 @@ exports.getWhatsAppText = async (req, res) => {
     }
 
     // Plantilla por defecto si no existe una personalizada
-    const defaultTemplate = `Gracias por ponerte en contacto con Quintero Lobeto Propiedades! Estamos encantados de poder ayudar. 
-
-{descripcion}
-
-Te comento que estamos en lanzamiento de ofertas y este es el primero!
+    const defaultTemplate = `{descripcion}
 
 Precio: AR$ {precio}
 Ubicación: {direccion}
 
-Estamos a tu entera disposición por dudas, precio o consultas.`;
+{destacados}
+
+📍 Ver ubicación: {linkMaps}
+
+📸 Ver más fotos: {linkInstagram}
+
+Estamos a tu disposición por dudas, precio o consultas.`;
 
     const template = property.whatsappTemplate || defaultTemplate;
 
@@ -408,9 +410,11 @@ Estamos a tu entera disposición por dudas, precio o consultas.`;
       .replace(/{baños}/g, property.bathrooms || 'N/A')
       .replace(/{superficieTotal}/g, property.superficieTotal || 'N/A')
       .replace(/{superficieCubierta}/g, property.superficieCubierta || 'N/A')
-      .replace(/{descripcion}/g, propertyDescription)
+      .replace(/{descripcion}/g, property.description || propertyDescription)
       .replace(/{destacados}/g, property.highlights || '')
-      .replace(/{escritura}/g, property.escritura || '');
+      .replace(/{escritura}/g, property.escritura || '')
+      .replace(/{linkMaps}/g, property.linkMaps || 'No disponible')
+      .replace(/{linkInstagram}/g, property.linkInstagram || 'No disponible');
 
     // Si es finca, agregar información de plantas
     if (property.typeProperty === 'finca' && property.plantType) {
@@ -434,7 +438,7 @@ Estamos a tu entera disposición por dudas, precio o consultas.`;
         '{precio}', '{direccion}', '{ciudad}', '{barrio}',
         '{tipo}', '{tipoOperacion}', '{habitaciones}', '{baños}',
         '{superficieTotal}', '{superficieCubierta}', '{descripcion}',
-        '{destacados}', '{escritura}'
+        '{destacados}', '{escritura}', '{linkMaps}', '{linkInstagram}'
       ]
     });
 

@@ -171,14 +171,16 @@ module.exports = (sequelize) => {
       whatsappTemplate: {
         type: DataTypes.TEXT,
         allowNull: true,
-        defaultValue: `Gracias por ponerte en contacto con Quintero Lobeto Propiedades! Estamos encantados de poder ayudar. 
-
-{descripcion}
-
-Te comento que estamos en lanzamiento de ofertas y este es el primero!
+        defaultValue: `{descripcion}
 
 Precio: AR$ {precio}
 Ubicación: {direccion}
+
+{destacados}
+
+📍 Ver ubicación: {linkMaps}
+
+📸 Ver más fotos: {linkInstagram}
 
 Estamos a tu entera disposición por dudas, precio o consultas.`,
       },

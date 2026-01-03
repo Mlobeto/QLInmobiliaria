@@ -132,6 +132,9 @@ const WhatsAppButton = ({ propertyId, property }) => {
                   <code className="bg-white px-2 py-1 rounded border">{'{baños}'}</code>
                   <code className="bg-white px-2 py-1 rounded border">{'{superficieTotal}'}</code>
                   <code className="bg-white px-2 py-1 rounded border">{'{descripcion}'}</code>
+                  <code className="bg-white px-2 py-1 rounded border">{'{destacados}'}</code>
+                  <code className="bg-white px-2 py-1 rounded border">{'{linkMaps}'}</code>
+                  <code className="bg-white px-2 py-1 rounded border">{'{linkInstagram}'}</code>
                 </div>
               </div>
 
