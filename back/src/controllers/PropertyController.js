@@ -413,8 +413,19 @@ Estamos a tu disposición por dudas, precio o consultas.`;
       .replace(/{descripcion}/g, property.description || propertyDescription)
       .replace(/{destacados}/g, property.highlights || '')
       .replace(/{escritura}/g, property.escritura || '')
-      .replace(/{linkMaps}/g, property.linkMaps || 'No disponible')
-      .replace(/{linkInstagram}/g, property.linkInstagram || 'No disponible');
+      .replace(/{linkMaps}/g, property.linkMaps || '')
+      .replace(/{linkInstagram}/g, property.linkInstagram || '');
+
+    // Eliminar líneas vacías de linkMaps y linkInstagram si no existen
+    if (!property.linkMaps) {
+      whatsappText = whatsappText.replace(/\n*📍 Ver ubicación:\s*\n*/g, '');
+    }
+    if (!property.linkInstagram) {
+      whatsappText = whatsappText.replace(/\n*📸 Ver más fotos:\s*\n*/g, '');
+    }
+
+    // Limpiar múltiples saltos de línea consecutivos
+    whatsappText = whatsappText.replace(/\n{3,}/g, '\n\n');
 
     // Si es finca, agregar información de plantas
     if (property.typeProperty === 'finca' && property.plantType) {
