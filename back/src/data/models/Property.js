@@ -182,9 +182,7 @@ module.exports = (sequelize) => {
       requisito: {
         type: DataTypes.TEXT,
         allowNull: true,
-        defaultValue: `REQUISITOS PARA ALQUILAR
-
-Propiedad con domicilio en: {address}
+        defaultValue: `REQUISITOS PARA ALQUILAR Propiedad con domicilio en: {address}
 
 1. Fotocopia D.N.I./ CUIL/CUIT, solicitante/s y garante/s, domicilio y teléfono de los mismos, sino es del dominio del documento electrónico.
 
@@ -203,7 +201,7 @@ Correo electrónico:
 
 4. Los garantes firman el contrato ante escribano para que les certifique la firma, y cuando firme ante escribano deberá ser legalizado por el colegio de Escribanos.
 
-5. Monto del alquiler mensual: 1º Cuatrimestre ${price} - Para los cuatrimestres siguientes de locación el precio será actualizado conforme el índice de precio al consumidor (IPC) que confecciona y publica el Instituto Nacional de Estadísticas y Censos (INDEC).
+5. Monto del alquiler mensual: 1º Cuatrimestre {price} - Para los cuatrimestres siguientes de locación el precio será actualizado conforme el índice de precio al consumidor (IPC) que confecciona y publica el Instituto Nacional de Estadísticas y Censos (INDEC).
 
 6. Honorarios de contratos ante escribano y favor de firma inmobiliaria: Igual al monto del alquiler
 
