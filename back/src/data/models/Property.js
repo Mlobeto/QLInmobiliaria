@@ -115,8 +115,15 @@ module.exports = (sequelize) => {
         type: DataTypes.STRING,
         allowNull: true,
         validate: {
-          isUrl: {
-            msg: "Debe ser una URL válida"
+          customValidator(value) {
+            // Solo validar si el valor no está vacío
+            if (value && value.trim() !== '') {
+              // Validar que sea una URL válida
+              const urlPattern = /^https?:\/\/.+/i;
+              if (!urlPattern.test(value)) {
+                throw new Error('Debe ser una URL válida');
+              }
+            }
           }
         },
       },
@@ -126,8 +133,15 @@ module.exports = (sequelize) => {
         type: DataTypes.STRING,
         allowNull: true,
         validate: {
-          isUrl: {
-            msg: "Debe ser una URL válida de Google Maps"
+          customValidator(value) {
+            // Solo validar si el valor no está vacío
+            if (value && value.trim() !== '') {
+              // Validar que sea una URL válida
+              const urlPattern = /^https?:\/\/.+/i;
+              if (!urlPattern.test(value)) {
+                throw new Error('Debe ser una URL válida de Google Maps');
+              }
+            }
           }
         },
       },

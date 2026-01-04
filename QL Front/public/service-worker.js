@@ -40,29 +40,42 @@ self.addEventListener('activate', (event) => {
 
 // Estrategia: Network First, fallback a Cache
 self.addEventListener('fetch', (event) => {
+  // Solo cachear peticiones GET y URLs válidas (excluir chrome-extension, etc)
+  const isValidRequest = event.request.method === 'GET' && 
+                         event.request.url.startsWith('http');
+  
   event.respondWith(
     fetch(event.request)
       .then((response) => {
-        // Clonar la respuesta
-        const responseToCache = response.clone();
-        
-        caches.open(CACHE_NAME)
-          .then((cache) => {
-            cache.put(event.request, responseToCache);
-          });
+        // Solo cachear si es una petición válida y la respuesta es exitosa
+        if (isValidRequest && response.status === 200) {
+          const responseToCache = response.clone();
+          
+          caches.open(CACHE_NAME)
+            .then((cache) => {
+              cache.put(event.request, responseToCache);
+            })
+            .catch((error) => {
+              console.log('Error al cachear:', error);
+            });
+        }
         
         return response;
       })
       .catch(() => {
-        // Si falla la red, buscar en cache
-        return caches.match(event.request)
-          .then((response) => {
-            if (response) {
-              return response;
-            }
-            // Si no está en cache, devolver página offline
-            return caches.match('/index.html');
-          });
+        // Si falla la red, buscar en cache (solo para peticiones GET)
+        if (isValidRequest) {
+          return caches.match(event.request)
+            .then((response) => {
+              if (response) {
+                return response;
+              }
+              // Si no está en cache, devolver página offline
+              return caches.match('/index.html');
+            });
+        }
+        // Para peticiones no-GET, simplemente retornar error
+        return new Response('Network error', { status: 408 });
       })
   );
 });
