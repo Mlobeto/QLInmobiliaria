@@ -168,7 +168,17 @@ exports.updateProperty = async (req, res) => {
       body: req.body
     });
 
-    const updated = await Property.update(req.body, { where: { propertyId } });
+    // Limpiar campos numéricos: convertir strings vacíos a null
+    const cleanedData = { ...req.body };
+    const numericFields = ['precioReferencia', 'plantQuantity', 'rooms', 'bathrooms'];
+    
+    numericFields.forEach(field => {
+      if (cleanedData[field] === '' || cleanedData[field] === null || cleanedData[field] === undefined) {
+        cleanedData[field] = null;
+      }
+    });
+
+    const updated = await Property.update(cleanedData, { where: { propertyId } });
     
     console.log('[UpdateProperty] Resultado:', updated);
     
