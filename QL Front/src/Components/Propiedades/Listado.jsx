@@ -7,6 +7,7 @@ import PropiedadesPDF from "../PdfTemplates/PropiedadesPdf";
 import CreateLeaseForm from "../Contratos/CreateLeaseForm";
 import CompraVenta from "../Contratos/CompraVenta";
 import WhatsAppButton from './WhatsAppButton';
+import RequisitoButton from './RequisitoButton';
 import ImageManager from './ImageManager';
 import EditPropertyModal from './EditPropertyModal';
 import { 
@@ -48,6 +49,7 @@ const Listado = ({ mode = "default", onSelectProperty }) => {
     }).format(value);
   };
 
+  // eslint-disable-next-line no-unused-vars
   const [editingId, setEditingId] = useState(null);
   const [formData, setFormData] = useState({});
   const [errors, setErrors] = useState({});
@@ -135,6 +137,7 @@ const Listado = ({ mode = "default", onSelectProperty }) => {
     return error;
   };
 
+  // eslint-disable-next-line no-unused-vars
   const handleInputChange = (field, value) => {
     setFormData({ ...formData, [field]: value });
     const error = validateField(field, value);
@@ -146,6 +149,7 @@ const Listado = ({ mode = "default", onSelectProperty }) => {
     setShowEditModal(true);
   };
 
+  // eslint-disable-next-line no-unused-vars
   const handleSave = () => {
     const validationErrors = Object.keys(formData).reduce((acc, field) => {
       const error = validateField(field, formData[field]);
@@ -392,6 +396,7 @@ const Listado = ({ mode = "default", onSelectProperty }) => {
                     propertyId={property.propertyId}
                     property={property}
                   />
+                  <RequisitoButton property={property} />
                   <ImageManager property={property} />
                   <div className="flex-grow flex justify-end">
                     <PropiedadesPDF property={property} />

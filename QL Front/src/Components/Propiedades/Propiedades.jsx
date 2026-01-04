@@ -58,6 +58,7 @@ const CreateProperty = () => {
     Inventory: "",
     superficieTotal: "",
     superficieCubierta: "",
+    requisito: "",
   });
   const [showPdfButton, setShowPdfButton] = useState(false);
 
@@ -744,6 +745,27 @@ const CreateProperty = () => {
                       placeholder="https://maps.google.com/..."
                     />
                   </div>
+
+                  {/* Campo Requisito - Solo para propiedades en alquiler */}
+                  {formData.type === "alquiler" && (
+                    <div>
+                      <label htmlFor="requisito" className="block text-slate-300 font-medium mb-2">
+                        Requisitos de Alquiler
+                      </label>
+                      <textarea
+                        id="requisito"
+                        name="requisito"
+                        value={formData.requisito}
+                        onChange={handleChange}
+                        rows="10"
+                        className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-slate-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20 transition-all duration-300 backdrop-blur-sm font-mono text-sm"
+                        placeholder="Requisitos específicos para esta propiedad..."
+                      />
+                      <p className="text-slate-400 text-xs mt-1">
+                        Deja en blanco para usar la plantilla por defecto
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

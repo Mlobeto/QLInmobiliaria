@@ -87,7 +87,8 @@ exports.createProperty = async (req, res) => {
         socio: socio || null,
         inventory: inventory || null,
         superficieCubierta: superficieCubierta || null,
-        superficieTotal: superficieTotal || null
+        superficieTotal: superficieTotal || null,
+        requisito: req.body.requisito || null
       });
 
       // Si se proporciona idClient y role, crear la relación
@@ -177,6 +178,11 @@ exports.updateProperty = async (req, res) => {
         cleanedData[field] = null;
       }
     });
+
+    // Mantener requisito si viene en el body
+    if (req.body.requisito !== undefined) {
+      cleanedData.requisito = req.body.requisito || null;
+    }
 
     const updated = await Property.update(cleanedData, { where: { propertyId } });
     

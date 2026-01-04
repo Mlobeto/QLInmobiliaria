@@ -44,7 +44,8 @@ const EditPropertyModal = ({ property, onClose }) => {
     isAvailable: true,
     socio: '',
     plantType: '',
-    plantQuantity: ''
+    plantQuantity: '',
+    requisito: ''
   });
   
   const [loading, setLoading] = useState(false);
@@ -76,7 +77,8 @@ const EditPropertyModal = ({ property, onClose }) => {
         isAvailable: property.isAvailable ?? true,
         socio: property.socio || '',
         plantType: property.plantType || '',
-        plantQuantity: property.plantQuantity || ''
+        plantQuantity: property.plantQuantity || '',
+        requisito: property.requisito || ''
       });
     }
   }, [property]);
@@ -478,6 +480,31 @@ const EditPropertyModal = ({ property, onClose }) => {
                 </div>
               </div>
             </div>
+
+            {/* Requisitos de Alquiler - Solo para propiedades en alquiler */}
+            {formData.type === "alquiler" && (
+              <div className="col-span-2 bg-amber-50 p-4 rounded-lg border-l-4 border-amber-500">
+                <h3 className="font-bold text-amber-900 flex items-center gap-2 mb-4">
+                  <IoDocumentTextOutline /> Requisitos de Alquiler
+                </h3>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Requisitos Específicos
+                  </label>
+                  <textarea
+                    name="requisito"
+                    value={formData.requisito}
+                    onChange={handleChange}
+                    rows="10"
+                    placeholder="Deja en blanco para usar la plantilla por defecto..."
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 font-mono text-sm"
+                  />
+                  <p className="text-gray-500 text-xs mt-1">
+                    Si no completas este campo, se usará la plantilla estándar de requisitos
+                  </p>
+                </div>
+              </div>
+            )}
 
             {/* Finca (si aplica) */}
             <div className="col-span-2 bg-lime-50 p-4 rounded-lg border-l-4 border-lime-500">
