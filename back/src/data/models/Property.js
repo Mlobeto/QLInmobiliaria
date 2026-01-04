@@ -189,7 +189,9 @@ module.exports = (sequelize) => {
 2. Fotocopia de los últimos tres recibos de sueldo, y certificado de trabajo, si es autónomo justificación de ingresos, esta puede hacer por un Contador y debe pasar por el Colegio Profesional de Ciencias Económicas, para ser certificada.
 
 3. Tipos de garantía: Cantidad: 1 - con recibos de sueldo o certificación de ingresos.
-   • Recibo de sueldo no inferior al tercio del monto del alquiler Garante:
+   • Recibo de sueldo no inferior al tercio del monto del alquiler 
+
+Garante:
 
 DNI:
 Domicilio:
