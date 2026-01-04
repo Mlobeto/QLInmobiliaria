@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import PropTypes from 'prop-types';
-import { IoDocumentTextOutline, IoCheckmarkCircleOutline, IoCopyOutline } from 'react-icons/io5';
+import {  IoCheckmarkCircleOutline, IoCopyOutline } from 'react-icons/io5';
 
 const RequisitoButton = ({ property }) => {
   const [copied, setCopied] = useState(false);
@@ -11,7 +11,12 @@ const RequisitoButton = ({ property }) => {
       setIsLoading(true);
       
       // Obtener el texto de requisito (plantilla por defecto o personalizado)
-      const requisitoText = property.requisito || getDefaultRequisito();
+      let requisitoText = property.requisito || getDefaultRequisito();
+      
+      // Reemplazar variables dinámicas
+      requisitoText = requisitoText
+        .replace(/{address}/g, property.address || '[Dirección no especificada]')
+        .replace(/\${price}/g, property.price ? `$${parseFloat(property.price).toLocaleString('es-AR')}` : '[Precio no especificado]');
       
       // Copiar al portapapeles
       await navigator.clipboard.writeText(requisitoText);
@@ -29,12 +34,18 @@ const RequisitoButton = ({ property }) => {
   const getDefaultRequisito = () => {
     return `REQUISITOS PARA ALQUILAR
 
+Propiedad con domicilio en: {address}
+
 1. Fotocopia D.N.I./ CUIL/CUIT, solicitante/s y garante/s, domicilio y teléfono de los mismos, sino es del dominio del documento electrónico.
 
 2. Fotocopia de los últimos tres recibos de sueldo, y certificado de trabajo, si es autónomo justificación de ingresos, esta puede hacer por un Contador y debe pasar por el Colegio Profesional de Ciencias Económicas, para ser certificada.
 
-3. Tipos de garantía: Cantidad: 1 - con recibos de sueldo o certificación de ingresos.
-   • Recibo de sueldo no inferior al tercio del monto del alquiler Garante:
+3. ⦁	Tipos de garantías: Cantidad 2 –con recibo de sueldo-
+⦁	Garantía de caución o/
+⦁	Recibo de sueldo no inferior al tercio del monto del alquiler
+
+
+Garante:
 
 DNI:
 Domicilio:
@@ -42,7 +53,7 @@ Correo electrónico:
 
 4. Los garantes firman el contrato ante escribano para que les certifique la firma, y cuando firme ante escribano deberá ser legalizado por el colegio de Escribanos.
 
-5. Monto del alquiler mensual: 1º Cuatrimestre $$$$$$$$$$ Para los cuatrimestres siguientes de locación el precio será actualizado conforme el índice de precio al consumidor (IPC) que confecciona y publica el Instituto Nacional de Estadísticas y Censos (INDEC).
+5. Monto del alquiler mensual: 1º Cuatrimestre \${price} - Para los cuatrimestres siguientes de locación el precio será actualizado conforme el índice de precio al consumidor (IPC) que confecciona y publica el Instituto Nacional de Estadísticas y Censos (INDEC).
 
 6. Honorarios de contratos ante escribano y favor de firma inmobiliaria: Igual al monto del alquiler
 
@@ -96,7 +107,9 @@ Correo electrónico:
 RequisitoButton.propTypes = {
   property: PropTypes.shape({
     type: PropTypes.string.isRequired,
-    requisito: PropTypes.string
+    requisito: PropTypes.string,
+    address: PropTypes.string,
+    price: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
   }).isRequired
 };
 
