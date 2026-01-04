@@ -1,6 +1,6 @@
 /* eslint-disable no-restricted-globals */
 
-const CACHE_NAME = 'ql-inmobiliaria-v2';
+const CACHE_NAME = 'ql-inmobiliaria-v3';
 const urlsToCache = [
   '/',
   '/index.html',

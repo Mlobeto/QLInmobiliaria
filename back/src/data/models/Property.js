@@ -94,9 +94,6 @@ module.exports = (sequelize) => {
       matriculaOPadron: {
         type: DataTypes.STRING,
         allowNull: true,
-        validate: {
-          notEmpty: true,
-        },
       },
 
       // Campos específicos para lotes

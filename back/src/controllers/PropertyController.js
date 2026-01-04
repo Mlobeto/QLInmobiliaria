@@ -172,9 +172,17 @@ exports.updateProperty = async (req, res) => {
     // Limpiar campos numéricos: convertir strings vacíos a null
     const cleanedData = { ...req.body };
     const numericFields = ['precioReferencia', 'plantQuantity', 'rooms', 'bathrooms'];
+    const textFields = ['frente', 'profundidad', 'matriculaOPadron', 'socio', 'plantType'];
     
     numericFields.forEach(field => {
       if (cleanedData[field] === '' || cleanedData[field] === null || cleanedData[field] === undefined) {
+        cleanedData[field] = null;
+      }
+    });
+    
+    // Limpiar campos de texto opcionales: convertir strings vacíos a null
+    textFields.forEach(field => {
+      if (cleanedData[field] === '') {
         cleanedData[field] = null;
       }
     });
