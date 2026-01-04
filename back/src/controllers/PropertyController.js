@@ -523,3 +523,63 @@ Estamos a tu disposición por dudas, precio o consultas.`;
     });
   }
 };
+
+// Actualizar los requisitos de todas las propiedades
+exports.updateAllRequisitos = async (req, res) => {
+  try {
+    const newRequisito = `REQUISITOS PARA ALQUILAR
+
+Propiedad con domicilio en: {address}
+
+1. Fotocopia D.N.I./ CUIL/CUIT, solicitante/s y garante/s, domicilio y teléfono de los mismos, sino es del dominio del documento electrónico.
+
+2. Fotocopia de los últimos tres recibos de sueldo, y certificado de trabajo, si es autónomo justificación de ingresos, esta puede hacer por un Contador y debe pasar por el Colegio Profesional de Ciencias Económicas, para ser certificada.
+
+3. ⦁	Tipos de garantías: Cantidad 2 –con recibo de sueldo-
+⦁	Garantía de caución o/
+⦁	Recibo de sueldo no inferior al tercio del monto del alquiler
+
+
+Garante:
+
+DNI:
+Domicilio:
+Correo electrónico:
+
+4. Los garantes firman el contrato ante escribano para que les certifique la firma, y cuando firme ante escribano deberá ser legalizado por el colegio de Escribanos.
+
+5. Monto del alquiler mensual: 1º Cuatrimestre {price} - Para los cuatrimestres siguientes de locación el precio será actualizado conforme el índice de precio al consumidor (IPC) que confecciona y publica el Instituto Nacional de Estadísticas y Censos (INDEC).
+
+6. Honorarios de contratos ante escribano y favor de firma inmobiliaria: Igual al monto del alquiler
+
+7. Período de locación: 2 años
+
+8. Certificado de firma ante escribano público.
+
+9. Sellado en rentas provincial
+
+10. No se pide mes de depósito.
+
+`;
+
+    // Actualizar todas las propiedades
+    const [updatedCount] = await Property.update(
+      { requisito: newRequisito },
+      { where: {} } // Sin condición where = actualizar todas
+    );
+
+    res.status(200).json({
+      success: true,
+      message: `Se actualizaron ${updatedCount} propiedades con el nuevo formato de requisitos`,
+      updatedCount: updatedCount,
+      newRequisito: newRequisito
+    });
+
+  } catch (error) {
+    console.error('Error al actualizar requisitos:', error);
+    res.status(500).json({
+      error: 'Error al actualizar requisitos',
+      details: error.message
+    });
+  }
+};

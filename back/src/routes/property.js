@@ -9,7 +9,8 @@ const {
   updateProperty,
   getFilteredProperties,
   getWhatsAppText,
-  updateAllWhatsAppTemplates
+  updateAllWhatsAppTemplates,
+  updateAllRequisitos
 } = require("../controllers");
 
 const router = Router();
@@ -31,6 +32,9 @@ router.get("/:id/whatsapp", getWhatsAppText);
 
 // Ruta para actualizar todos los templates de WhatsApp
 router.put("/bulk/update-whatsapp-templates", updateAllWhatsAppTemplates);
+
+// Ruta para actualizar todos los requisitos
+router.put("/bulk/update-requisitos", updateAllRequisitos);
 
 // Agregamos logging específico para la ruta getPropertyById
 router.get("/:propertyId", (req, res, next) => {
