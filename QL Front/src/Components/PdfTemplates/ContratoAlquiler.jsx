@@ -64,13 +64,21 @@ const ContratoAlquiler = ({ lease, autoGenerate = false }) => {
       try {
         // Crear un contenedor temporal para el HTML
         const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = lease.customContent;
+        
+        // Crear un wrapper interno para el contenido con márgenes exactos
+        const contentWrapper = document.createElement('div');
+        contentWrapper.innerHTML = lease.customContent;
+        contentWrapper.style.width = '160mm'; // 210mm - 50mm (25mm cada lado)
+        contentWrapper.style.padding = '0';
+        contentWrapper.style.margin = '0';
+        
+        tempDiv.appendChild(contentWrapper);
         tempDiv.style.position = 'absolute';
         tempDiv.style.left = '-9999px';
         tempDiv.style.top = '0';
         tempDiv.style.width = '210mm'; // A4 width
         tempDiv.style.minHeight = '297mm'; // A4 height
-        tempDiv.style.padding = '20mm 25mm'; // Márgenes: arriba/abajo 20mm, izq/der 25mm
+        tempDiv.style.padding = '25mm 25mm'; // Márgenes: arriba/abajo 25mm, izq/der 25mm
         tempDiv.style.backgroundColor = 'white';
         tempDiv.style.boxSizing = 'border-box';
         tempDiv.style.fontFamily = 'Helvetica, Arial, sans-serif';
