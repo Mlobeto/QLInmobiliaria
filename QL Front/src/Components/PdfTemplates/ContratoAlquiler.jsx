@@ -1,6 +1,8 @@
 import PropTypes from 'prop-types';
 import pdfMake from 'pdfmake/build/pdfmake';
 import * as pdfFonts from 'pdfmake/build/vfs_fonts';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 
 // Configurar las fuentes de pdfMake
 if (pdfFonts.pdfMake && pdfFonts.pdfMake.vfs) {
@@ -56,7 +58,70 @@ const ContratoAlquiler = ({ lease, autoGenerate = false }) => {
     return fecha;
   };
 
-  const generatePdf = () => {
+  const generatePdf = async () => {
+    // Si existe customContent (contrato editado), generar PDF desde HTML
+    if (lease.customContent) {
+      try {
+        // Crear un contenedor temporal para el HTML
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = lease.customContent;
+        tempDiv.style.position = 'absolute';
+        tempDiv.style.left = '-9999px';
+        tempDiv.style.width = '210mm'; // A4 width
+        tempDiv.style.padding = '20mm 25mm'; // Top/Bottom 20mm, Left/Right 25mm
+        tempDiv.style.backgroundColor = 'white';
+        tempDiv.style.boxSizing = 'border-box';
+        tempDiv.style.fontFamily = 'Helvetica, Arial, sans-serif';
+        document.body.appendChild(tempDiv);
+
+        // Convertir HTML a canvas
+        const canvas = await html2canvas(tempDiv, {
+          scale: 2,
+          useCORS: true,
+          logging: false,
+          width: tempDiv.scrollWidth,
+          height: tempDiv.scrollHeight
+        });
+
+        // Remover el elemento temporal
+        document.body.removeChild(tempDiv);
+
+        // Crear PDF desde el canvas manteniendo márgenes
+        const imgData = canvas.toDataURL('image/png');
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = pdf.internal.pageSize.getHeight();
+        
+        // Calcular dimensiones respetando los márgenes del tempDiv
+        const imgWidth = pdfWidth;
+        const imgHeight = (canvas.height * pdfWidth) / canvas.width;
+
+        let heightLeft = imgHeight;
+        let position = 0;
+
+        // Agregar la primera página
+        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight, undefined, 'FAST');
+        heightLeft -= pdfHeight;
+
+        // Agregar páginas adicionales si es necesario
+        while (heightLeft > 0) {
+          position = heightLeft - imgHeight;
+          pdf.addPage();
+          pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight, undefined, 'FAST');
+          heightLeft -= pdfHeight;
+        }
+
+        const fechaArchivo = formatearFecha(new Date(lease.startDate)).replace(/\//g, '_');
+        pdf.save(`Contrato_${lease.id}_${fechaArchivo}.pdf`);
+        return;
+      } catch (error) {
+        console.error('Error generando PDF desde HTML:', error);
+        alert('Error al generar el PDF del contrato editado. Se generará el PDF estándar.');
+        // Continuar con la generación normal si falla
+      }
+    }
+
+    // Generación estándar del PDF (código original)
     if (!lease || !lease.Property || !lease.Tenant || !lease.Landlord) {
       alert('Faltan datos del contrato');
       return;
