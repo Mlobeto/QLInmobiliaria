@@ -62,87 +62,85 @@ const ContratoAlquiler = ({ lease, autoGenerate = false }) => {
     // Si existe customContent (contrato editado), generar PDF desde HTML
     if (lease.customContent) {
       try {
-        // Crear un contenedor temporal para el HTML
+        // Crear un contenedor temporal para el HTML con estructura de página A4
+        const pageContainer = document.createElement('div');
+        pageContainer.style.position = 'absolute';
+        pageContainer.style.left = '-9999px';
+        pageContainer.style.top = '0';
+        pageContainer.style.width = '210mm';
+        pageContainer.style.backgroundColor = 'white';
+        
+        // Contenedor interno con los márgenes
         const tempDiv = document.createElement('div');
-        
-        // Crear un wrapper interno para el contenido con márgenes exactos
-        const contentWrapper = document.createElement('div');
-        contentWrapper.innerHTML = lease.customContent;
-        contentWrapper.style.width = '160mm'; // 210mm - 50mm (25mm cada lado)
-        contentWrapper.style.padding = '0';
-        contentWrapper.style.margin = '0';
-        
-        tempDiv.appendChild(contentWrapper);
-        tempDiv.style.position = 'absolute';
-        tempDiv.style.left = '-9999px';
-        tempDiv.style.top = '0';
-        tempDiv.style.width = '210mm'; // A4 width
-        tempDiv.style.minHeight = '297mm'; // A4 height
-        tempDiv.style.padding = '25mm 25mm'; // Márgenes: arriba/abajo 25mm, izq/der 25mm
+        tempDiv.innerHTML = lease.customContent;
+        tempDiv.style.width = '160mm'; // 210mm - 50mm (25mm cada lado)
+        tempDiv.style.margin = '25mm auto'; // Centrado con márgenes arriba/abajo
+        tempDiv.style.padding = '0';
         tempDiv.style.backgroundColor = 'white';
-        tempDiv.style.boxSizing = 'border-box';
         tempDiv.style.fontFamily = 'Helvetica, Arial, sans-serif';
         tempDiv.style.fontSize = '11pt';
         tempDiv.style.lineHeight = '1.6';
         tempDiv.style.color = '#000';
         
-        // Aplicar estilos a todos los párrafos para justificación
+        pageContainer.appendChild(tempDiv);
+        
+        // Aplicar estilos a todos los elementos para justificación y formato
         const styleElement = document.createElement('style');
         styleElement.textContent = `
-          #temp-contract-div p {
+          #temp-contract-content p {
             text-align: justify !important;
             margin: 10px 0 !important;
             font-family: Helvetica, Arial, sans-serif !important;
             font-size: 11pt !important;
             line-height: 1.6 !important;
           }
-          #temp-contract-div h1 {
+          #temp-contract-content h1 {
             font-size: 16pt !important;
             text-align: center !important;
             font-weight: bold !important;
             font-family: Helvetica, Arial, sans-serif !important;
             margin: 15px 0 !important;
           }
-          #temp-contract-div h2 {
+          #temp-contract-content h2 {
             font-size: 14pt !important;
             font-weight: bold !important;
             font-family: Helvetica, Arial, sans-serif !important;
             margin: 12px 0 !important;
           }
-          #temp-contract-div ul, #temp-contract-div ol {
+          #temp-contract-content ul, #temp-contract-content ol {
             text-align: justify !important;
             font-family: Helvetica, Arial, sans-serif !important;
             font-size: 11pt !important;
           }
-          #temp-contract-div * {
+          #temp-contract-content * {
             font-family: Helvetica, Arial, sans-serif !important;
           }
         `;
-        tempDiv.id = 'temp-contract-div';
+        tempDiv.id = 'temp-contract-content';
         document.head.appendChild(styleElement);
-        document.body.appendChild(tempDiv);
+        document.body.appendChild(pageContainer);
 
         // Convertir HTML a canvas
-        const canvas = await html2canvas(tempDiv, {
+        const canvas = await html2canvas(pageContainer, {
           scale: 2,
           useCORS: true,
           logging: false,
-          width: tempDiv.scrollWidth,
-          height: tempDiv.scrollHeight,
+          width: pageContainer.scrollWidth,
+          height: pageContainer.scrollHeight,
           backgroundColor: '#ffffff'
         });
 
         // Remover el elemento temporal y los estilos
-        document.body.removeChild(tempDiv);
+        document.body.removeChild(pageContainer);
         document.head.removeChild(styleElement);
 
-        // Crear PDF desde el canvas manteniendo márgenes
+        // Crear PDF desde el canvas
         const imgData = canvas.toDataURL('image/png');
         const pdf = new jsPDF('p', 'mm', 'a4');
         const pdfWidth = pdf.internal.pageSize.getWidth();
         const pdfHeight = pdf.internal.pageSize.getHeight();
         
-        // Calcular dimensiones respetando los márgenes del tempDiv
+        // Calcular dimensiones para que la imagen ocupe toda la página
         const imgWidth = pdfWidth;
         const imgHeight = (canvas.height * pdfWidth) / canvas.width;
 
