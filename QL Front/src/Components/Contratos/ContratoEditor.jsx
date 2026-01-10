@@ -103,13 +103,44 @@ const ContratoEditor = ({ lease, onClose }) => {
                   font-family: Helvetica, Arial, sans-serif; 
                   font-size: 11pt; 
                   line-height: 1.6;
-                  max-width: 800px;
+                  width: 160mm;
+                  max-width: 160mm;
+                  min-height: 247mm;
                   margin: 0 auto;
-                  padding: 20px;
+                  padding: 25mm;
+                  box-sizing: border-box;
+                  background: white;
+                  box-shadow: 0 0 0 1px #e0e0e0, 0 0 0 25mm #f5f5f5;
+                  position: relative;
                 }
-                h1 { font-size: 16pt; text-align: center; font-weight: bold; }
-                h2 { font-size: 14pt; font-weight: bold; }
-                p { margin: 10px 0; text-align: justify; }
+                body::before {
+                  content: '';
+                  position: absolute;
+                  top: 0;
+                  left: 0;
+                  right: 0;
+                  bottom: 0;
+                  border: 1px dashed #ccc;
+                  pointer-events: none;
+                }
+                h1 { 
+                  font-size: 16pt; 
+                  text-align: center; 
+                  font-weight: bold;
+                  margin: 15px 0;
+                }
+                h2 { 
+                  font-size: 14pt; 
+                  font-weight: bold;
+                  margin: 12px 0;
+                }
+                p { 
+                  margin: 10px 0; 
+                  text-align: justify;
+                }
+                ul, ol {
+                  text-align: justify;
+                }
               `
             }}
           />
