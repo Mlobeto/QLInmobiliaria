@@ -67,11 +67,51 @@ const ContratoAlquiler = ({ lease, autoGenerate = false }) => {
         tempDiv.innerHTML = lease.customContent;
         tempDiv.style.position = 'absolute';
         tempDiv.style.left = '-9999px';
+        tempDiv.style.top = '0';
         tempDiv.style.width = '210mm'; // A4 width
-        tempDiv.style.padding = '20mm 25mm'; // Top/Bottom 20mm, Left/Right 25mm
+        tempDiv.style.minHeight = '297mm'; // A4 height
+        tempDiv.style.padding = '20mm 25mm'; // Márgenes: arriba/abajo 20mm, izq/der 25mm
         tempDiv.style.backgroundColor = 'white';
         tempDiv.style.boxSizing = 'border-box';
         tempDiv.style.fontFamily = 'Helvetica, Arial, sans-serif';
+        tempDiv.style.fontSize = '11pt';
+        tempDiv.style.lineHeight = '1.6';
+        tempDiv.style.color = '#000';
+        
+        // Aplicar estilos a todos los párrafos para justificación
+        const styleElement = document.createElement('style');
+        styleElement.textContent = `
+          #temp-contract-div p {
+            text-align: justify !important;
+            margin: 10px 0 !important;
+            font-family: Helvetica, Arial, sans-serif !important;
+            font-size: 11pt !important;
+            line-height: 1.6 !important;
+          }
+          #temp-contract-div h1 {
+            font-size: 16pt !important;
+            text-align: center !important;
+            font-weight: bold !important;
+            font-family: Helvetica, Arial, sans-serif !important;
+            margin: 15px 0 !important;
+          }
+          #temp-contract-div h2 {
+            font-size: 14pt !important;
+            font-weight: bold !important;
+            font-family: Helvetica, Arial, sans-serif !important;
+            margin: 12px 0 !important;
+          }
+          #temp-contract-div ul, #temp-contract-div ol {
+            text-align: justify !important;
+            font-family: Helvetica, Arial, sans-serif !important;
+            font-size: 11pt !important;
+          }
+          #temp-contract-div * {
+            font-family: Helvetica, Arial, sans-serif !important;
+          }
+        `;
+        tempDiv.id = 'temp-contract-div';
+        document.head.appendChild(styleElement);
         document.body.appendChild(tempDiv);
 
         // Convertir HTML a canvas
@@ -80,11 +120,13 @@ const ContratoAlquiler = ({ lease, autoGenerate = false }) => {
           useCORS: true,
           logging: false,
           width: tempDiv.scrollWidth,
-          height: tempDiv.scrollHeight
+          height: tempDiv.scrollHeight,
+          backgroundColor: '#ffffff'
         });
 
-        // Remover el elemento temporal
+        // Remover el elemento temporal y los estilos
         document.body.removeChild(tempDiv);
+        document.head.removeChild(styleElement);
 
         // Crear PDF desde el canvas manteniendo márgenes
         const imgData = canvas.toDataURL('image/png');
