@@ -93,35 +93,45 @@ const ContratoEditor = ({ lease, onClose }) => {
             value={contenido}
             onEditorChange={(newContent) => setContenido(newContent)}
             init={{
-              height: 500,
+              height: 600,
               menubar: false,
               statusbar: false,
               plugins: 'lists link code help wordcount',
               toolbar: 'undo redo | formatselect | bold italic | alignleft aligncenter alignright | bullist numlist | removeformat | code | help',
               content_style: `
+                html {
+                  background: #e0e0e0;
+                  padding: 0;
+                  margin: 0;
+                }
                 body { 
                   font-family: Helvetica, Arial, sans-serif; 
                   font-size: 11pt; 
                   line-height: 1.6;
-                  width: 160mm;
-                  max-width: 160mm;
-                  min-height: 247mm;
-                  margin: 0 auto;
+                  width: 210mm;
+                  min-height: 297mm;
+                  margin: 20px auto;
                   padding: 25mm;
                   box-sizing: border-box;
                   background: white;
-                  box-shadow: 0 0 0 1px #e0e0e0, 0 0 0 25mm #f5f5f5;
+                  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
                   position: relative;
+                  border: 1px solid #ccc;
                 }
                 body::before {
                   content: '';
                   position: absolute;
-                  top: 0;
-                  left: 0;
-                  right: 0;
-                  bottom: 0;
-                  border: 1px dashed #ccc;
+                  top: 25mm;
+                  left: 25mm;
+                  right: 25mm;
+                  bottom: 25mm;
+                  border: 1px dashed #2196F3;
                   pointer-events: none;
+                  z-index: 1000;
+                }
+                body > * {
+                  position: relative;
+                  z-index: 1;
                 }
                 h1 { 
                   font-size: 16pt; 
