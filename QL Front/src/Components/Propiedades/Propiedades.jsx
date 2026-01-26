@@ -680,6 +680,7 @@ Correo electrónico:
                     <option value="" className="bg-slate-800">Seleccione</option>
                     <option value="prescripcion en tramite" className="bg-slate-800">Prescripción en Trámite</option>
                     <option value="escritura" className="bg-slate-800">Escritura</option>
+                    <option value="escritura en tramite" className="bg-slate-800">Escritura en Trámite</option>
                     <option value="prescripcion adjudicada" className="bg-slate-800">Prescripción Adjudicada</option>
                     <option value="posesion" className="bg-slate-800">Posesión</option>
                     <option value="sesión de derechos posesorios" className="bg-slate-800">Sesión de Derechos Posesorios</option>

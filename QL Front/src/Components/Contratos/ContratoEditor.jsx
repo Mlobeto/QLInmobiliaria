@@ -93,63 +93,108 @@ const ContratoEditor = ({ lease, onClose }) => {
             value={contenido}
             onEditorChange={(newContent) => setContenido(newContent)}
             init={{
-              height: 600,
+              height: 700,
               menubar: false,
               statusbar: false,
-              plugins: 'lists link code help wordcount',
-              toolbar: 'undo redo | formatselect | bold italic | alignleft aligncenter alignright | bullist numlist | removeformat | code | help',
+              plugins: 'lists link code help wordcount pagebreak',
+              toolbar: 'undo redo | formatselect | bold italic | alignleft aligncenter alignright | bullist numlist | removeformat | pagebreak | code | help',
               content_style: `
                 html {
-                  background: #e0e0e0;
-                  padding: 0;
-                  margin: 0;
+                  background: #f0f0f0;
+                  padding: 20px;
                 }
                 body { 
                   font-family: Helvetica, Arial, sans-serif; 
                   font-size: 11pt; 
                   line-height: 1.6;
                   width: 210mm;
-                  min-height: 297mm;
-                  margin: 20px auto;
-                  padding: 25mm;
-                  box-sizing: border-box;
+                  margin: 0 auto;
+                  padding: 0;
                   background: white;
-                  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+                  box-shadow: 0 2px 10px rgba(0,0,0,0.15);
                   position: relative;
-                  border: 1px solid #ccc;
+                  background-image: 
+                    linear-gradient(to right, transparent 25mm, #2196F3 25mm, #2196F3 calc(25mm + 2px), transparent calc(25mm + 2px), transparent calc(210mm - 25mm - 2px), #2196F3 calc(210mm - 25mm - 2px), #2196F3 calc(210mm - 25mm), transparent calc(210mm - 25mm)),
+                    linear-gradient(to bottom, transparent 25mm, #2196F3 25mm, #2196F3 calc(25mm + 2px), transparent calc(25mm + 2px), transparent calc(297mm - 25mm - 2px), #2196F3 calc(297mm - 25mm - 2px), #2196F3 calc(297mm - 25mm), transparent calc(297mm - 25mm)),
+                    linear-gradient(to bottom, transparent 297mm, #ff4444 297mm, #ff4444 calc(297mm + 3px), transparent calc(297mm + 3px), transparent 594mm, #ff4444 594mm, #ff4444 calc(594mm + 3px), transparent calc(594mm + 3px));
+                  background-repeat: repeat-y, repeat-x, repeat;
+                  min-height: 297mm;
                 }
                 body::before {
-                  content: '';
+                  content: 'PÁGINA 1';
                   position: absolute;
-                  top: 25mm;
-                  left: 25mm;
-                  right: 25mm;
-                  bottom: 25mm;
-                  border: 1px dashed #2196F3;
-                  pointer-events: none;
+                  top: 10mm;
+                  left: 50%;
+                  transform: translateX(-50%);
+                  color: #999;
+                  font-size: 9pt;
+                  font-weight: bold;
+                }
+                body::after {
+                  content: 'Límite de Página';
+                  position: absolute;
+                  top: 297mm;
+                  left: 50%;
+                  transform: translateX(-50%);
+                  color: #ff4444;
+                  font-size: 9pt;
+                  font-weight: bold;
+                  background: white;
+                  padding: 5px 10px;
+                  border: 2px solid #ff4444;
+                  border-radius: 4px;
                   z-index: 1000;
                 }
                 body > * {
-                  position: relative;
-                  z-index: 1;
+                  margin-left: 25mm;
+                  margin-right: 25mm;
+                  max-width: 160mm;
+                }
+                body > *:first-child {
+                  margin-top: 25mm;
+                }
+                body > *:last-child {
+                  margin-bottom: 25mm;
                 }
                 h1 { 
                   font-size: 16pt; 
                   text-align: center; 
                   font-weight: bold;
-                  margin: 15px 0;
+                  margin-top: 15px;
+                  margin-bottom: 15px;
                 }
                 h2 { 
                   font-size: 14pt; 
                   font-weight: bold;
-                  margin: 12px 0;
+                  margin-top: 12px;
+                  margin-bottom: 12px;
                 }
                 p { 
-                  margin: 10px 0; 
+                  margin-top: 10px;
+                  margin-bottom: 10px;
                   text-align: justify;
                 }
                 ul, ol {
                   text-align: justify;
+                }
+                /* Estilo para saltos de página manuales */
+                .mce-pagebreak {
+                  border-top: 3px dashed #ff4444;
+                  margin: 20px 0;
+                  page-break-after: always;
+                  position: relative;
+                }
+                .mce-pagebreak::after {
+                  content: 'SALTO DE PÁGINA';
+                  position: absolute;
+                  top: -12px;
+                  left: 50%;
+                  transform: translateX(-50%);
+                  background: white;
+                  padding: 0 10px;
+                  color: #ff4444;
+                  font-size: 9pt;
+                  font-weight: bold;
                 }
               `
             }}

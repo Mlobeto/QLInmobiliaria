@@ -86,7 +86,8 @@ module.exports = (sequelize) => {
           "escritura",
           "prescripcion adjudicada",
           "posesion",
-          "sesión de derechos posesorios"
+          "sesión de derechos posesorios",
+          "escritura en tramite"
         ),
         allowNull: false,
       },
