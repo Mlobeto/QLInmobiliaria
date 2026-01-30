@@ -38,14 +38,24 @@ const EditSaleAuthorizationModal = ({ property, onClose, onSave }) => {
     const loadAuthorizationData = async () => {
       try {
         setLoadingData(true);
+        console.log('=== MODAL: Cargando datos de autorización ===');
+        console.log('Property recibida:', property);
+        
         const response = await axios.get(
           `${API_URL}/api/property/${property.propertyId}/sale-authorization`
         );
 
+        console.log('=== MODAL: Respuesta del backend ===');
+        console.log('response.data completo:', response.data);
+
         if (response.data.success) {
           const { authorization, client, property: propertyData } = response.data;
           
-          setFormData({
+          console.log('authorization:', authorization);
+          console.log('client:', client);
+          console.log('propertyData:', propertyData);
+          
+          const formDataToSet = {
             ownerName: authorization.ownerName || client?.name || '',
             ownerCuil: authorization.ownerCuil || client?.cuil || '',
             ownerAddress: authorization.ownerAddress || client?.address || '',
@@ -56,10 +66,16 @@ const EditSaleAuthorizationModal = ({ property, onClose, onSave }) => {
             customText: authorization.customText || '',
             socio: authorization.socio || propertyData.socio || '',
             currency: authorization.currency || propertyData.currency || 'ARS'
-          });
+          };
+          
+          console.log('=== MODAL: FormData final a setear ===');
+          console.log(formDataToSet);
+          
+          setFormData(formDataToSet);
         }
       } catch (err) {
-        console.error('Error al cargar datos de autorización:', err);
+        console.error('=== MODAL: Error al cargar datos ===', err);
+        console.error('Error completo:', err.response?.data || err.message);
         // Si no hay datos, usar los de la propiedad
         setFormData({
           ownerName: '',
