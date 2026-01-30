@@ -14,7 +14,7 @@ const AutorizacionVentaPdf = ({ property, onEdit }) => {
     const loadAuthData = async () => {
       try {
         const response = await axios.get(
-          `${API_URL}/api/property/${property.propertyId}/sale-authorization`
+          `${API_URL}/property/${property.propertyId}/sale-authorization`
         );
         if (response.data.success) {
           console.log('Datos de autorización cargados:', response.data);
