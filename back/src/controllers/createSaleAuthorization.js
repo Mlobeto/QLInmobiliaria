@@ -3,6 +3,7 @@ const { Property, Client, ClientProperty } = require("../data");
 /**
  * Crear o actualizar datos de la autorización de venta
  * POST /api/property/:propertyId/sale-authorization
+ * Versión: 1.1
  */
 exports.createOrUpdateSaleAuthorization = async (req, res) => {
   try {
@@ -79,6 +80,7 @@ exports.createOrUpdateSaleAuthorization = async (req, res) => {
 /**
  * Obtener datos de la autorización de venta
  * GET /api/property/:propertyId/sale-authorization
+ * Versión: 1.1
  */
 exports.getSaleAuthorization = async (req, res) => {
   try {
