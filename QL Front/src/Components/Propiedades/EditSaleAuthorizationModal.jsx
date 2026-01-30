@@ -116,7 +116,7 @@ const EditSaleAuthorizationModal = ({ property, onClose, onSave }) => {
 
     try {
       const response = await axios.post(
-        `${API_URL}/api/property/${property.propertyId}/sale-authorization`,
+        `${API_URL}/property/${property.propertyId}/sale-authorization`,
         formData
       );
 
