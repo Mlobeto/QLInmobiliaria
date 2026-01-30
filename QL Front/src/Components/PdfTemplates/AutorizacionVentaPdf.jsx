@@ -39,16 +39,20 @@ const AutorizacionVentaPdf = ({ property, onEdit }) => {
     const auth = authData?.authorization || {};
     const client = authData?.client || {};
     const propertyData = authData?.property || property;
+    
+    // FALLBACK: Si no hay datos del backend, usar los Clients de la propiedad
+    const propertyClient = property?.Clients?.[0] || {};
 
     console.log('=== GENERANDO PDF ===');
     console.log('authData completo:', authData);
     console.log('auth:', auth);
     console.log('client:', client);
+    console.log('propertyClient:', propertyClient);
     console.log('propertyData:', propertyData);
 
-    const ownerName = auth.ownerName || client.name || 'N/A';
-    const ownerCuil = auth.ownerCuil || client.cuil || 'N/A';
-    const ownerAddress = auth.ownerAddress || client.address || 'N/A';
+    const ownerName = auth.ownerName || client.name || propertyClient.name || 'N/A';
+    const ownerCuil = auth.ownerCuil || client.cuil || propertyClient.cuil || 'N/A';
+    const ownerAddress = auth.ownerAddress || client.address || propertyClient.address || 'N/A';
     
     console.log('Valores finales - Nombre:', ownerName, 'CUIL:', ownerCuil, 'Dirección:', ownerAddress);
     const price = auth.salePrice || propertyData.price || 0;
