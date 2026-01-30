@@ -38,9 +38,16 @@ router.put("/bulk/update-whatsapp-templates", updateAllWhatsAppTemplates);
 // Ruta para actualizar todos los requisitos
 router.put("/bulk/update-requisitos", updateAllRequisitos);
 
-// Rutas para Autorización de Venta
-router.get("/:propertyId/sale-authorization", getSaleAuthorization);
-router.post("/:propertyId/sale-authorization", createSaleAuthorization);
+// Rutas para Autorización de Venta (DEBEN IR ANTES de /:propertyId)
+router.get("/:propertyId/sale-authorization", (req, res, next) => {
+  console.log('[SALE AUTH GET] PropertyId:', req.params.propertyId);
+  next();
+}, getSaleAuthorization);
+
+router.post("/:propertyId/sale-authorization", (req, res, next) => {
+  console.log('[SALE AUTH POST] PropertyId:', req.params.propertyId);
+  next();
+}, createSaleAuthorization);
 
 // Agregamos logging específico para la ruta getPropertyById
 router.get("/:propertyId", (req, res, next) => {
