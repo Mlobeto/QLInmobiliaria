@@ -93,7 +93,7 @@ exports.getSaleAuthorization = async (req, res) => {
           model: Client,
           through: { 
             model: ClientProperty,
-            where: { role: 'vendedor' }
+            where: { role: 'vendedor' }  // ✅ Cambiado a 'vendedor'
           },
           required: false
         }
@@ -122,8 +122,8 @@ exports.getSaleAuthorization = async (req, res) => {
       commission: property.comision,
       validityDays: 360,
       customText: '',
-      surrency: property.currency || 'ARS',
-      cocio: property.socio || '',
+      currency: property.currency || 'ARS',
+      socio: property.socio || '',
       createdDate: new Date().toISOString(),
       lastUpdated: new Date().toISOString(),
     };
@@ -140,7 +140,8 @@ exports.getSaleAuthorization = async (req, res) => {
         superficieTotal: property.superficieTotal,
         price: property.price,
         comision: property.comision,
-        socio: property.socio
+        socio: property.socio,
+        currency: property.currency
       },
       authorization: authorizationData,
       client: client ? {

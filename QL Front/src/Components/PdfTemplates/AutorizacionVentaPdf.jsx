@@ -17,6 +17,7 @@ const AutorizacionVentaPdf = ({ property, onEdit }) => {
           `${API_URL}/api/property/${property.propertyId}/sale-authorization`
         );
         if (response.data.success) {
+          console.log('Datos de autorización cargados:', response.data);
           setAuthData(response.data);
         }
       } catch (error) {
@@ -138,7 +139,7 @@ const AutorizacionVentaPdf = ({ property, onEdit }) => {
           className="flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-all duration-300 shadow-lg"
         >
           <IoCreateOutline className="w-5 h-5" />
-          Editar
+          Editar Autorización
         </button>
       )}
       <button 
@@ -146,7 +147,7 @@ const AutorizacionVentaPdf = ({ property, onEdit }) => {
         className="flex items-center gap-2 bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-lg transition-all duration-300 shadow-lg"
       >
         <IoDocumentTextOutline className="w-5 h-5" />
-        Generar PDF
+        PDF Autorización
       </button>
     </div>
   );
