@@ -19,6 +19,7 @@ exports.createProperty = async (req, res) => {
         profundidad,
         linkInstagram,
         linkMaps, // ✅ Agregado
+        currency, // ✅ Agregado para ventas
         rooms,
         socio,
         inventory,
@@ -77,6 +78,7 @@ exports.createProperty = async (req, res) => {
         profundidad: profundidad || null,
         linkInstagram: linkInstagram || null,
         linkMaps: linkMaps || null, // ✅ Agregado
+        currency: currency || 'ARS', // ✅ Agregado (default ARS)
         rooms: parsedRooms,
         isAvailable: true,
         description: req.body.description || "",

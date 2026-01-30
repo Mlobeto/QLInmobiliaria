@@ -792,6 +792,25 @@ Correo electrónico:
                     />
                   </div>
 
+                  {/* Campo Moneda - Solo para propiedades en VENTA */}
+                  {formData.type === "venta" && (
+                    <div>
+                      <label htmlFor="currency" className="block text-slate-300 font-medium mb-2">
+                        Moneda *
+                      </label>
+                      <select
+                        id="currency"
+                        name="currency"
+                        value={formData.currency || "ARS"}
+                        onChange={handleChange}
+                        className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-slate-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20 transition-all duration-300 backdrop-blur-sm"
+                      >
+                        <option value="ARS" className="bg-slate-800">Pesos Argentinos (ARS)</option>
+                        <option value="USD" className="bg-slate-800">Dólares Estadounidenses (USD)</option>
+                      </select>
+                    </div>
+                  )}
+
                   {/* Campo Requisito - Solo para propiedades en alquiler */}
                   {formData.type === "alquiler" && (
                     <div>

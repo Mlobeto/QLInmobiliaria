@@ -29,7 +29,8 @@ const EditSaleAuthorizationModal = ({ property, onClose, onSave }) => {
     commission: '',
     validityDays: 360,
     customText: '',
-    socio: ''
+    socio: '',
+    currency: 'ARS'
   });
 
   // Cargar datos existentes al montar el componente
@@ -53,7 +54,8 @@ const EditSaleAuthorizationModal = ({ property, onClose, onSave }) => {
             commission: authorization.commission || propertyData.comision || '',
             validityDays: authorization.validityDays || 360,
             customText: authorization.customText || '',
-            socio: authorization.socio || propertyData.socio || ''
+            socio: authorization.socio || propertyData.socio || '',
+            currency: authorization.currency || propertyData.currency || 'ARS'
           });
         }
       } catch (err) {
@@ -68,6 +70,7 @@ const EditSaleAuthorizationModal = ({ property, onClose, onSave }) => {
           commission: property.comision || '',
           validityDays: 360,
           customText: '',
+          currency: property.currency || 'ARS',
           socio: property.socio || ''
         });
       } finally {
@@ -268,7 +271,7 @@ const EditSaleAuthorizationModal = ({ property, onClose, onSave }) => {
               <IoPricetagOutline className="w-5 h-5 text-amber-400" />
               Condiciones Económicas
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <div>
                 <label className="block text-slate-300 font-medium mb-2">
                   Precio de Venta *
@@ -282,6 +285,22 @@ const EditSaleAuthorizationModal = ({ property, onClose, onSave }) => {
                   placeholder="Ej: 150000"
                   required
                 />
+              </div>
+
+              <div>
+                <label className="block text-slate-300 font-medium mb-2">
+                  Moneda *
+                </label>
+                <select
+                  name="currency"
+                  value={formData.currency}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-slate-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20 transition-all duration-300"
+                  required
+                >
+                  <option value="ARS" className="bg-slate-800">Pesos (ARS)</option>
+                  <option value="USD" className="bg-slate-800">Dólares (USD)</option>
+                </select>
               </div>
 
               <div>

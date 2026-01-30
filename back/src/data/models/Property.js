@@ -49,6 +49,12 @@ module.exports = (sequelize) => {
           min: 0, // Precio no puede ser negativo
         },
       },
+      currency: {
+        type: DataTypes.ENUM("ARS", "USD"),
+        allowNull: true,
+        defaultValue: "ARS", // Por defecto en pesos argentinos
+        comment: "Moneda de la transacción (solo para ventas): ARS = Pesos, USD = Dólares"
+      },
       precioReferencia: {
         type: DataTypes.DECIMAL,
         allowNull: true, // No es requerido

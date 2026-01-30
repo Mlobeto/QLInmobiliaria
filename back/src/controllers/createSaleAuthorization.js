@@ -16,7 +16,8 @@ exports.createOrUpdateSaleAuthorization = async (req, res) => {
       commission,
       validityDays = 360,
       customText,
-      socio
+      socio,
+      currency
     } = req.body;
 
     console.log('=== CREAR/ACTUALIZAR AUTORIZACIÓN DE VENTA ===');
@@ -48,6 +49,7 @@ exports.createOrUpdateSaleAuthorization = async (req, res) => {
       validityDays: validityDays || property.saleAuthorizationData?.validityDays || 360,
       customText: customText || property.saleAuthorizationData?.customText || '',
       socio: socio || property.saleAuthorizationData?.socio || property.socio || '',
+      currency: currency || property.saleAuthorizationData?.currency || property.currency || 'ARS',
       createdDate: property.saleAuthorizationData?.createdDate || new Date().toISOString(),
       lastUpdated: new Date().toISOString(),
     };
@@ -120,7 +122,8 @@ exports.getSaleAuthorization = async (req, res) => {
       commission: property.comision,
       validityDays: 360,
       customText: '',
-      socio: property.socio || '',
+      surrency: property.currency || 'ARS',
+      cocio: property.socio || '',
       createdDate: new Date().toISOString(),
       lastUpdated: new Date().toISOString(),
     };

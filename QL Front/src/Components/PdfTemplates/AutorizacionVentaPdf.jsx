@@ -43,7 +43,13 @@ const AutorizacionVentaPdf = ({ property, onEdit }) => {
     const ownerCuil = auth.ownerCuil || client.cuil || 'N/A';
     const ownerAddress = auth.ownerAddress || client.address || 'N/A';
     const price = auth.salePrice || propertyData.price || 0;
+    const currency = auth.currency || propertyData.currency || 'ARS';
     const validityDays = auth.validityDays || 360;
+    
+    // Formatear precio con símbolo de moneda
+    const currencySymbol = currency === 'USD' ? 'U$S' : '$';
+    const formattedPrice = `${currencySymbol} ${Number(price).toLocaleString('es-AR')}`;
+    const currencyName = currency === 'USD' ? 'Dólares Estadounidenses' : 'Pesos Argentinos';
     
     // Calcular fecha de creación
     const createdDate = auth.createdDate ? new Date(auth.createdDate) : new Date();
@@ -79,7 +85,8 @@ const AutorizacionVentaPdf = ({ property, onEdit }) => {
 
     // SEGUNDA: Precio
     const precioReferencia = propertyData.precioReferencia || price;
-    const secondText = `SEGUNDA: El precio pactado para el vendedor es $ ${Number(price).toLocaleString('es-AR')} (Precio de referencia: $ ${Number(precioReferencia).toLocaleString('es-AR')})`;
+    const formattedPrecioRef = `${currencySymbol} ${Number(precioReferencia).toLocaleString('es-AR')}`;
+    const secondText = `SEGUNDA: El precio pactado para el vendedor es ${formattedPrice} ${currencyName} (Precio de referencia: ${formattedPrecioRef})`;
     const secondLines = doc.splitTextToSize(secondText, maxWidth);
     doc.text(secondLines, 20, currentY);
     currentY += secondLines.length * 8 + 10;
