@@ -316,7 +316,7 @@ exports.getAllProperties = async (req, res) => {
           through: {
             attributes: ['role'], // Incluir solo el campo de rol desde la tabla intermedia
           },
-          attributes: ['idClient', 'name', 'email', 'mobilePhone'], // Campos del cliente
+          attributes: ['idClient', 'name', 'email', 'mobilePhone', 'cuil', 'address'], // ✅ Agregado cuil y address
         },
       ],
     });
