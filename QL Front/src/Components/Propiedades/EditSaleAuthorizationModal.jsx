@@ -42,7 +42,7 @@ const EditSaleAuthorizationModal = ({ property, onClose, onSave }) => {
         console.log('Property recibida:', property);
         
         const response = await axios.get(
-          `${API_URL}/api/property/${property.propertyId}/sale-authorization`
+          `${API_URL}/property/${property.propertyId}/sale-authorization`
         );
 
         console.log('=== MODAL: Respuesta del backend ===');
