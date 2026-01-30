@@ -10,6 +10,8 @@ import WhatsAppButton from './WhatsAppButton';
 import RequisitoButton from './RequisitoButton';
 import ImageManager from './ImageManager';
 import EditPropertyModal from './EditPropertyModal';
+import AutorizacionVentaPdf from '../PdfTemplates/AutorizacionVentaPdf';
+import EditSaleAuthorizationModal from './EditSaleAuthorizationModal';
 import { 
   IoArrowBackOutline,
   IoHomeOutline,
@@ -60,6 +62,8 @@ const Listado = ({ mode = "default", onSelectProperty }) => {
   const [selectedProperty, setSelectedProperty] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [propertyToEdit, setPropertyToEdit] = useState(null);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [authProperty, setAuthProperty] = useState(null);
   const propertiesPerPage = 5;
 
   // Filtrar solo propiedades disponibles para alquiler/venta según el modo
@@ -398,6 +402,18 @@ const Listado = ({ mode = "default", onSelectProperty }) => {
                   />
                   <RequisitoButton property={property} />
                   <ImageManager property={property} />
+                  
+                  {/* Botón de Autorización de Venta - Solo para propiedades en venta */}
+                  {property.type === 'venta' && (
+                    <AutorizacionVentaPdf 
+                      property={property}
+                      onEdit={() => {
+                        setAuthProperty(property);
+                        setShowAuthModal(true);
+                      }}
+                    />
+                  )}
+                  
                   <div className="flex-grow flex justify-end">
                     <PropiedadesPDF property={property} />
                   </div>
@@ -607,6 +623,21 @@ const Listado = ({ mode = "default", onSelectProperty }) => {
           onClose={() => {
             setShowEditModal(false);
             setPropertyToEdit(null);
+          }}
+        />
+      )}
+
+      {/* Modal de Edición de Autorización de Venta */}
+      {showAuthModal && authProperty && (
+        <EditSaleAuthorizationModal
+          property={authProperty}
+          onClose={() => {
+            setShowAuthModal(false);
+            setAuthProperty(null);
+          }}
+          onSave={() => {
+            // Refrescar las propiedades después de guardar
+            dispatch(getAllProperties());
           }}
         />
       )}

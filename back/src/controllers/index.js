@@ -50,7 +50,8 @@ module.exports = {
   addPropertyToClientWithRole : catchedAsync(addPropertyToClientController.addPropertyToClientWithRole),
   getAllProperties: catchedAsync(PropertyController.getAllProperties),
   getPropertyById: catchedAsync(PropertyController.getPropertyById),
-  createSaleAuthorization: catchedAsync(createSaleAuthorization.createSaleAuthorization),
+  createSaleAuthorization: catchedAsync(createSaleAuthorization.createOrUpdateSaleAuthorization),
+  getSaleAuthorization: catchedAsync(createSaleAuthorization.getSaleAuthorization),
   
   // Lease Controller functions
   createLease: catchedAsync(LeaseController.createLease),

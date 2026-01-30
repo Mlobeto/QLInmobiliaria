@@ -233,6 +233,26 @@ Ubicación: {direccion}
 
 Estamos a tu entera disposición por dudas, precio o consultas.`,
       },
+
+      // Datos de la Autorización de Venta (almacena información editable)
+      saleAuthorizationData: {
+        type: DataTypes.JSONB,
+        allowNull: true,
+        defaultValue: null,
+        // Estructura esperada:
+        // {
+        //   ownerName: string,
+        //   ownerCuil: string,
+        //   ownerAddress: string,
+        //   propertyDescription: string,
+        //   salePrice: number,
+        //   commission: number,
+        //   validityDays: number (default 360),
+        //   createdDate: timestamp,
+        //   lastUpdated: timestamp,
+        //   customText: string (opcional)
+        // }
+      },
       
       
     },

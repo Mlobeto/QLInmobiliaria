@@ -10,7 +10,9 @@ const {
   getFilteredProperties,
   getWhatsAppText,
   updateAllWhatsAppTemplates,
-  updateAllRequisitos
+  updateAllRequisitos,
+  createSaleAuthorization,
+  getSaleAuthorization
 } = require("../controllers");
 
 const router = Router();
@@ -35,6 +37,10 @@ router.put("/bulk/update-whatsapp-templates", updateAllWhatsAppTemplates);
 
 // Ruta para actualizar todos los requisitos
 router.put("/bulk/update-requisitos", updateAllRequisitos);
+
+// Rutas para Autorización de Venta
+router.get("/:propertyId/sale-authorization", getSaleAuthorization);
+router.post("/:propertyId/sale-authorization", createSaleAuthorization);
 
 // Agregamos logging específico para la ruta getPropertyById
 router.get("/:propertyId", (req, res, next) => {
