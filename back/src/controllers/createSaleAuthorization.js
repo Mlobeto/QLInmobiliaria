@@ -118,7 +118,7 @@ exports.getSaleAuthorization = async (req, res) => {
     const authorizationData = property.saleAuthorizationData || {
       ownerName: client?.name || '',
       ownerCuil: client?.cuil || '',
-      ownerAddress: client?.address || '',
+      ownerAddress: client?.direccion || '',
       propertyDescription: property.description || '',
       salePrice: property.price,
       commission: property.comision,
@@ -149,7 +149,7 @@ exports.getSaleAuthorization = async (req, res) => {
       client: client ? {
         name: client.name,
         cuil: client.cuil,
-        address: client.address
+        address: client.direccion
       } : null
     });
 

@@ -52,7 +52,7 @@ const AutorizacionVentaPdf = ({ property, onEdit }) => {
 
     const ownerName = auth.ownerName || client.name || propertyClient.name || 'N/A';
     const ownerCuil = auth.ownerCuil || client.cuil || propertyClient.cuil || 'N/A';
-    const ownerAddress = auth.ownerAddress || client.address || propertyClient.address || 'N/A';
+    const ownerAddress = auth.ownerAddress || client.address || propertyClient.direccion || 'N/A';
     
     console.log('Valores finales - Nombre:', ownerName, 'CUIL:', ownerCuil, 'Dirección:', ownerAddress);
     const price = auth.salePrice || propertyData.price || 0;
