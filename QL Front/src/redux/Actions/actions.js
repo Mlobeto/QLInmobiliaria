@@ -143,6 +143,36 @@ export const loginAdmin = (adminData) => async (dispatch) => {
     return { type: LOGIN_FAIL };
   }
 };
+
+// Refrescar información del admin sin hacer logout
+export const refreshAdminInfo = () => async (dispatch) => {
+  const token = localStorage.getItem("token");
+
+  if (!token) {
+    dispatch({ type: LOGIN_FAIL, payload: "No hay token" });
+    return { success: false };
+  }
+
+  try {
+    const response = await axios.get("/auth/verify", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    dispatch({
+      type: LOGIN_SUCCESS,
+      payload: {
+        token: token,
+        admin: response.data.admin,
+      },
+    });
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+};
+
 export const verifyToken = () => async (dispatch) => {
   const token = localStorage.getItem("token");
 

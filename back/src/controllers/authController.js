@@ -27,7 +27,16 @@ exports.register = async (req, res) => {
   
       res.status(201).json({ message: 'Usuario registrado con éxito', admin: newAdmin });
     } catch (error) {
-      console.error('Error en el registro:', error);  // Log del error en la consola
+      console.error('Error en el registro:', error);
+      
+      // Manejo específico de error de username duplicado
+      if (error.name === 'SequelizeUniqueConstraintError') {
+        return res.status(400).json({ 
+          message: 'Error en el registro', 
+          error: `El nombre de usuario "${username}" ya está en uso. Por favor, elige otro nombre.` 
+        });
+      }
+      
       res.status(500).json({ message: 'Error en el registro', error: error.message });
     }
   };

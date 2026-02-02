@@ -1,28 +1,31 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { getAllClients, getAllProperties, getAllLeases, getAllPayments } from '../../redux/Actions/actions';
+import { getAllClients, getAllProperties, getAllLeases, getAllPayments, refreshAdminInfo } from '../../redux/Actions/actions';
 import { 
   IoLogOutOutline, 
   IoPeopleOutline, 
   IoHomeOutline, 
   IoDocumentTextOutline, 
   IoReceiptOutline, 
-  IoStatsChartOutline
+  IoStatsChartOutline,
+  IoRefreshOutline
 } from 'react-icons/io5';
 import UpcomingExpiryPopup from '../Contratos/UpcomingExpiryPopup';
 
 const Panel = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Obtener datos desde Redux
-  const { clients = [], properties = [], leases = [], payments = [], loading } = useSelector((state) => ({
+  const { clients = [], properties = [], leases = [], payments = [], loading, adminInfo } = useSelector((state) => ({
     clients: state.clients || [],
     properties: state.properties || [],
     leases: state.leases || [],
     payments: state.allPayments || [],
-    loading: state.loading
+    loading: state.loading,
+    adminInfo: state.adminInfo
   }));
 
   // Cargar todos los datos al montar el componente
@@ -44,6 +47,18 @@ const Panel = () => {
       totalRecibos: payments.length
     };
   }, [clients, properties, leases, payments]);
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    const result = await dispatch(refreshAdminInfo());
+    setIsRefreshing(false);
+    
+    if (result.success) {
+      alert('Sesión actualizada correctamente. Ahora tienes acceso a todas las funciones.');
+    } else {
+      alert('Error al actualizar la sesión. Por favor, vuelve a iniciar sesión.');
+    }
+  };
 
   const handleLogout = () => {
     // Aquí agregarías tu lógica de logout
@@ -100,14 +115,37 @@ const Panel = () => {
             <IoHomeOutline className="w-6 h-6" />
             <span>Panel de Administración</span>
           </Link>
-          <button
-            onClick={handleLogout}
-            className="text-white flex items-center space-x-2 px-4 py-2 rounded-lg bg-red-500/20 hover:bg-red-500/30 border border-red-400/30 transition-all duration-300"
-          >
-            <span className="hidden sm:inline">Cerrar Sesión</span>
-            <span className="sm:hidden">Salir</span>
-            <IoLogOutOutline className="w-5 h-5" />
-          </button>
+          
+          <div className="flex items-center space-x-3">
+            {/* Mostrar rol del usuario */}
+            {adminInfo?.role && (
+              <span className="hidden md:inline text-slate-300 text-sm px-3 py-1 rounded-full bg-white/10 border border-white/20">
+                Rol: {adminInfo.role}
+              </span>
+            )}
+            
+            {/* Botón de actualizar sesión */}
+            <button
+              onClick={handleRefresh}
+              disabled={isRefreshing}
+              className="text-white flex items-center space-x-2 px-4 py-2 rounded-lg bg-blue-500/20 hover:bg-blue-500/30 border border-blue-400/30 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+              title="Actualizar información de sesión"
+            >
+              <IoRefreshOutline className={`w-5 h-5 ${isRefreshing ? 'animate-spin' : ''}`} />
+              <span className="hidden sm:inline">
+                {isRefreshing ? 'Actualizando...' : 'Actualizar'}
+              </span>
+            </button>
+            
+            <button
+              onClick={handleLogout}
+              className="text-white flex items-center space-x-2 px-4 py-2 rounded-lg bg-red-500/20 hover:bg-red-500/30 border border-red-400/30 transition-all duration-300"
+            >
+              <span className="hidden sm:inline">Cerrar Sesión</span>
+              <span className="sm:hidden">Salir</span>
+              <IoLogOutOutline className="w-5 h-5" />
+            </button>
+          </div>
         </div>
       </div>
 
