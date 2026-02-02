@@ -5,10 +5,10 @@ require('dotenv').config();  // Para usar las variables de entorno
 
 // Registrar un administrador
 exports.register = async (req, res) => {
-    const { username, password } = req.body;
+    const { username, password, role } = req.body;
   
     // Agregar logs para debug
-    console.log('Datos recibidos:', { username, password });
+    console.log('Datos recibidos:', { username, password, role });
   
     try {
       // Hash de la contraseña
@@ -16,10 +16,16 @@ exports.register = async (req, res) => {
       console.log('Contraseña hasheada:', hashedPassword);
   
       // Crear el nuevo administrador en la base de datos
-      const newAdmin = await Admin.create({ username, password: hashedPassword });
+      // Si no se proporciona role, usará el valor por defecto "admin" del modelo
+      const userData = { username, password: hashedPassword };
+      if (role) {
+        userData.role = role;
+      }
+      
+      const newAdmin = await Admin.create(userData);
       console.log('Admin creado:', newAdmin);
   
-      res.status(201).json({ message: 'Admin registrado con éxito', admin: newAdmin });
+      res.status(201).json({ message: 'Usuario registrado con éxito', admin: newAdmin });
     } catch (error) {
       console.error('Error en el registro:', error);  // Log del error en la consola
       res.status(500).json({ message: 'Error en el registro', error: error.message });

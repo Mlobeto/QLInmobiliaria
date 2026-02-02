@@ -13,6 +13,7 @@ import FiltroPropiedades from "./Components/Propiedades/FiltroPropiedades"
 import LoginAdmin from "./Components/Admin/Login/Login";
 // eslint-disable-next-line no-unused-vars
 import ProtectedRoutes from "./utils/ProtectedRoutes";
+import RoleBasedRoute from "./utils/RoleBasedRoute";
 import PaymentForm from "./Components/Pagos/PaymentForm";
 
 import PaymentList from "./Components/Pagos/PaymentList";
@@ -167,18 +168,18 @@ function App() {
 <Route
         path="/paymentList"
         element={
-          //  <ProtectedRoutes>
+          <RoleBasedRoute allowedRoles={['admin']}>
           <PaymentList />
-          //  </ProtectedRoutes>
+          </RoleBasedRoute>
         }
       />
 
 <Route
         path="/reportes"
         element={
-          //  <ProtectedRoutes>
+          <RoleBasedRoute allowedRoles={['admin']}>
           <PaymentReport />
-          //  </ProtectedRoutes>
+          </RoleBasedRoute>
         }
       />
 

@@ -44,8 +44,16 @@ const ActualizarAlquileres = () => {
   const necesitaActualizacion = (lease) => {
     if (lease.status !== 'active') return false;
 
+    // Si el backend ya calculó shouldUpdate, usarlo
+    if (lease.updateInfo?.shouldUpdate !== undefined) {
+      return lease.updateInfo.shouldUpdate;
+    }
+
     const hoy = new Date();
-    const inicio = new Date(lease.startDate);
+    // Parseo seguro de startDate
+    const startDateStr = lease.startDate.split('T')[0];
+    const [year, month, day] = startDateStr.split('-').map(Number);
+    const inicio = new Date(year, month - 1, day, 12, 0, 0);
     
     const mesesPorFrecuencia = {
       semestral: 6,
@@ -64,7 +72,16 @@ const ActualizarAlquileres = () => {
 
   // Calcular próxima fecha de actualización
   const calcularProximaActualizacion = (lease) => {
-    const inicio = new Date(lease.startDate);
+    // Si el backend ya calculó nextUpdateDate, usarlo directamente
+    if (lease.updateInfo?.nextUpdateDate) {
+      return lease.updateInfo.nextUpdateDate;
+    }
+    
+    // Parseo seguro de startDate para evitar conversión UTC
+    const startDateStr = lease.startDate.split('T')[0];
+    const [year, month, day] = startDateStr.split('-').map(Number);
+    const inicio = new Date(year, month - 1, day, 12, 0, 0);
+    
     const mesesPorFrecuencia = {
       semestral: 6,
       cuatrimestral: 4,

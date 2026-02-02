@@ -83,7 +83,7 @@ const PaymentList = () => {
   });
 
   // Calcular estadísticas
-  const totalAmount = filteredPayments.reduce((sum, payment) => sum + (payment.amount || 0), 0);
+  const totalAmount = filteredPayments.reduce((sum, payment) => sum + (parseFloat(payment.amount) || 0), 0);
   const avgAmount = filteredPayments.length > 0 ? totalAmount / filteredPayments.length : 0;
 
   const formatCurrency = (amount) => {

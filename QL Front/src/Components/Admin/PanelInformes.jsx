@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 import { 
   IoLogOutOutline,
   IoArrowBackOutline,
@@ -11,6 +12,7 @@ import {
 
 const PanelInformes = () => {
   const navigate = useNavigate();
+  const adminInfo = useSelector((state) => state.adminInfo);
 
   const handleLogout = () => {
     navigate('/panel');
@@ -23,7 +25,8 @@ const PanelInformes = () => {
       icon: IoDocumentTextOutline,
       gradient: 'from-blue-500 to-blue-600',
       hoverGradient: 'from-blue-600 to-blue-700',
-      description: 'Generar informes y reportes'
+      description: 'Generar informes y reportes',
+      requiredRole: 'admin'
     },
     {
       title: 'Pagos por Contrato',
@@ -31,9 +34,16 @@ const PanelInformes = () => {
       icon: IoCashOutline,
       gradient: 'from-emerald-500 to-emerald-600',
       hoverGradient: 'from-emerald-600 to-emerald-700',
-      description: 'Gestionar pagos de contratos'
+      description: 'Gestionar pagos de contratos',
+      requiredRole: 'admin'
     }
   ];
+
+  // Filtrar acciones según el rol del usuario
+  const filteredActions = informeActions.filter(action => {
+    if (!action.requiredRole) return true;
+    return adminInfo?.role === action.requiredRole;
+  });
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
@@ -89,29 +99,35 @@ const PanelInformes = () => {
 
         {/* Actions Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 mb-12">
-          {informeActions.map((action) => {
-            const IconComponent = action.icon;
-            return (
-              <Link
-                key={action.path}
-                to={action.path}
-                className={`group relative bg-gradient-to-br ${action.gradient} hover:${action.hoverGradient} p-8 sm:p-12 rounded-2xl shadow-lg hover:shadow-2xl transform hover:scale-105 transition-all duration-300 border border-white/10`}
-              >
-                <div className="flex flex-col items-center space-y-6 text-white">
-                  <div className="p-6 bg-white/20 rounded-full group-hover:bg-white/30 transition-colors duration-300">
-                    <IconComponent className="w-12 h-12 sm:w-16 sm:h-16" />
+          {filteredActions.length > 0 ? (
+            filteredActions.map((action) => {
+              const IconComponent = action.icon;
+              return (
+                <Link
+                  key={action.path}
+                  to={action.path}
+                  className={`group relative bg-gradient-to-br ${action.gradient} hover:${action.hoverGradient} p-8 sm:p-12 rounded-2xl shadow-lg hover:shadow-2xl transform hover:scale-105 transition-all duration-300 border border-white/10`}
+                >
+                  <div className="flex flex-col items-center space-y-6 text-white">
+                    <div className="p-6 bg-white/20 rounded-full group-hover:bg-white/30 transition-colors duration-300">
+                      <IconComponent className="w-12 h-12 sm:w-16 sm:h-16" />
+                    </div>
+                    <div className="text-center">
+                      <h3 className="text-xl sm:text-2xl font-bold mb-2">{action.title}</h3>
+                      <p className="text-white/80 text-sm sm:text-base">{action.description}</p>
+                    </div>
                   </div>
-                  <div className="text-center">
-                    <h3 className="text-xl sm:text-2xl font-bold mb-2">{action.title}</h3>
-                    <p className="text-white/80 text-sm sm:text-base">{action.description}</p>
-                  </div>
-                </div>
-                
-                {/* Hover effect overlay */}
-                <div className="absolute inset-0 bg-white/5 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-              </Link>
-            );
-          })}
+                  
+                  {/* Hover effect overlay */}
+                  <div className="absolute inset-0 bg-white/5 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                </Link>
+              );
+            })
+          ) : (
+            <div className="col-span-2 text-center text-white/70 p-12">
+              <p className="text-lg">No tienes acceso a ningún informe en este momento.</p>
+            </div>
+          )}
         </div>
       </div>
     </div>

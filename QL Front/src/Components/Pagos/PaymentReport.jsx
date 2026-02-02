@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import  { useEffect, useState, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { getAllPayments } from '../../redux/Actions/actions';
 import { 
@@ -14,9 +14,12 @@ const PaymentReport = () => {
   const dispatch = useDispatch();
   
   // Selectores optimizados
-  const payments = useSelector(state => state.allPayments) || [];
+  const allPayments = useSelector(state => state.allPayments);
   const loading = useSelector(state => state.loading);
   const error = useSelector(state => state.error);
+  
+  // Memoizar payments para evitar crear nuevo array en cada render
+  const payments = useMemo(() => allPayments || [], [allPayments]);
 
   // Filtros por fecha
   const [dateFrom, setDateFrom] = useState('');
@@ -145,7 +148,7 @@ const PaymentReport = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* Filtros de fecha */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+              <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
                 <IoCalendarOutline className="text-indigo-500" />
                 Fecha Desde:
               </label>
@@ -160,7 +163,7 @@ const PaymentReport = () => {
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+              <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
                 <IoCalendarOutline className="text-indigo-500" />
                 Fecha Hasta:
               </label>
@@ -176,7 +179,7 @@ const PaymentReport = () => {
 
             {/* Filtros por tipo */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Tipo de Pago:</label>
+              <label className="flex text-sm font-medium text-gray-700 mb-2">Tipo de Pago:</label>
               <div className="flex gap-2">
                 {[
                   { key: 'all', label: 'Todos', icon: IoDocumentTextOutline },

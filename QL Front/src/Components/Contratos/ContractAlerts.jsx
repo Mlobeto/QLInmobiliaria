@@ -21,7 +21,11 @@ const getUpdateAlert = (lease) => {
   else if (updateFrequency === "cuatrimestral") updateIntervalMonths = 4;
   else if (updateFrequency === "anual") updateIntervalMonths = 12;
   
-  const baseDate = updatedAt ? new Date(updatedAt) : new Date(startDate);
+  // Parseo seguro para evitar conversión UTC
+  const dateStr = (updatedAt || startDate).split('T')[0];
+  const [year, month, day] = dateStr.split('-').map(Number);
+  const baseDate = new Date(year, month - 1, day, 12, 0, 0);
+  
   let nextUpdate = new Date(baseDate);
   while (nextUpdate <= new Date()) {
     nextUpdate.setMonth(nextUpdate.getMonth() + updateIntervalMonths);
@@ -31,7 +35,10 @@ const getUpdateAlert = (lease) => {
 
 const getEndAlert = (lease) => {
   const { startDate, totalMonths } = lease;
-  const start = new Date(startDate);
+  // Parseo seguro para evitar conversión UTC
+  const startDateStr = startDate.split('T')[0];
+  const [year, month, day] = startDateStr.split('-').map(Number);
+  const start = new Date(year, month - 1, day, 12, 0, 0);
   // La fecha de culminación se obtiene sumando totalMonths a la fecha de inicio.
   return new Date(start.setMonth(start.getMonth() + totalMonths));
 };
@@ -39,9 +46,15 @@ const getEndAlert = (lease) => {
 const getContractDetails = (lease) => {
   const nextUpdate = getUpdateAlert(lease);
   const terminationDate = getEndAlert(lease);
+  
+  // Parseo seguro de startDate
+  const startDateStr = lease.startDate.split('T')[0];
+  const [year, month, day] = startDateStr.split('-').map(Number);
+  const startDate = new Date(year, month - 1, day, 12, 0, 0);
+  
   return {
     leaseId: lease.id || lease.leaseId,
-    startDate: new Date(lease.startDate),
+    startDate,
     nextUpdate,
     terminationDate,
     // Agrega el nombre del tenant, o en su defecto su Id
