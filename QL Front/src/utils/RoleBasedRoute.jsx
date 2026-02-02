@@ -4,14 +4,16 @@ import { Navigate } from 'react-router-dom';
 // eslint-disable-next-line react/prop-types
 const RoleBasedRoute = ({ children, allowedRoles = ['admin'] }) => {
   const adminInfo = useSelector((state) => state.adminInfo);
+  const token = useSelector((state) => state.token);
 
   // Debug: ver qué contiene adminInfo
   console.log('RoleBasedRoute - adminInfo:', adminInfo);
+  console.log('RoleBasedRoute - token:', token ? 'Presente' : 'Ausente');
   console.log('RoleBasedRoute - allowedRoles:', allowedRoles);
 
-  // Si no hay información del admin, redirigir al login
-  if (!adminInfo || !adminInfo.token) {
-    console.log('RoleBasedRoute - No hay token, redirigiendo a /');
+  // Si no hay información del admin o token, redirigir al login
+  if (!adminInfo || !token) {
+    console.log('RoleBasedRoute - No hay token o adminInfo, redirigiendo a /');
     return <Navigate to="/" />;
   }
 
