@@ -15,19 +15,29 @@ import {
 } from 'react-icons/io5';
 
 const getUpdateAlert = (lease) => {
-  const { startDate, updateFrequency, updatedAt } = lease;
+  // Si el backend ya calculó nextUpdateDate, usarlo directamente
+  if (lease.nextUpdateDate) {
+    const dateStr = lease.nextUpdateDate.split('T')[0];
+    const [year, month, day] = dateStr.split('-').map(Number);
+    return new Date(year, month - 1, day, 12, 0, 0);
+  }
+
+  // Fallback: calcular desde startDate
+  const { startDate, updateFrequency } = lease;
   let updateIntervalMonths = 0;
   if (updateFrequency === "semestral") updateIntervalMonths = 6;
   else if (updateFrequency === "cuatrimestral") updateIntervalMonths = 4;
   else if (updateFrequency === "anual") updateIntervalMonths = 12;
+  else if (updateFrequency === "trimestral") updateIntervalMonths = 3;
   
   // Parseo seguro para evitar conversión UTC
-  const dateStr = (updatedAt || startDate).split('T')[0];
+  const dateStr = startDate.split('T')[0];
   const [year, month, day] = dateStr.split('-').map(Number);
   const baseDate = new Date(year, month - 1, day, 12, 0, 0);
   
   let nextUpdate = new Date(baseDate);
-  while (nextUpdate <= new Date()) {
+  const hoy = new Date();
+  while (nextUpdate <= hoy) {
     nextUpdate.setMonth(nextUpdate.getMonth() + updateIntervalMonths);
   }
   return nextUpdate;

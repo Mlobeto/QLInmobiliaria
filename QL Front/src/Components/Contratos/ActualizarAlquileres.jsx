@@ -73,11 +73,11 @@ const ActualizarAlquileres = () => {
   // Calcular próxima fecha de actualización
   const calcularProximaActualizacion = (lease) => {
     // Si el backend ya calculó nextUpdateDate, usarlo directamente
-    if (lease.updateInfo?.nextUpdateDate) {
-      return lease.updateInfo.nextUpdateDate;
+    if (lease.nextUpdateDate) {
+      return lease.nextUpdateDate;
     }
     
-    // Parseo seguro de startDate para evitar conversión UTC
+    // Fallback: calcular desde startDate
     const startDateStr = lease.startDate.split('T')[0];
     const [year, month, day] = startDateStr.split('-').map(Number);
     const inicio = new Date(year, month - 1, day, 12, 0, 0);
@@ -91,12 +91,17 @@ const ActualizarAlquileres = () => {
     
     const mesesPeriodo = mesesPorFrecuencia[lease.updateFrequency] || 12;
     const hoy = new Date();
-    const mesesTranscurridos = (hoy.getFullYear() - inicio.getFullYear()) * 12 + 
-                               (hoy.getMonth() - inicio.getMonth());
+    hoy.setHours(12, 0, 0, 0);
     
-    const periodosCompletados = Math.ceil(mesesTranscurridos / mesesPeriodo);
-    const proximaActualizacion = new Date(inicio);
-    proximaActualizacion.setMonth(proximaActualizacion.getMonth() + (periodosCompletados * mesesPeriodo));
+    let proximaActualizacion = new Date(inicio);
+    
+    // Avanzar la fecha hasta que sea mayor que hoy
+    while (proximaActualizacion <= hoy) {
+      proximaActualizacion.setMonth(proximaActualizacion.getMonth() + mesesPeriodo);
+    }
+    
+    // Retornar en formato ISO
+    return proximaActualizacion.toISOString();
     
     return proximaActualizacion;
   };
