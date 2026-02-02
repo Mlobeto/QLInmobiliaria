@@ -11,6 +11,20 @@ import 'react-toastify/dist/ReactToastify.css';
 //axios.defaults.baseURL = "http://localhost:3001";
 axios.defaults.baseURL = "https://qlinmobiliaria.onrender.com";
 
+// Interceptor para agregar el token a todas las peticiones
+axios.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
 // Registrar Service Worker para PWA
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
