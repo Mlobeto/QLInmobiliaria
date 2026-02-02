@@ -682,10 +682,18 @@ export const getAllPayments = () => async (dispatch) => {
       payload: response.data,
     });
   } catch (error) {
-    dispatch({
-      type: GET_ALL_PAYMENTS_FAILURE,
-      payload: error.response?.data?.error || error.message,
-    });
+    // No mostrar errores 403 como errores críticos
+    if (error.response?.status === 403) {
+      dispatch({
+        type: GET_ALL_PAYMENTS_SUCCESS,
+        payload: [], // Array vacío para usuarios sin permisos
+      });
+    } else {
+      dispatch({
+        type: GET_ALL_PAYMENTS_FAILURE,
+        payload: error.response?.data?.error || error.message,
+      });
+    }
   }
 };
 

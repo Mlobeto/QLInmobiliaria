@@ -17,6 +17,7 @@ const PaymentReport = () => {
   const allPayments = useSelector(state => state.allPayments);
   const loading = useSelector(state => state.loading);
   const error = useSelector(state => state.error);
+  const adminInfo = useSelector(state => state.adminInfo);
   
   // Memoizar payments para evitar crear nuevo array en cada render
   const payments = useMemo(() => allPayments || [], [allPayments]);
@@ -212,6 +213,17 @@ const PaymentReport = () => {
         ) : error ? (
           <div className="backdrop-blur-md bg-red-50/50 border border-red-200 rounded-2xl p-6 text-center">
             <p className="text-red-600">{error}</p>
+          </div>
+        ) : filteredPayments.length === 0 && adminInfo?.role !== 'admin' ? (
+          <div className="backdrop-blur-md bg-amber-50/50 border border-amber-200 rounded-2xl p-12 text-center">
+            <div className="flex flex-col items-center gap-4">
+              <IoStatsChartOutline className="text-6xl text-amber-500" />
+              <div>
+                <h3 className="text-xl font-semibold text-amber-800 mb-2">Acceso Restringido</h3>
+                <p className="text-amber-700">No tienes permisos para visualizar los reportes de pagos.</p>
+                <p className="text-amber-600 text-sm mt-2">Contacta con un administrador para obtener acceso.</p>
+              </div>
+            </div>
           </div>
         ) : (
           <>
