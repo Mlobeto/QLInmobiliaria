@@ -32,9 +32,22 @@ const ContratoAlquiler = ({ lease, autoGenerate = false }) => {
     return num.toString();
   };
 
-  // Función para formatear fecha
+  // Función para formatear fecha (corregida para zona horaria de Argentina)
   const formatearFecha = (date) => {
-    const d = typeof date === 'string' ? new Date(date.split('T')[0] + 'T12:00:00') : new Date(date);
+    if (!date) return '';
+    
+    // Parsear correctamente la fecha evitando conversión UTC
+    let d;
+    if (typeof date === 'string') {
+      // Si viene en formato ISO, tomar solo la parte de fecha
+      const dateOnly = date.split('T')[0];
+      const [year, month, day] = dateOnly.split('-').map(Number);
+      // Crear fecha en hora local sin conversión UTC
+      d = new Date(year, month - 1, day);
+    } else {
+      d = new Date(date);
+    }
+    
     const dia = String(d.getDate()).padStart(2, '0');
     const mes = String(d.getMonth() + 1).padStart(2, '0');
     const anio = d.getFullYear();
@@ -208,9 +221,16 @@ const ContratoAlquiler = ({ lease, autoGenerate = false }) => {
       return "al destino acordado";
     };
 
-    // Calcular fechas
-    const startDate = new Date(lease.startDate);
-    const endDate = calcularFechaFin(startDate, lease.totalMonths);
+    // Calcular fechas - parsear correctamente evitando conversión UTC
+    let startDate;
+    if (typeof lease.startDate === 'string') {
+      const dateOnly = lease.startDate.split('T')[0];
+      const [year, month, day] = dateOnly.split('-').map(Number);
+      startDate = new Date(year, month - 1, day);
+    } else {
+      startDate = new Date(lease.startDate);
+    }
+    const endDate = calcularFechaFin(lease.startDate, lease.totalMonths);
 
     // Estilos reutilizables
     const styles = {
@@ -324,7 +344,7 @@ const ContratoAlquiler = ({ lease, autoGenerate = false }) => {
       },
       {
         title: "DECIMA SEXTA: FIRMA Y EJEMPLARES:",
-        text: `Se pacta expresamente que el impuesto de sello provincial sera abonado integramente por el LOCATARIO. Leido, las partes, declaran su conformidad y firman tres (3) ejemplares de un mismo tenor y a un solo efecto, en la Ciudad de Belen ${formatearFecha(new Date())}.`
+        text: `Se pacta expresamente que el impuesto de sello provincial sera abonado integramente por el LOCATARIO. Leido, las partes, declaran su conformidad y firman tres (3) ejemplares de un mismo tenor y a un solo efecto, en la Ciudad de Belen ${formatearFecha(lease.startDate)}.`
       }
     ];
 

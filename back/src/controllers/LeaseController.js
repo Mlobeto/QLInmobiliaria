@@ -3,6 +3,23 @@ const fs = require('fs');
 const path = require('path');
 const { Op } = require('sequelize');
 
+// Helper function to safely parse dates avoiding UTC conversion issues
+function parseSafeDate(dateValue) {
+  if (!dateValue) return null;
+  
+  if (dateValue instanceof Date) {
+    return dateValue;
+  }
+  
+  if (typeof dateValue === 'string') {
+    const dateOnly = dateValue.split('T')[0];
+    const [year, month, day] = dateOnly.split('-').map(Number);
+    return new Date(year, month - 1, day, 12, 0, 0); // Mediodía para evitar cambios de día
+  }
+  
+  return new Date(dateValue);
+}
+
 // Function to decode base64 string to buffer
 function decodeBase64(dataString) {
   try {
@@ -147,12 +164,31 @@ exports.createLease = async (req, res) => {
       });
     }
 
+    // Parsear startDate correctamente manejando zona horaria
+    // Para evitar problemas de UTC, tomamos solo la parte de fecha (YYYY-MM-DD)
+    // y creamos una fecha en hora local sin conversión UTC
+    const parsedStartDate = (() => {
+      const dateString = startDate.split('T')[0]; // Tomar solo YYYY-MM-DD
+      const [year, month, day] = dateString.split('-').map(Number);
+      // Crear fecha en hora local de Argentina (no UTC)
+      return new Date(year, month - 1, day, 12, 0, 0); // Mediodía para evitar cambios de día
+    })();
+    
+    console.log('📅 StartDate parseado:', {
+      received: startDate,
+      parsed: parsedStartDate.toISOString(),
+      localString: parsedStartDate.toLocaleDateString('es-AR'),
+      day: parsedStartDate.getDate(),
+      month: parsedStartDate.getMonth() + 1,
+      year: parsedStartDate.getFullYear()
+    });
+
     // Parsear y validar
     const parsedData = {
       propertyId: parseInt(propertyId),
       landlordId: parseInt(landlordId),
       tenantId: parseInt(tenantId),
-      startDate: new Date(startDate),
+      startDate: parsedStartDate,
       rentAmount: parseFloat(rentAmount),
       updateFrequency,
       commission: commission ? parseFloat(commission) : null,
@@ -570,10 +606,10 @@ exports.getAllLeases = async (req, res) => {
     });
 
     const leasesWithUpdateInfo = leases.map(lease => {
-      const start = new Date(lease.startDate);
+      const start = parseSafeDate(lease.startDate);
       const now = new Date();
       
-      // Calcular meses desde el inicio
+      // Calcular meses desde el inicio del contrato (NO desde hoy)
       const monthsSinceStart = (now.getFullYear() - start.getFullYear()) * 12 + 
                               (now.getMonth() - start.getMonth());
       
@@ -583,10 +619,11 @@ exports.getAllLeases = async (req, res) => {
       else if (lease.updateFrequency === 'cuatrimestral') freqMonths = 4;
       else if (lease.updateFrequency === 'anual') freqMonths = 12;
       
-      // Verificar si necesita actualización
+      // Verificar si necesita actualización basándose en startDate
       const shouldUpdate = monthsSinceStart >= freqMonths;
       
-      // Calcular próxima fecha de actualización
+      // Calcular próxima fecha de actualización basándose en startDate
+      // NO en la fecha del sistema
       const periodsElapsed = Math.floor(monthsSinceStart / freqMonths);
       const nextUpdate = new Date(start);
       nextUpdate.setMonth(nextUpdate.getMonth() + (periodsElapsed + 1) * freqMonths);
@@ -602,7 +639,7 @@ exports.getAllLeases = async (req, res) => {
           monthsSinceStart,
           shouldUpdate,
           lastUpdateDate: lastUpdate ? lastUpdate.updateDate : null,
-          nextUpdateDate: nextUpdate,
+          nextUpdateDate: nextUpdate, // Calculado desde startDate
           periodsElapsed,
           hasUpdates: lease.RentUpdates && lease.RentUpdates.length > 0
         }
@@ -670,8 +707,8 @@ exports.checkPendingPayments = async (req, res) => {
 };
 
 function calculateUpdatePeriod(startDate, updateFrequency, updateDate) {
-  const start = new Date(startDate);
-  const update = new Date(updateDate);
+  const start = parseSafeDate(startDate);
+  const update = parseSafeDate(updateDate);
   
   // CORREGIDO: Cálculo más preciso de meses
   let monthsDiff = (update.getFullYear() - start.getFullYear()) * 12;
@@ -704,51 +741,78 @@ function calculateUpdatePeriod(startDate, updateFrequency, updateDate) {
   return period;
 }
 
-function getNextUpdateDate(startDate, updateFrequency, updatedAt) {
+function getNextUpdateDate(startDate, updateFrequency, lastUpdateDate = null) {
   let freqMonths = 0;
   if (updateFrequency === 'semestral') freqMonths = 6;
   else if (updateFrequency === 'cuatrimestral') freqMonths = 4;
   else if (updateFrequency === 'anual') freqMonths = 12;
 
-  const start = new Date(startDate);
-  const now = new Date();
+  const start = parseSafeDate(startDate);
   
-  // Calcular cuántos períodos han pasado desde el inicio
+  // Si hay una última actualización, calcular desde esa fecha
+  // Si no, calcular desde startDate
+  let referenceDate = start;
+  if (lastUpdateDate) {
+    referenceDate = parseSafeDate(lastUpdateDate);
+  }
+  
+  // Calcular cuántos períodos completos han pasado desde startDate (NO desde hoy)
+  const now = new Date();
   const monthsSinceStart = (now.getFullYear() - start.getFullYear()) * 12 + 
                           (now.getMonth() - start.getMonth());
   
-  // Calcular cuántos períodos de actualización deberían haber ocurrido
+  // Calcular cuántos períodos de actualización deberían haber ocurrido desde el inicio
   const periodsElapsed = Math.floor(monthsSinceStart / freqMonths);
   
   // La próxima actualización es: start + (períodos + 1) * freqMonths
-  const nextUpdate = new Date(start);
+  // Esto asegura que SIEMPRE se base en startDate, no en la fecha actual
+  const nextUpdate = parseSafeDate(start);
   nextUpdate.setMonth(nextUpdate.getMonth() + (periodsElapsed + 1) * freqMonths);
   
-  console.log(`Contrato iniciado: ${start.toLocaleDateString()}`);
-  console.log(`Meses desde inicio: ${monthsSinceStart}`);
-  console.log(`Períodos transcurridos: ${periodsElapsed}`);
-  console.log(`Próxima actualización: ${nextUpdate.toLocaleDateString()}`);
+  console.log(`📅 Cálculo de próxima actualización:`, {
+    startDate: start.toLocaleDateString('es-AR'),
+    lastUpdate: lastUpdateDate ? parseSafeDate(lastUpdateDate).toLocaleDateString('es-AR') : 'Ninguna',
+    monthsSinceStart,
+    periodsElapsed,
+    nextUpdate: nextUpdate.toLocaleDateString('es-AR')
+  });
   
   return nextUpdate;
 }
 
-function needsUpdate(startDate, updateFrequency) {
+function needsUpdate(startDate, updateFrequency, lastUpdateDate = null) {
   let freqMonths = 0;
   if (updateFrequency === 'semestral') freqMonths = 6;
   else if (updateFrequency === 'cuatrimestral') freqMonths = 4;
   else if (updateFrequency === 'anual') freqMonths = 12;
 
-  const start = new Date(startDate);
+  const start = parseSafeDate(startDate);
   const now = new Date();
   
-  // Calcular meses transcurridos desde el inicio
+  // Calcular meses transcurridos desde startDate (NO desde la última actualización)
   const monthsSinceStart = (now.getFullYear() - start.getFullYear()) * 12 + 
                           (now.getMonth() - start.getMonth());
   
-  // Verificar si han pasado suficientes meses para una actualización
-  const shouldUpdate = monthsSinceStart >= freqMonths && (monthsSinceStart % freqMonths === 0 || monthsSinceStart > freqMonths);
+  // Si hay última actualización, calcular meses desde entonces
+  let monthsSinceLastUpdate = monthsSinceStart;
+  if (lastUpdateDate) {
+    const lastUpdate = parseSafeDate(lastUpdateDate);
+    monthsSinceLastUpdate = (now.getFullYear() - lastUpdate.getFullYear()) * 12 + 
+                           (now.getMonth() - lastUpdate.getMonth());
+  }
   
-  console.log(`Contrato ${startDate}: ${monthsSinceStart} meses, frecuencia: ${freqMonths}, necesita actualización: ${shouldUpdate}`);
+  // Verificar si han pasado suficientes meses para una actualización
+  // Basándose en startDate y los períodos completos
+  const periodsCompleted = Math.floor(monthsSinceStart / freqMonths);
+  const shouldUpdate = periodsCompleted > 0 && (lastUpdateDate ? monthsSinceLastUpdate >= freqMonths : true);
+  
+  console.log(`📊 needsUpdate - Contrato ${startDate}:`, {
+    monthsSinceStart,
+    monthsSinceLastUpdate,
+    freqMonths,
+    periodsCompleted,
+    shouldUpdate
+  });
   
   return shouldUpdate;
 }
@@ -933,9 +997,10 @@ exports.getLeasesPendingUpdate = async (req, res) => {
     console.log(`📋 Encontrados ${leases.length} contratos activos`);
 
     const pendingUpdates = leases.filter(lease => {
-      const start = new Date(lease.startDate);
-      // Removed 'const now = new Date();' from here since it's already defined above
+      const start = parseSafeDate(lease.startDate);
+      const now = new Date();
       
+      // Calcular meses desde startDate (NO desde hoy como referencia genérica)
       const monthsSinceStart = (now.getFullYear() - start.getFullYear()) * 12 + 
                               (now.getMonth() - start.getMonth());
       
@@ -944,20 +1009,23 @@ exports.getLeasesPendingUpdate = async (req, res) => {
       else if (lease.updateFrequency === 'cuatrimestral') freqMonths = 4;
       else if (lease.updateFrequency === 'anual') freqMonths = 12;
       
-      const shouldUpdate = monthsSinceStart >= freqMonths;
+      // Verificar cuántos períodos completos han pasado desde startDate
+      const periodsElapsed = Math.floor(monthsSinceStart / freqMonths);
+      const shouldUpdate = periodsElapsed > 0; // Hay al menos un período completo
       
       const lastUpdate = lease.RentUpdates && lease.RentUpdates.length > 0 
         ? lease.RentUpdates[0] 
         : null;
       
-      console.log(`Contrato ${lease.id}: ${monthsSinceStart} meses, frecuencia: ${freqMonths}, necesita actualización: ${shouldUpdate}`);
+      console.log(`Contrato ${lease.id}: ${monthsSinceStart} meses desde startDate, ${periodsElapsed} períodos, frecuencia: ${freqMonths}, necesita actualización: ${shouldUpdate}`);
         
       if (lastUpdate) {
-        const lastUpdateDate = new Date(lastUpdate.updateDate);
+        const lastUpdateDate = parseSafeDate(lastUpdate.updateDate);
         const monthsSinceLastUpdate = (now.getFullYear() - lastUpdateDate.getFullYear()) * 12 + 
                                      (now.getMonth() - lastUpdateDate.getMonth());
         
         console.log(`  - Última actualización hace ${monthsSinceLastUpdate} meses`);
+        // Solo necesita actualización si han pasado suficientes meses desde la última
         return shouldUpdate && monthsSinceLastUpdate >= freqMonths;
       }
       
@@ -965,9 +1033,10 @@ exports.getLeasesPendingUpdate = async (req, res) => {
     });
 
     const detailedPendingUpdates = pendingUpdates.map(lease => {
-      const start = new Date(lease.startDate);
-      // Removed 'const now = new Date();' from here since it's already defined above
+      const start = parseSafeDate(lease.startDate);
+      const now = new Date();
       
+      // Calcular meses desde startDate (base del cálculo)
       const monthsSinceStart = (now.getFullYear() - start.getFullYear()) * 12 + 
                               (now.getMonth() - start.getMonth());
       
@@ -976,8 +1045,11 @@ exports.getLeasesPendingUpdate = async (req, res) => {
       else if (lease.updateFrequency === 'cuatrimestral') freqMonths = 4;
       else if (lease.updateFrequency === 'anual') freqMonths = 12;
       
-      const periodsOverdue = Math.floor(monthsSinceStart / freqMonths);
-      const monthsOverdue = monthsSinceStart - (periodsOverdue * freqMonths);
+      // Períodos completos desde startDate
+      const periodsElapsed = Math.floor(monthsSinceStart / freqMonths);
+      
+      // Calcular cuánto tiempo lleva de retraso en el período actual
+      const monthsIntoCurrentPeriod = monthsSinceStart % freqMonths;
       
       return {
         id: lease.id,
@@ -987,10 +1059,10 @@ exports.getLeasesPendingUpdate = async (req, res) => {
         currentRent: lease.rentAmount,
         updateFrequency: lease.updateFrequency,
         startDate: lease.startDate,
-        monthsSinceStart,
-        periodsOverdue,
-        monthsOverdue,
-        urgency: monthsOverdue > 6 ? 'high' : monthsOverdue > 3 ? 'medium' : 'low',
+        monthsSinceStart, // Desde startDate
+        periodsElapsed, // Períodos completos desde startDate
+        monthsIntoCurrentPeriod, // Meses dentro del período actual
+        urgency: monthsIntoCurrentPeriod > 3 ? 'high' : monthsIntoCurrentPeriod > 1 ? 'medium' : 'low',
         lastUpdate: lease.RentUpdates && lease.RentUpdates.length > 0 
           ? lease.RentUpdates[0].updateDate 
           : null
@@ -1437,13 +1509,13 @@ exports.getExpiringLeases = async (req, res) => {
     });
     
     const expiringLeases = leases.filter(lease => {
-      const startDate = new Date(lease.startDate);
+      const startDate = parseSafeDate(lease.startDate);
       const endDate = new Date(startDate);
       endDate.setMonth(endDate.getMonth() + lease.totalMonths);
       
       return endDate >= now && endDate <= futureDate;
     }).map(lease => {
-      const startDate = new Date(lease.startDate);
+      const startDate = parseSafeDate(lease.startDate);
       const endDate = new Date(startDate);
       endDate.setMonth(endDate.getMonth() + lease.totalMonths);
       

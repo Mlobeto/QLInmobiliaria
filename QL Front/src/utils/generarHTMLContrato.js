@@ -7,16 +7,39 @@ export const generarHTMLContrato = (lease) => {
 
   // Funciones auxiliares
   const formatearFecha = (fecha) => {
+    if (!fecha) return '';
+    
     const meses = [
       'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
       'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'
     ];
-    const f = new Date(fecha);
+    
+    // Parsear correctamente evitando conversión UTC
+    let f;
+    if (typeof fecha === 'string') {
+      // Si viene en formato ISO, tomar solo la parte de fecha
+      const dateOnly = fecha.split('T')[0];
+      const [year, month, day] = dateOnly.split('-').map(Number);
+      // Crear fecha en hora local sin conversión UTC
+      f = new Date(year, month - 1, day);
+    } else {
+      f = new Date(fecha);
+    }
+    
     return `${f.getDate()} de ${meses[f.getMonth()]} de ${f.getFullYear()}`;
   };
 
   const calcularFechaFin = (fechaInicio, meses) => {
-    const fecha = new Date(fechaInicio);
+    // Parsear correctamente la fecha de inicio
+    let fecha;
+    if (typeof fechaInicio === 'string') {
+      const dateOnly = fechaInicio.split('T')[0];
+      const [year, month, day] = dateOnly.split('-').map(Number);
+      fecha = new Date(year, month - 1, day);
+    } else {
+      fecha = new Date(fechaInicio);
+    }
+    
     fecha.setMonth(fecha.getMonth() + meses);
     return fecha;
   };
@@ -93,8 +116,17 @@ export const generarHTMLContrato = (lease) => {
     return `${numeroALetras(numero).toUpperCase()} PESOS ($${new Intl.NumberFormat("es-AR").format(numero)},00)`;
   };
 
-  const startDate = new Date(lease.startDate);
-  const endDate = calcularFechaFin(startDate, lease.totalMonths);
+  // Parsear correctamente startDate evitando conversión UTC
+  let startDate;
+  if (typeof lease.startDate === 'string') {
+    const dateOnly = lease.startDate.split('T')[0];
+    const [year, month, day] = dateOnly.split('-').map(Number);
+    startDate = new Date(year, month - 1, day);
+  } else {
+    startDate = new Date(lease.startDate);
+  }
+  
+  const endDate = calcularFechaFin(lease.startDate, lease.totalMonths);
 
   const getDestinoLocacion = (typeProperty) => {
     const comercial = ["oficina", "local", "finca"];
@@ -249,7 +281,7 @@ export const generarHTMLContrato = (lease) => {
   </div>
 
   <div class="clausula">
-    <p><span class="titulo-clausula">DECIMA SEXTA: FIRMA Y EJEMPLARES:</span> Se pacta expresamente que el impuesto de sello provincial será abonado íntegramente por el LOCATARIO. Leído, las partes, declaran su conformidad y firman tres (3) ejemplares de un mismo tenor y a un solo efecto, en la Ciudad de Belen ${formatearFecha(new Date())}.</p>
+    <p><span class="titulo-clausula">DECIMA SEXTA: FIRMA Y EJEMPLARES:</span> Se pacta expresamente que el impuesto de sello provincial será abonado íntegramente por el LOCATARIO. Leído, las partes, declaran su conformidad y firman tres (3) ejemplares de un mismo tenor y a un solo efecto, en la Ciudad de Belen ${formatearFecha(lease.startDate)}.</p>
   </div>
 
   <div class="firmas">

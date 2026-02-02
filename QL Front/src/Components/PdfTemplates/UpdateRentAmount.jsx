@@ -13,9 +13,22 @@ if (pdfFonts.pdfMake && pdfFonts.pdfMake.vfs) {
 
 const UpdateRentAmount = ({ lease, newRentAmount, updateDate, ipcIndex, autoGenerate = false }) => {
   
-  // Función para formatear fecha
+  // Función para formatear fecha (corregida para zona horaria de Argentina)
   const formatearFecha = (date) => {
-    const d = typeof date === 'string' ? new Date(date.split('T')[0] + 'T12:00:00') : new Date(date);
+    if (!date) return '';
+    
+    // Parsear correctamente la fecha evitando conversión UTC
+    let d;
+    if (typeof date === 'string') {
+      // Si viene en formato ISO, tomar solo la parte de fecha
+      const dateOnly = date.split('T')[0];
+      const [year, month, day] = dateOnly.split('-').map(Number);
+      // Crear fecha en hora local sin conversión UTC
+      d = new Date(year, month - 1, day);
+    } else {
+      d = new Date(date);
+    }
+    
     const dia = String(d.getDate()).padStart(2, '0');
     const mes = String(d.getMonth() + 1).padStart(2, '0');
     const anio = d.getFullYear();
@@ -33,8 +46,26 @@ const UpdateRentAmount = ({ lease, newRentAmount, updateDate, ipcIndex, autoGene
 
   // Calcular período
   const calcularPeriodo = () => {
-    const startDate = new Date(lease.startDate);
-    const updateDateObj = new Date(updateDate);
+    // Parsear startDate correctamente evitando conversión UTC
+    let startDate;
+    if (typeof lease.startDate === 'string') {
+      const dateOnly = lease.startDate.split('T')[0];
+      const [year, month, day] = dateOnly.split('-').map(Number);
+      startDate = new Date(year, month - 1, day);
+    } else {
+      startDate = new Date(lease.startDate);
+    }
+    
+    // Parsear updateDate correctamente evitando conversión UTC
+    let updateDateObj;
+    if (typeof updateDate === 'string') {
+      const dateOnly = updateDate.split('T')[0];
+      const [year, month, day] = dateOnly.split('-').map(Number);
+      updateDateObj = new Date(year, month - 1, day);
+    } else {
+      updateDateObj = new Date(updateDate);
+    }
+    
     let monthsSinceStart =
       (updateDateObj.getFullYear() - startDate.getFullYear()) * 12 +
       (updateDateObj.getMonth() - startDate.getMonth());

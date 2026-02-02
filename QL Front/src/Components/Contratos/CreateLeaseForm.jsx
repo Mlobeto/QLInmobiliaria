@@ -22,6 +22,11 @@ import {
   IoSaveOutline,
   IoCloseOutline,
 } from "react-icons/io5";
+import { 
+  calculateLeaseStartDate, 
+  formatDateForInput,
+  getArgentinaDate 
+} from "../../utils/dateUtils";
 
 const CreateLeaseForm = () => {
   const dispatch = useDispatch();
@@ -267,11 +272,23 @@ const CreateLeaseForm = () => {
         return;
       }
       
+      // Calcular startDate según regla de negocio
+      const calculatedStartDate = calculateLeaseStartDate();
+      const formattedStartDate = formatDateForInput(calculatedStartDate);
+      
+      console.log("📅 Fecha de inicio calculada:", {
+        today: getArgentinaDate().toLocaleDateString('es-AR'),
+        dayOfMonth: getArgentinaDate().getDate(),
+        calculatedStartDate: calculatedStartDate.toLocaleDateString('es-AR'),
+        formatted: formattedStartDate
+      });
+      
       setFormData((prevData) => ({
         ...prevData,
         propertyId: fullProperty.propertyId,
         landlordId: landlord.idClient,
         locador: landlord.name || "",
+        startDate: formattedStartDate, // Auto-calcular según regla
         rentAmount: fullProperty.price,
         commission: fullProperty.comision,
         inventory: fullProperty.inventory,
@@ -382,6 +399,9 @@ const CreateLeaseForm = () => {
                           className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-200"
                           required
                         />
+                        <p className="text-xs text-slate-400 italic">
+                          💡 Regla: Días 1-15 → inicio el 1° del mes actual | Días 16-31 → inicio el 1° del mes siguiente. Puede modificarse si es necesario.
+                        </p>
                       </div>
 
                       {/* Monto de alquiler */}
