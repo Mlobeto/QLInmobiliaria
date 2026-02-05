@@ -146,6 +146,11 @@ const CreateLeaseForm = () => {
         inventory: formData.inventory,
       };
 
+      console.log("📅 Fecha que se enviará al backend:", {
+        startDate: formData.startDate,
+        type: typeof formData.startDate,
+        asDate: new Date(formData.startDate),
+      });
       console.log("Intentando crear contrato con datos:", leaseData);
       const result = await dispatch(createLease(leaseData));
       console.log("Resultado de createLease:", result);

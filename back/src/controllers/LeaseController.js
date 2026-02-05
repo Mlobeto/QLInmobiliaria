@@ -12,12 +12,25 @@ function parseSafeDate(dateValue) {
   }
   
   if (typeof dateValue === 'string') {
-    const dateOnly = dateValue.split('T')[0];
-    const [year, month, day] = dateOnly.split('-').map(Number);
-    return new Date(year, month - 1, day, 12, 0, 0); // Mediodía para evitar cambios de día
+    // Si el string contiene 'T', tomar solo la parte de fecha
+    const dateOnly = dateValue.includes('T') ? dateValue.split('T')[0] : dateValue;
+    
+    // Validar que sea un formato YYYY-MM-DD válido
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateOnly)) {
+      const [year, month, day] = dateOnly.split('-').map(Number);
+      // Crear fecha en hora local (mediodía para evitar problemas de zona horaria)
+      return new Date(year, month - 1, day, 12, 0, 0);
+    }
   }
   
-  return new Date(dateValue);
+  // Fallback: intentar parsear como Date normal
+  const parsed = new Date(dateValue);
+  // Si la fecha es válida, ajustar a mediodía para evitar cambios de día
+  if (!isNaN(parsed.getTime())) {
+    return new Date(parsed.getFullYear(), parsed.getMonth(), parsed.getDate(), 12, 0, 0);
+  }
+  
+  return null;
 }
 
 // Function to decode base64 string to buffer
@@ -164,15 +177,15 @@ exports.createLease = async (req, res) => {
       });
     }
 
-    // Parsear startDate correctamente manejando zona horaria
-    // Para evitar problemas de UTC, tomamos solo la parte de fecha (YYYY-MM-DD)
-    // y creamos una fecha en hora local sin conversión UTC
-    const parsedStartDate = (() => {
-      const dateString = startDate.split('T')[0]; // Tomar solo YYYY-MM-DD
-      const [year, month, day] = dateString.split('-').map(Number);
-      // Crear fecha en hora local de Argentina (no UTC)
-      return new Date(year, month - 1, day, 12, 0, 0); // Mediodía para evitar cambios de día
-    })();
+    // Parsear startDate usando parseSafeDate que maneja correctamente zonas horarias
+    const parsedStartDate = parseSafeDate(startDate);
+    
+    if (!parsedStartDate) {
+      return res.status(400).json({ 
+        error: 'Fecha inválida', 
+        details: 'La fecha de inicio debe estar en formato YYYY-MM-DD' 
+      });
+    }
     
     console.log('📅 StartDate parseado:', {
       received: startDate,
