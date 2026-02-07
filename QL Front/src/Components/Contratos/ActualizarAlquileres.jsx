@@ -17,7 +17,11 @@ import {
   IoTimeOutline,
   IoLinkOutline,
   IoDocumentTextOutline,
-  IoRefreshOutline
+  IoRefreshOutline,
+  IoCreateOutline,
+  IoCloseOutline,
+  IoChevronDownOutline,
+  IoChevronUpOutline
 } from 'react-icons/io5';
 
 // Configurar pdfMake
@@ -35,6 +39,8 @@ const ActualizarAlquileres = () => {
   const { leases, loading } = useSelector((state) => state);
   const [actualizaciones, setActualizaciones] = useState({});
   const [processing, setProcessing] = useState({});
+  const [contratoExpandido, setContratoExpandido] = useState(null);
+  const [mostrarPendientes, setMostrarPendientes] = useState(true);
 
   useEffect(() => {
     dispatch(getAllLeases());
@@ -517,15 +523,27 @@ const ActualizarAlquileres = () => {
           </div>
         </div>
 
-        {/* Lista de contratos pendientes */}
+        {/* Lista de contratos pendientes - Colapsable */}
         {contratosParaActualizar.length > 0 && (
-          <div className="space-y-4 mb-8">
-            <h3 className="text-xl font-semibold text-white mb-4 flex items-center">
-              <IoTimeOutline className="w-6 h-6 mr-2 text-amber-400" />
-              Contratos Pendientes de Actualización ({contratosParaActualizar.length})
-            </h3>
-            
-            {contratosParaActualizar.map((lease) => (
+          <div className="mb-8">
+            <button
+              onClick={() => setMostrarPendientes(!mostrarPendientes)}
+              className="w-full mb-4 flex items-center justify-between px-6 py-4 bg-amber-500/10 hover:bg-amber-500/15 border border-amber-400/30 rounded-xl transition-all"
+            >
+              <h3 className="text-xl font-semibold text-white flex items-center">
+                <IoTimeOutline className="w-6 h-6 mr-2 text-amber-400" />
+                Contratos Pendientes de Actualización ({contratosParaActualizar.length})
+              </h3>
+              {mostrarPendientes ? (
+                <IoChevronUpOutline className="w-6 h-6 text-amber-400" />
+              ) : (
+                <IoChevronDownOutline className="w-6 h-6 text-amber-400" />
+              )}
+            </button>
+
+            {mostrarPendientes && (
+              <div className="space-y-4">
+                {contratosParaActualizar.map((lease) => (
               <div
                 key={lease.id}
                 className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-6 hover:bg-white/10 transition-all"
@@ -643,7 +661,150 @@ const ActualizarAlquileres = () => {
                   </div>
                 </div>
               </div>
-            ))}
+              ))}
+            </div>
+            )}
+          </div>
+        )}
+
+        {/* Card de actualización expandida desde la tabla */}
+        {contratoExpandido && (
+          <div className="mb-8 space-y-4">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-semibold text-white flex items-center">
+                <IoCreateOutline className="w-6 h-6 mr-2 text-blue-400" />
+                Actualizar Contrato Seleccionado
+              </h3>
+              <button
+                onClick={() => {
+                  setContratoExpandido(null);
+                  setActualizaciones(prev => {
+                    const newState = { ...prev };
+                    delete newState[contratoExpandido.id];
+                    return newState;
+                  });
+                }}
+                className="p-2 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded-lg transition-colors"
+                title="Cerrar"
+              >
+                <IoCloseOutline className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <div className="bg-white/5 backdrop-blur-sm border border-blue-400/30 rounded-xl p-6 hover:bg-white/10 transition-all">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Información del contrato */}
+                <div>
+                  <h4 className="text-lg font-semibold text-white mb-3">
+                    {contratoExpandido.Property?.address || 'Propiedad sin dirección'}
+                  </h4>
+                  
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-slate-400">Inquilino:</span>
+                      <span className="text-white font-medium">{contratoExpandido.Tenant?.name || 'N/A'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-400">Propietario:</span>
+                      <span className="text-white font-medium">{contratoExpandido.Landlord?.name || 'N/A'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-400">Monto actual:</span>
+                      <span className="text-white font-bold text-lg">{formatearMonto(contratoExpandido.rentAmount)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-400">Frecuencia:</span>
+                      <span className="text-white capitalize">{contratoExpandido.updateFrequency}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-400">Próxima actualización:</span>
+                      <span className="text-amber-400 font-medium">
+                        {formatearFecha(calcularProximaActualizacion(contratoExpandido))}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Formulario de actualización */}
+                <div className="bg-white/5 rounded-lg p-4 border border-white/10">
+                  <h5 className="text-white font-semibold mb-3">Calcular Actualización</h5>
+                  
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-slate-400 text-sm mb-1">IPC % (opcional)</label>
+                      <input
+                        type="text"
+                        placeholder="Ej: 25.5"
+                        value={actualizaciones[contratoExpandido.id]?.ipcIndex || ''}
+                        onChange={(e) => handleActualizacionChange(contratoExpandido.id, 'ipcIndex', e.target.value)}
+                        className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-slate-400 text-sm mb-1">Porcentaje de Aumento %</label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        placeholder="Ej: 25.5"
+                        value={actualizaciones[contratoExpandido.id]?.porcentaje || ''}
+                        onChange={(e) => handleActualizacionChange(contratoExpandido.id, 'porcentaje', e.target.value)}
+                        className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+
+                    <div className="text-center text-slate-400">o</div>
+
+                    <div>
+                      <label className="block text-slate-400 text-sm mb-1">Nuevo Monto Directo</label>
+                      <input
+                        type="number"
+                        placeholder="Ingrese el nuevo monto"
+                        value={actualizaciones[contratoExpandido.id]?.nuevoMonto || ''}
+                        onChange={(e) => handleActualizacionChange(contratoExpandido.id, 'nuevoMonto', e.target.value)}
+                        className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+
+                    {actualizaciones[contratoExpandido.id]?.nuevoMonto && (
+                      <div className="p-3 bg-blue-500/20 border border-blue-400/30 rounded-lg">
+                        <p className="text-sm text-slate-300">Nuevo monto calculado:</p>
+                        <p className="text-2xl font-bold text-green-400">
+                          {formatearMonto(actualizaciones[contratoExpandido.id].nuevoMonto)}
+                        </p>
+                        {actualizaciones[contratoExpandido.id]?.porcentaje && (
+                          <p className="text-sm text-blue-400 mt-1">
+                            Aumento: {actualizaciones[contratoExpandido.id].porcentaje}%
+                          </p>
+                        )}
+                      </div>
+                    )}
+
+                    <button
+                      onClick={() => handleActualizar(contratoExpandido)}
+                      disabled={!actualizaciones[contratoExpandido.id]?.nuevoMonto || processing[contratoExpandido.id]}
+                      className={`w-full py-3 rounded-lg font-semibold transition-all flex items-center justify-center space-x-2 ${
+                        actualizaciones[contratoExpandido.id]?.nuevoMonto && !processing[contratoExpandido.id]
+                          ? 'bg-green-500 hover:bg-green-600 text-white'
+                          : 'bg-gray-600 text-gray-400 cursor-not-allowed'
+                      }`}
+                    >
+                      {processing[contratoExpandido.id] ? (
+                        <>
+                          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                          <span>Procesando...</span>
+                        </>
+                      ) : (
+                        <>
+                          <IoDocumentTextOutline className="w-5 h-5" />
+                          <span>Actualizar y Generar PDF</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         )}
 
@@ -673,6 +834,7 @@ const ActualizarAlquileres = () => {
                     <th className="px-4 py-3 text-left text-sm font-semibold text-slate-300">Frecuencia</th>
                     <th className="px-4 py-3 text-left text-sm font-semibold text-slate-300">Próxima Actualización</th>
                     <th className="px-4 py-3 text-center text-sm font-semibold text-slate-300">Estado</th>
+                    <th className="px-4 py-3 text-center text-sm font-semibold text-slate-300">Acciones</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -712,6 +874,20 @@ const ActualizarAlquileres = () => {
                             Al día
                           </span>
                         )}
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        <button
+                          onClick={() => {
+                            setContratoExpandido(lease);
+                            // Scroll suave hacia arriba para ver la card
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                          }}
+                          className="inline-flex items-center px-3 py-1.5 bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 border border-blue-400/30 rounded-lg transition-all hover:scale-105 text-sm font-medium"
+                          title="Actualizar contrato"
+                        >
+                          <IoCreateOutline className="w-4 h-4 mr-1" />
+                          Actualizar
+                        </button>
                       </td>
                     </tr>
                   ))}
