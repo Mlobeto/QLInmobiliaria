@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigate, useLocation } from "react-router-dom";
 import PropTypes from 'prop-types';
@@ -25,7 +25,11 @@ import {
   IoAddOutline,
   IoKeyOutline,
   IoDownloadOutline,
-  IoCreateOutline
+  IoCreateOutline,
+  IoSearchOutline,
+  IoFilterOutline,
+  IoChevronBackOutline,
+  IoChevronForwardOutline
 } from 'react-icons/io5';const EstadoContratos = ({ onLeaseSelect }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -40,6 +44,9 @@ import {
   const [showSaleModal, setShowSaleModal] = useState(false);
   const [pdfLease, setPdfLease] = useState(null);
   const [editorLease, setEditorLease] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const contractsPerPage = 6;
 
   // Detectar el contexto basado en la URL
   const isLeaseContext = location.pathname === '/contratoAlquiler';
@@ -50,8 +57,53 @@ import {
   }, [leases]);
 
   useEffect(() => {
+    // Solo cargar leases la primera vez que se monta el componente
     dispatch(getAllLeases());
-  }, [dispatch]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Filtrar contratos con useMemo para optimización
+  const filteredLeases = useMemo(() => {
+    if (!leases || leases.length === 0) return [];
+    return leases.filter((lease) => {
+      const tenantName = lease.Tenant?.name?.toLowerCase() || '';
+      const propertyAddress = lease.Property?.address?.toLowerCase() || '';
+      const landlordName = lease.Landlord?.name?.toLowerCase() || '';
+      const leaseId = (lease.leaseId || lease.id)?.toString() || '';
+      
+      const search = searchTerm.toLowerCase();
+      return tenantName.includes(search) || 
+             propertyAddress.includes(search) || 
+             landlordName.includes(search) ||
+             leaseId.includes(search);
+    });
+  }, [leases, searchTerm]);
+
+  // Paginación optimizada
+  const paginationData = useMemo(() => {
+    const totalPages = Math.ceil(filteredLeases.length / contractsPerPage);
+    const paginatedLeases = filteredLeases.slice(
+      (currentPage - 1) * contractsPerPage,
+      currentPage * contractsPerPage
+    );
+    return { totalPages, paginatedLeases };
+  }, [filteredLeases, currentPage]);
+
+  const { totalPages, paginatedLeases } = paginationData;
+
+  const handlePageChange = (direction) => {
+    if (direction === "next" && currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+    }
+    if (direction === "prev" && currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
+
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
+    setCurrentPage(1);
+  };
 
   const handleEditClick = (lease) => {
     setEditingLeaseId(lease.leaseId || lease.id);
@@ -202,273 +254,423 @@ import {
 
       {/* Contenido principal */}
       <div className="max-w-7xl mx-auto px-6 py-8">
+        {/* Search and Filters Section */}
+        {leases && leases.length > 0 && (
+          <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10 mb-8">
+            <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+              <div className="flex-1 max-w-md">
+                <div className="relative">
+                  <IoSearchOutline className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
+                  <input
+                    type="text"
+                    placeholder="Buscar por inquilino, propiedad, propietario o ID..."
+                    className="w-full pl-10 pr-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-slate-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20 transition-all duration-300 backdrop-blur-sm"
+                    value={searchTerm}
+                    onChange={handleSearchChange}
+                  />
+                </div>
+              </div>
+              
+              <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-2 text-slate-300">
+                  <IoFilterOutline className="w-5 h-5" />
+                  <span className="text-sm">
+                    {filteredLeases.length} de {leases.length} contratos
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {!leases || leases.length === 0 ? (
           <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-12 text-center">
             <IoClipboardOutline className="w-16 h-16 text-amber-400 mx-auto mb-4" />
             <p className="text-amber-400 text-xl font-medium mb-2">No hay contratos registrados</p>
             <p className="text-slate-400">Comienza creando tu primer contrato de alquiler</p>
           </div>
+        ) : filteredLeases.length === 0 ? (
+          <div className="bg-white/5 backdrop-blur-sm rounded-xl p-12 border border-white/10 text-center">
+            <div className="flex justify-center mb-4">
+              <div className="p-4 bg-slate-500/20 rounded-full">
+                <IoDocumentTextOutline className="w-12 h-12 text-slate-400" />
+              </div>
+            </div>
+            <h3 className="text-white font-medium mb-2">No se encontraron contratos</h3>
+            <p className="text-slate-400 text-sm">
+              {searchTerm ? 
+                `No hay contratos que coincidan con "${searchTerm}"` : 
+                'No hay contratos registrados en el sistema'
+              }
+            </p>
+          </div>
         ) : (
-          /* Grid de contratos modernizado */
+          /* Tabla de contratos modernizada */
           <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <h3 className="text-xl font-semibold text-white">
-                Contratos encontrados: {leases.length}
-              </h3>
-            </div>
-            
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-              {leases.map((lease) => {
-                const isEditing = editingLeaseId === (lease.leaseId || lease.id);
-                const displayLease = isEditing ? editedLease : lease;
-                
-                return (
-                  <div
-                    key={lease.leaseId || lease.id}
-                    className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 hover:border-white/20 transition-all duration-300"
-                  >
-                    {/* Header del contrato */}
-                    <div className="flex items-center justify-between mb-6">
-                      <div className="flex items-center space-x-3">
-                        <div className="p-2 bg-blue-500/20 rounded-lg">
-                          <IoDocumentTextOutline className="w-5 h-5 text-blue-400" />
+            <div className="bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="bg-white/10 border-b border-white/20">
+                      <th className="text-left px-4 py-4 text-slate-300 font-semibold text-sm">
+                        <div className="flex items-center gap-2">
+                          <IoDocumentTextOutline className="w-4 h-4" />
+                          Contrato
                         </div>
-                        <div>
-                          <h4 className="text-white font-semibold">
-                            Contrato #{lease.leaseId || lease.id}
-                          </h4>
-                          <p className="text-slate-400 text-sm">ID: {lease.leaseId || lease.id}</p>
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center space-x-2">
-                        {isEditing ? (
-                          <>
-                            <button
-                              onClick={() => handleSaveClick(lease.leaseId || lease.id)}
-                              className="p-2 bg-green-500/20 hover:bg-green-500/30 text-green-400 rounded-lg transition-colors duration-200"
-                              title="Guardar"
-                            >
-                              <IoSaveOutline className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={handleCancelEdit}
-                              className="p-2 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded-lg transition-colors duration-200"
-                              title="Cancelar"
-                            >
-                              <IoCloseCircleOutline className="w-4 h-4" />
-                            </button>
-                          </>
-                        ) : (
-                          <>
-                            <button
-                              onClick={() => handleEditClick(lease)}
-                              className="p-2 bg-amber-500/20 hover:bg-amber-500/30 text-amber-400 rounded-lg transition-colors duration-200"
-                              title="Editar Datos"
-                            >
-                              <IoPencilOutline className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={() => handleEditContract(lease)}
-                              className="p-2 bg-purple-500/20 hover:bg-purple-500/30 text-purple-400 rounded-lg transition-colors duration-200"
-                              title="Editar Contrato"
-                            >
-                              <IoCreateOutline className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={() => handleDownloadPdf(lease)}
-                              className="p-2 bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 rounded-lg transition-colors duration-200"
-                              title="Descargar PDF"
-                            >
-                              <IoDownloadOutline className="w-4 h-4" />
-                            </button>
-                          </>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Información del contrato */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {/* Inquilino */}
-                      <div className="space-y-2">
-                        <label className="flex items-center text-sm font-medium text-slate-300">
-                          <IoPersonOutline className="w-4 h-4 mr-2 text-blue-400" />
+                      </th>
+                      <th className="text-left px-4 py-4 text-slate-300 font-semibold text-sm">
+                        <div className="flex items-center gap-2">
+                          <IoPersonOutline className="w-4 h-4" />
                           Inquilino
-                        </label>
-                        <div className="text-white font-medium">
-                          {lease.Tenant ? lease.Tenant.name : lease.tenantId}
+                        </div>
+                      </th>
+                      <th className="text-left px-4 py-4 text-slate-300 font-semibold text-sm">
+                        <div className="flex items-center gap-2">
+                          <IoBusinessOutline className="w-4 h-4" />
+                          Propiedad
+                        </div>
+                      </th>
+                      <th className="text-left px-4 py-4 text-slate-300 font-semibold text-sm">
+                        <div className="flex items-center gap-2">
+                          <IoCalendarOutline className="w-4 h-4" />
+                          Fecha Inicio
+                        </div>
+                      </th>
+                      <th className="text-left px-4 py-4 text-slate-300 font-semibold text-sm">
+                        <div className="flex items-center gap-2">
+                          <IoCashOutline className="w-4 h-4" />
+                          Monto
+                        </div>
+                      </th>
+                      <th className="text-left px-4 py-4 text-slate-300 font-semibold text-sm">
+                        <div className="flex items-center gap-2">
+                          <IoTimeOutline className="w-4 h-4" />
+                          Duración
+                        </div>
+                      </th>
+                      <th className="text-center px-4 py-4 text-slate-300 font-semibold text-sm">Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {paginatedLeases.map((lease, index) => {
+                      const isEditing = editingLeaseId === (lease.leaseId || lease.id);
+                      const displayLease = isEditing ? editedLease : lease;
+                      
+                      return (
+                        <tr
+                          key={lease.leaseId || lease.id}
+                          className={`border-b border-white/10 transition-all duration-200 hover:bg-white/5 ${
+                            index % 2 === 0 ? 'bg-white/0' : 'bg-white/[0.02]'
+                          }`}
+                        >
+                          {/* Contrato ID */}
+                          <td className="px-4 py-4">
+                            <div className="flex items-center gap-2">
+                              <div className="p-2 bg-blue-500/20 rounded-lg">
+                                <IoDocumentTextOutline className="w-4 h-4 text-blue-400" />
+                              </div>
+                              <div>
+                                <div className="text-white font-semibold">#{lease.leaseId || lease.id}</div>
+                                <div className="text-slate-400 text-xs">ID: {lease.leaseId || lease.id}</div>
+                              </div>
+                            </div>
+                          </td>
+                          
+                          {/* Inquilino */}
+                          <td className="px-4 py-4">
+                            <div className="text-white font-medium">
+                              {lease.Tenant ? lease.Tenant.name : lease.tenantId}
+                            </div>
+                          </td>
+                          
+                          {/* Propiedad */}
+                          <td className="px-4 py-4">
+                            {isEditing ? (
+                              <input
+                                name="propertyId"
+                                value={displayLease.propertyId || ''}
+                                onChange={handleInputChange}
+                                className="w-full px-2 py-1 text-sm bg-white/5 border border-white/10 rounded text-white placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-500/50"
+                              />
+                            ) : (
+                              <div className="text-slate-300">
+                                {lease.Property ? lease.Property.address : lease.propertyId}
+                              </div>
+                            )}
+                          </td>
+                          
+                          {/* Fecha de inicio */}
+                          <td className="px-4 py-4">
+                            {isEditing ? (
+                              <input
+                                type="date"
+                                name="startDate"
+                                value={
+                                  displayLease.startDate
+                                    ? new Date(displayLease.startDate).toISOString().substring(0, 10)
+                                    : ""
+                                }
+                                onChange={handleInputChange}
+                                className="w-full px-2 py-1 text-sm bg-white/5 border border-white/10 rounded text-white focus:outline-none focus:ring-1 focus:ring-blue-500/50"
+                              />
+                            ) : (
+                              <div className="text-white">
+                                {new Date(lease.startDate).toLocaleDateString()}
+                              </div>
+                            )}
+                          </td>
+                          
+                          {/* Monto */}
+                          <td className="px-4 py-4">
+                            {isEditing ? (
+                              <input
+                                name="rentAmount"
+                                value={displayLease.rentAmount || ''}
+                                onChange={handleInputChange}
+                                className="w-full px-2 py-1 text-sm bg-white/5 border border-white/10 rounded text-white placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-500/50"
+                              />
+                            ) : (
+                              <div className="text-green-400 font-bold">
+                                ${lease.rentAmount?.toLocaleString() || 'N/A'}
+                              </div>
+                            )}
+                          </td>
+                          
+                          {/* Duración */}
+                          <td className="px-4 py-4">
+                            {isEditing ? (
+                              <input
+                                type="number"
+                                name="totalMonths"
+                                value={displayLease.totalMonths || ''}
+                                onChange={handleInputChange}
+                                className="w-20 px-2 py-1 text-sm bg-white/5 border border-white/10 rounded text-white placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-500/50"
+                              />
+                            ) : (
+                              <div className="text-white">{lease.totalMonths} meses</div>
+                            )}
+                          </td>
+                          
+                          {/* Acciones */}
+                          <td className="px-4 py-4">
+                            <div className="flex flex-col items-center gap-2">
+                              {isEditing ? (
+                                <div className="flex gap-2">
+                                  <button
+                                    onClick={() => handleSaveClick(lease.leaseId || lease.id)}
+                                    className="p-2 bg-green-500/20 hover:bg-green-500/30 text-green-400 rounded-lg transition-colors duration-200"
+                                    title="Guardar"
+                                  >
+                                    <IoSaveOutline className="w-4 h-4" />
+                                  </button>
+                                  <button
+                                    onClick={handleCancelEdit}
+                                    className="p-2 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded-lg transition-colors duration-200"
+                                    title="Cancelar"
+                                  >
+                                    <IoCloseCircleOutline className="w-4 h-4" />
+                                  </button>
+                                </div>
+                              ) : (
+                                <>
+                                  <div className="flex gap-2">
+                                    <button
+                                      onClick={() => handleEditClick(lease)}
+                                      className="p-2 bg-amber-500/20 hover:bg-amber-500/30 text-amber-400 rounded-lg transition-colors duration-200"
+                                      title="Editar Datos"
+                                    >
+                                      <IoPencilOutline className="w-4 h-4" />
+                                    </button>
+                                    <button
+                                      onClick={() => handleEditContract(lease)}
+                                      className="p-2 bg-purple-500/20 hover:bg-purple-500/30 text-purple-400 rounded-lg transition-colors duration-200"
+                                      title="Editar Contrato"
+                                    >
+                                      <IoCreateOutline className="w-4 h-4" />
+                                    </button>
+                                    <button
+                                      onClick={() => handleDownloadPdf(lease)}
+                                      className="p-2 bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 rounded-lg transition-colors duration-200"
+                                      title="Descargar PDF"
+                                    >
+                                      <IoDownloadOutline className="w-4 h-4" />
+                                    </button>
+                                  </div>
+                                  
+                                  {onLeaseSelect && (
+                                    <button
+                                      onClick={() => onLeaseSelect(lease)}
+                                      className="w-full flex items-center justify-center px-3 py-1.5 bg-gradient-to-r from-emerald-500/30 to-green-600/30 hover:from-emerald-500/40 hover:to-green-600/40 text-emerald-300 rounded-lg text-xs font-medium transition-all duration-200"
+                                    >
+                                      <IoCheckmarkCircleOutline className="w-4 h-4 mr-1" />
+                                      Seleccionar
+                                    </button>
+                                  )}
+                                </>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Botón expansion para ver detalles completos */}
+            <div className="bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-white/10 mt-6">
+              <details className="cursor-pointer">
+                <summary className="text-slate-300 text-sm font-medium flex items-center gap-2">
+                  <IoClipboardOutline className="w-4 h-4" />
+                  Ver detalles completos (propietario, frecuencia, inventario)
+                </summary>
+                <div className="mt-4 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                  {paginatedLeases.map((lease) => {
+                    const isEditing = editingLeaseId === (lease.leaseId || lease.id);
+                    const displayLease = isEditing ? editedLease : lease;
+                    
+                    return (
+                      <div key={lease.leaseId || lease.id} className="bg-white/5 rounded-lg p-4 border border-white/10">
+                        <div className="text-white font-semibold mb-3">Contrato #{lease.leaseId || lease.id}</div>
+                        
+                        {/* Propietario */}
+                        <div className="mb-3">
+                          <label className="flex items-center text-xs font-medium text-slate-400 mb-1">
+                            <IoPersonOutline className="w-3 h-3 mr-1" />
+                            Propietario
+                          </label>
+                          {isEditing ? (
+                            <input
+                              name="landlordId"
+                              value={displayLease.landlordId || ''}
+                              onChange={handleInputChange}
+                              className="w-full px-2 py-1 text-sm bg-white/5 border border-white/10 rounded text-white placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-500/50"
+                            />
+                          ) : (
+                            <div className="text-slate-300 text-sm">
+                              {lease.Landlord && lease.Landlord.name ? lease.Landlord.name : lease.landlordId}
+                            </div>
+                          )}
+                        </div>
+                        
+                        {/* Frecuencia */}
+                        <div className="mb-3">
+                          <label className="flex items-center text-xs font-medium text-slate-400 mb-1">
+                            <IoTimeOutline className="w-3 h-3 mr-1" />
+                            Frecuencia
+                          </label>
+                          {isEditing ? (
+                            <select
+                              name="updateFrequency"
+                              value={displayLease.updateFrequency || ''}
+                              onChange={handleInputChange}
+                              className="w-full px-2 py-1 text-sm bg-white/5 border border-white/10 rounded text-white focus:outline-none focus:ring-1 focus:ring-blue-500/50"
+                            >
+                              <option value="" className="bg-slate-800">Seleccionar</option>
+                              <option value="semestral" className="bg-slate-800">Semestral</option>
+                              <option value="cuatrimestral" className="bg-slate-800">Cuatrimestral</option>
+                              <option value="anual" className="bg-slate-800">Anual</option>
+                            </select>
+                          ) : (
+                            <div className="text-slate-300 text-sm capitalize">
+                              {lease.updateFrequency || 'N/A'}
+                            </div>
+                          )}
+                        </div>
+                        
+                        {/* Inventario */}
+                        <div>
+                          <label className="flex items-center text-xs font-medium text-slate-400 mb-1">
+                            <IoClipboardOutline className="w-3 h-3 mr-1" />
+                            Inventario
+                          </label>
+                          {isEditing ? (
+                            <textarea
+                              name="inventory"
+                              value={displayLease.inventory || ''}
+                              onChange={handleInputChange}
+                              rows={2}
+                              className="w-full px-2 py-1 text-sm bg-white/5 border border-white/10 rounded text-white placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-500/50 resize-none"
+                            />
+                          ) : (
+                            <div className="text-slate-300 text-xs bg-white/5 rounded p-2 min-h-[40px]">
+                              {lease.inventory || 'Sin inventario registrado'}
+                            </div>
+                          )}
                         </div>
                       </div>
-
-                      {/* Propiedad */}
-                      <div className="space-y-2">
-                        <label className="flex items-center text-sm font-medium text-slate-300">
-                          <IoBusinessOutline className="w-4 h-4 mr-2 text-green-400" />
-                          Propiedad
-                        </label>
-                        {isEditing ? (
-                          <input
-                            name="propertyId"
-                            value={displayLease.propertyId || ''}
-                            onChange={handleInputChange}
-                            className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
-                          />
-                        ) : (
-                          <div className="text-white">
-                            {lease.Property ? lease.Property.address : lease.propertyId}
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Propietario */}
-                      <div className="space-y-2">
-                        <label className="flex items-center text-sm font-medium text-slate-300">
-                          <IoPersonOutline className="w-4 h-4 mr-2 text-purple-400" />
-                          Propietario
-                        </label>
-                        {isEditing ? (
-                          <input
-                            name="landlordId"
-                            value={displayLease.landlordId || ''}
-                            onChange={handleInputChange}
-                            className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
-                          />
-                        ) : (
-                          <div className="text-white">
-                            {lease.Landlord && lease.Landlord.name ? lease.Landlord.name : lease.landlordId}
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Fecha de inicio */}
-                      <div className="space-y-2">
-                        <label className="flex items-center text-sm font-medium text-slate-300">
-                          <IoCalendarOutline className="w-4 h-4 mr-2 text-orange-400" />
-                          Fecha de Inicio
-                        </label>
-                        {isEditing ? (
-                          <input
-                            type="date"
-                            name="startDate"
-                            value={
-                              displayLease.startDate
-                                ? new Date(displayLease.startDate).toISOString().substring(0, 10)
-                                : ""
-                            }
-                            onChange={handleInputChange}
-                            className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50"
-                          />
-                        ) : (
-                          <div className="text-white">
-                            {new Date(lease.startDate).toLocaleDateString()}
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Monto */}
-                      <div className="space-y-2">
-                        <label className="flex items-center text-sm font-medium text-slate-300">
-                          <IoCashOutline className="w-4 h-4 mr-2 text-green-400" />
-                          Monto
-                        </label>
-                        {isEditing ? (
-                          <input
-                            name="rentAmount"
-                            value={displayLease.rentAmount || ''}
-                            onChange={handleInputChange}
-                            className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
-                          />
-                        ) : (
-                          <div className="text-green-400 font-bold">
-                            ${lease.rentAmount?.toLocaleString() || 'N/A'}
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Frecuencia */}
-                      <div className="space-y-2">
-                        <label className="flex items-center text-sm font-medium text-slate-300">
-                          <IoTimeOutline className="w-4 h-4 mr-2 text-yellow-400" />
-                          Frecuencia
-                        </label>
-                        {isEditing ? (
-                          <select
-                            name="updateFrequency"
-                            value={displayLease.updateFrequency || ''}
-                            onChange={handleInputChange}
-                            className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50"
-                          >
-                            <option value="" className="bg-slate-800">Seleccionar</option>
-                            <option value="semestral" className="bg-slate-800">Semestral</option>
-                            <option value="cuatrimestral" className="bg-slate-800">Cuatrimestral</option>
-                            <option value="anual" className="bg-slate-800">Anual</option>
-                          </select>
-                        ) : (
-                          <div className="text-white capitalize">
-                            {lease.updateFrequency || 'N/A'}
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Meses totales */}
-                      <div className="space-y-2">
-                        <label className="flex items-center text-sm font-medium text-slate-300">
-                          <IoCalendarOutline className="w-4 h-4 mr-2 text-blue-400" />
-                          Duración (meses)
-                        </label>
-                        {isEditing ? (
-                          <input
-                            type="number"
-                            name="totalMonths"
-                            value={displayLease.totalMonths || ''}
-                            onChange={handleInputChange}
-                            className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
-                          />
-                        ) : (
-                          <div className="text-white">
-                            {lease.totalMonths} meses
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Inventario */}
-                      <div className="space-y-2 md:col-span-2">
-                        <label className="flex items-center text-sm font-medium text-slate-300">
-                          <IoClipboardOutline className="w-4 h-4 mr-2 text-indigo-400" />
-                          Inventario
-                        </label>
-                        {isEditing ? (
-                          <textarea
-                            name="inventory"
-                            value={displayLease.inventory || ''}
-                            onChange={handleInputChange}
-                            rows={3}
-                            className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 resize-none"
-                          />
-                        ) : (
-                          <div className="text-slate-300 text-sm bg-white/5 rounded-lg p-3 min-h-[60px]">
-                            {lease.inventory || 'Sin inventario registrado'}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Botón para seleccionar contrato para pagos */}
-                    {onLeaseSelect && (
-                      <div className="mt-6 pt-4 border-t border-white/10">
-                        <button
-                          onClick={() => onLeaseSelect(lease)}
-                          className="w-full flex items-center justify-center px-4 py-3 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white rounded-xl font-medium transition-all duration-300 hover:scale-[1.02]"
-                        >
-                          <IoCheckmarkCircleOutline className="w-5 h-5 mr-2" />
-                          Seleccionar para Pago
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
+                    );
+                  })}
+                </div>
+              </details>
             </div>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-white/10 mt-8">
+                <div className="flex flex-col sm:flex-row items-center justify-between space-y-4 sm:space-y-0">
+                  <div className="text-slate-300 text-sm">
+                    Mostrando {((currentPage - 1) * contractsPerPage) + 1} a {Math.min(currentPage * contractsPerPage, filteredLeases.length)} de {filteredLeases.length} contratos
+                  </div>
+                  
+                  <div className="flex items-center space-x-4">
+                    <button
+                      disabled={currentPage === 1}
+                      onClick={() => handlePageChange("prev")}
+                      className="flex items-center space-x-2 px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
+                    >
+                      <IoChevronBackOutline className="w-4 h-4" />
+                      <span className="hidden sm:inline">Anterior</span>
+                    </button>
+                    
+                    <div className="flex items-center space-x-2">
+                      {[...Array(totalPages)].map((_, index) => {
+                        const page = index + 1;
+                        if (
+                          page === 1 ||
+                          page === totalPages ||
+                          (page >= currentPage - 1 && page <= currentPage + 1)
+                        ) {
+                          return (
+                            <button
+                              key={page}
+                              onClick={() => setCurrentPage(page)}
+                              className={`w-10 h-10 rounded-lg font-medium transition-all duration-300 ${
+                                currentPage === page
+                                  ? 'bg-blue-500 text-white border border-blue-400'
+                                  : 'bg-white/10 text-slate-300 border border-white/20 hover:bg-white/20'
+                              }`}
+                            >
+                              {page}
+                            </button>
+                          );
+                        } else if (
+                          page === currentPage - 2 ||
+                          page === currentPage + 2
+                        ) {
+                          return (
+                            <span key={page} className="text-slate-400">
+                              ...
+                            </span>
+                          );
+                        }
+                        return null;
+                      })}
+                    </div>
+                    
+                    <button
+                      disabled={currentPage === totalPages}
+                      onClick={() => handlePageChange("next")}
+                      className="flex items-center space-x-2 px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
+                    >
+                      <span className="hidden sm:inline">Siguiente</span>
+                      <IoChevronForwardOutline className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>

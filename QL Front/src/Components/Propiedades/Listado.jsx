@@ -292,175 +292,187 @@ const Listado = ({ mode = "default", onSelectProperty }) => {
           </div>
         </div>
 
-        {/* Properties Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-          {paginatedProperties.map((property) => (
-            <div key={property.propertyId} className={`bg-white/5 backdrop-blur-sm rounded-xl p-5 border transition-all duration-300 group hover:shadow-xl ${
-              property.isAvailable 
-                ? 'border-green-500/30 hover:border-green-500/50' 
-                : 'border-red-500/30 hover:border-red-500/50 opacity-75'
-            }`}>
-              {/* Header con estado e ID */}
-              <div className="flex justify-between items-center mb-4 pb-4 border-b border-white/10">
-                <div className="flex items-center gap-3">
-                  <div className="p-3 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-xl">
-                    <IoBusinessOutline className="w-6 h-6 text-blue-400" />
-                  </div>
-                  <div>
-                    <h3 className="text-white font-bold text-lg">Propiedad #{property.propertyId}</h3>
-                    <div className="flex items-center gap-2 mt-1">
-                      <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${
-                        property.type === 'alquiler' 
-                          ? 'bg-blue-500/20 text-blue-300' 
-                          : 'bg-purple-500/20 text-purple-300'
-                      }`}>
-                        {property.type === 'alquiler' ? '🏠 Alquiler' : '💰 Venta'}
-                      </span>
-                      <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${
+        {/* Properties Table */}
+        <div className="bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 overflow-hidden mb-8">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="bg-white/10 border-b border-white/20">
+                  <th className="text-left px-4 py-4 text-slate-300 font-semibold text-sm">
+                    <div className="flex items-center gap-2">
+                      <IoBusinessOutline className="w-4 h-4" />
+                      ID / Tipo
+                    </div>
+                  </th>
+                  <th className="text-left px-4 py-4 text-slate-300 font-semibold text-sm">
+                    <div className="flex items-center gap-2">
+                      <IoLocationOutline className="w-4 h-4" />
+                      Ubicación
+                    </div>
+                  </th>
+                  <th className="text-left px-4 py-4 text-slate-300 font-semibold text-sm">
+                    <div className="flex items-center gap-2">
+                      <IoPricetagOutline className="w-4 h-4" />
+                      Precio
+                    </div>
+                  </th>
+                  <th className="text-left px-4 py-4 text-slate-300 font-semibold text-sm">
+                    <div className="flex items-center gap-2">
+                      <IoPeopleOutline className="w-4 h-4" />
+                      Clientes
+                    </div>
+                  </th>
+                  <th className="text-center px-4 py-4 text-slate-300 font-semibold text-sm">Estado</th>
+                  <th className="text-center px-4 py-4 text-slate-300 font-semibold text-sm">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                {paginatedProperties.map((property, index) => (
+                  <tr 
+                    key={property.propertyId} 
+                    className={`border-b border-white/10 transition-all duration-200 hover:bg-white/5 ${
+                      index % 2 === 0 ? 'bg-white/0' : 'bg-white/[0.02]'
+                    }`}
+                  >
+                    {/* ID / Tipo */}
+                    <td className="px-4 py-4">
+                      <div className="space-y-1">
+                        <div className="text-white font-semibold">#{property.propertyId}</div>
+                        <span className={`inline-block text-xs px-2 py-1 rounded-full font-medium ${
+                          property.type === 'alquiler' 
+                            ? 'bg-blue-500/20 text-blue-300' 
+                            : 'bg-purple-500/20 text-purple-300'
+                        }`}>
+                          {property.type === 'alquiler' ? '🏠 Alquiler' : '💰 Venta'}
+                        </span>
+                      </div>
+                    </td>
+                    
+                    {/* Ubicación */}
+                    <td className="px-4 py-4">
+                      <div className="space-y-1">
+                        <div className="text-white font-medium">{property.address}</div>
+                        <div className="text-slate-400 text-sm">{property.neighborhood}</div>
+                      </div>
+                    </td>
+                    
+                    {/* Precio */}
+                    <td className="px-4 py-4">
+                      <div className="text-emerald-400 font-bold text-lg">{formatCurrency(property.price)}</div>
+                    </td>
+                    
+                    {/* Clientes */}
+                    <td className="px-4 py-4">
+                      {property.Clients && property.Clients.length > 0 ? (
+                        <div className="flex flex-wrap gap-1">
+                          {property.Clients.slice(0, 2).map((client) => (
+                            <span key={client.idClient} className="text-xs bg-purple-500/20 text-purple-300 px-2 py-1 rounded-full">
+                              {client.name}
+                            </span>
+                          ))}
+                          {property.Clients.length > 2 && (
+                            <span className="text-xs bg-slate-500/20 text-slate-300 px-2 py-1 rounded-full">
+                              +{property.Clients.length - 2}
+                            </span>
+                          )}
+                        </div>
+                      ) : (
+                        <span className="text-slate-500 text-sm">Sin asignar</span>
+                      )}
+                    </td>
+                    
+                    {/* Estado */}
+                    <td className="px-4 py-4 text-center">
+                      <span className={`inline-block text-xs px-3 py-1.5 rounded-full font-medium ${
                         property.isAvailable 
-                          ? 'bg-green-500/20 text-green-300' 
-                          : 'bg-red-500/20 text-red-300'
+                          ? 'bg-green-500/20 text-green-300 border border-green-500/30' 
+                          : 'bg-red-500/20 text-red-300 border border-red-500/30'
                       }`}>
                         {property.isAvailable ? '✓ Disponible' : '✗ No Disponible'}
                       </span>
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Action Buttons */}
-                <div className="flex gap-2">
-                  <button 
-                    onClick={() => handleEdit(property)}
-                    className="p-2.5 bg-amber-500/20 hover:bg-amber-500/30 text-amber-400 rounded-lg transition-all duration-200 hover:scale-110"
-                    title="Editar Propiedad"
-                  >
-                    <IoPencilOutline className="w-5 h-5" />
-                  </button>
-                  <button 
-                    onClick={() => handleDelete(property.propertyId)}
-                    className="p-2.5 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded-lg transition-all duration-200 hover:scale-110"
-                    title="Eliminar"
-                  >
-                    <IoTrashOutline className="w-5 h-5" />
-                  </button>
-                </div>
-              </div>
-
-              {/* Grid de información principal */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                {/* Columna izquierda: Ubicación */}
-                <div className="space-y-3">
-                  <div className="bg-blue-500/10 rounded-lg p-3 border border-blue-500/20">
-                    <div className="flex items-center gap-2 mb-2">
-                      <IoLocationOutline className="w-4 h-4 text-blue-400" />
-                      <span className="text-blue-300 text-xs font-semibold uppercase">Ubicación</span>
-                    </div>
-                    <p className="text-white font-medium text-base">{property.address}</p>
-                    <p className="text-slate-300 text-sm mt-1">{property.neighborhood}</p>
-                  </div>
-                </div>
-
-                {/* Columna derecha: Precio */}
-                <div className="space-y-3">
-                  <div className="bg-emerald-500/10 rounded-lg p-3 border border-emerald-500/20">
-                    <div className="flex items-center gap-2 mb-2">
-                      <IoPricetagOutline className="w-4 h-4 text-emerald-400" />
-                      <span className="text-emerald-300 text-xs font-semibold uppercase">Precio</span>
-                    </div>
-                    <p className="text-emerald-400 font-bold text-2xl">{formatCurrency(property.price)}</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Clientes asignados */}
-              {property.Clients && property.Clients.length > 0 && (
-                <div className="bg-purple-500/10 rounded-lg p-3 border border-purple-500/20 mb-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <IoPeopleOutline className="w-4 h-4 text-purple-400" />
-                    <span className="text-purple-300 text-xs font-semibold uppercase">Clientes Asignados</span>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {property.Clients.map((client) => (
-                      <div key={client.idClient} className="flex items-center gap-2 bg-white/10 rounded-lg px-3 py-1.5">
-                        <span className="text-white text-sm font-medium">{client.name}</span>
-                        <span className="text-xs bg-purple-500/30 text-purple-200 px-2 py-0.5 rounded-full">
-                          {client.ClientProperty?.role || 'Sin rol'}
-                        </span>
+                    </td>
+                    
+                    {/* Acciones */}
+                    <td className="px-4 py-4">
+                      <div className="flex flex-col gap-2">
+                        {/* Botones de edición/eliminación */}
+                        <div className="flex justify-center gap-2">
+                          <button 
+                            onClick={() => handleEdit(property)}
+                            className="p-2 bg-amber-500/20 hover:bg-amber-500/30 text-amber-400 rounded-lg transition-all duration-200 hover:scale-110"
+                            title="Editar Propiedad"
+                          >
+                            <IoPencilOutline className="w-4 h-4" />
+                          </button>
+                          <button 
+                            onClick={() => handleDelete(property.propertyId)}
+                            className="p-2 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded-lg transition-all duration-200 hover:scale-110"
+                            title="Eliminar"
+                          >
+                            <IoTrashOutline className="w-4 h-4" />
+                          </button>
+                        </div>
+                        
+                        {/* Botones de acciones rápidas */}
+                        <div className="flex justify-center gap-1">
+                          <WhatsAppButton 
+                            propertyId={property.propertyId}
+                            property={property}
+                          />
+                          <RequisitoButton property={property} />
+                          <ImageManager property={property} />
+                          
+                          {property.type === 'venta' && (
+                            <AutorizacionVentaPdf 
+                              property={property}
+                              onEdit={() => {
+                                setAuthProperty(property);
+                                setShowAuthModal(true);
+                              }}
+                            />
+                          )}
+                          
+                          <PropiedadesPDF property={property} />
+                        </div>
+                        
+                        {/* Botón contextual según el modo */}
+                        {mode !== "default" && (
+                          <button
+                            onClick={() => {
+                              if (onSelectProperty) {
+                                onSelectProperty(property);
+                              } else {
+                                setSelectedProperty(property);
+                                if (mode === "lease") setShowCreateModal(true);
+                                if (mode === "sale") setShowSaleModal(true);
+                              }
+                            }}
+                            className={`w-full flex items-center justify-center px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200 ${
+                              mode === "lease" 
+                                ? "bg-blue-500/30 hover:bg-blue-500/40 text-blue-300"
+                                : "bg-purple-500/30 hover:bg-purple-500/40 text-purple-300"
+                            }`}
+                          >
+                            {mode === "lease" ? (
+                              <>
+                                <IoKeyOutline className="w-4 h-4 mr-1" />
+                                {onSelectProperty ? "Seleccionar" : "Contrato"}
+                              </>
+                            ) : (
+                              <>
+                                <IoBusinessOutline className="w-4 h-4 mr-1" />
+                                {onSelectProperty ? "Seleccionar" : "Venta"}
+                              </>
+                            )}
+                          </button>
+                        )}
                       </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Footer con acciones */}
-              <div className="pt-4 mt-4 border-t border-white/10">
-                {/* Acciones Rápidas */}
-                <div className="flex flex-wrap gap-2 mb-3">
-                  <WhatsAppButton 
-                    propertyId={property.propertyId}
-                    property={property}
-                  />
-                  <RequisitoButton property={property} />
-                  <ImageManager property={property} />
-                  
-                  {/* Botón de Autorización de Venta - Solo para propiedades en venta */}
-                  {property.type === 'venta' && (
-                    <AutorizacionVentaPdf 
-                      property={property}
-                      onEdit={() => {
-                        setAuthProperty(property);
-                        setShowAuthModal(true);
-                      }}
-                    />
-                  )}
-                  
-                  <div className="flex-grow flex justify-end">
-                    <PropiedadesPDF property={property} />
-                  </div>
-                </div>
-
-                {/* Botón contextual según el modo */}
-                {mode !== "default" && (
-                  <button
-                    onClick={() => {
-                      console.log("=== Click en botón de selección ===");
-                      console.log("onSelectProperty definido:", !!onSelectProperty);
-                      console.log("Property:", property);
-                      
-                      // Si hay callback de selección, usarlo (cuando viene de CreateLeaseForm)
-                      if (onSelectProperty) {
-                        console.log("Llamando a onSelectProperty...");
-                        onSelectProperty(property);
-                      } else {
-                        console.log("Abriendo modal interno...");
-                        // Si no, usar el modal interno
-                        setSelectedProperty(property);
-                        if (mode === "lease") setShowCreateModal(true);
-                        if (mode === "sale") setShowSaleModal(true);
-                      }
-                    }}
-                    className={`w-full flex items-center justify-center px-4 py-3 rounded-xl font-medium transition-all duration-300 hover:scale-[1.02] shadow-lg ${
-                      mode === "lease" 
-                        ? "bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white"
-                        : "bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white"
-                    }`}
-                  >
-                    {mode === "lease" ? (
-                      <>
-                        <IoKeyOutline className="w-5 h-5 mr-2" />
-                        {onSelectProperty ? "Seleccionar Propiedad" : "Crear Contrato de Alquiler"}
-                      </>
-                    ) : (
-                      <>
-                        <IoBusinessOutline className="w-5 h-5 mr-2" />
-                        {onSelectProperty ? "Seleccionar Propiedad" : "Gestionar Compraventa"}
-                      </>
-                    )}
-                  </button>
-                )}
-              </div>
-            </div>
-          ))}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
 
         {/* Pagination */}

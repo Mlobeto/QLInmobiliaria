@@ -178,7 +178,7 @@ export const verifyToken = () => async (dispatch) => {
 
   if (!token) {
     dispatch({ type: LOGIN_FAIL, payload: "No hay token" });
-    return;
+    return false;
   }
 
   try {
@@ -195,13 +195,16 @@ export const verifyToken = () => async (dispatch) => {
         admin: response.data.admin,
       },
     });
+    return true;
     // eslint-disable-next-line no-unused-vars
   } catch (error) {
-    localStorage.removeItem("token");
+    // El interceptor ya manejará el logout y redirección si es 401
+    // Solo dispatch el fail aquí
     dispatch({
       type: LOGIN_FAIL,
       payload: "Token inválido",
     });
+    return false;
   }
 };
 

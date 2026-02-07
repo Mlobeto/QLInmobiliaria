@@ -32,8 +32,8 @@ const UpcomingExpiryPopup = () => {
   if (!showPopup) return null;
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-      <div className="bg-white p-6 rounded shadow-lg max-w-md w-full">
+    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-[9999]">
+      <div className="bg-white p-6 rounded shadow-lg max-w-md w-full relative z-[10000]">
         <h2 className="text-2xl font-bold mb-4">¡Atención!</h2>
         <p className="mb-4">
           Los siguientes contratos están próximos a vencerse (dentro de 3 meses):
