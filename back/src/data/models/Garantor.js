@@ -55,5 +55,30 @@ module.exports = (sequelize) => {
       type: DataTypes.STRING,
       allowNull: false,
     },
+    certificationEntity: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      comment: 'Entidad certificadora para el caso de certificación de ingresos'
+    },
+    insuranceCompany: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      comment: 'Aseguradora para el caso de seguro de caución'
+    },
+    policyNumber: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      comment: 'Número de póliza para el caso de seguro de caución'
+    },
+    insuredAmount: {
+      type: DataTypes.DECIMAL(15, 2),
+      allowNull: true,
+      comment: 'Suma asegurada para el caso de seguro de caución'
+    },
+    insuranceStartDate: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      comment: 'Fecha de inicio de vigencia del seguro de caución'
+    },
   });
 };

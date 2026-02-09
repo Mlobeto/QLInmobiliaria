@@ -145,10 +145,7 @@ const PDFContractWrapper = () => {
     <div className="min-h-screen bg-gray-100">
       <ContratoAlquiler
         lease={contractData.lease}
-        property={contractData.property}
-        tenant={contractData.tenant}
-        owner={contractData.owner}
-        guarantors={contractData.guarantors}
+        autoGenerate={true}
         onDownload={() => {
           console.log('PDF descargado exitosamente');
           // Opcional: redirigir después de la descarga

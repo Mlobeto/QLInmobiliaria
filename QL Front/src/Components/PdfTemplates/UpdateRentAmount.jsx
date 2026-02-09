@@ -70,10 +70,12 @@ const UpdateRentAmount = ({ lease, newRentAmount, updateDate, ipcIndex, autoGene
       (updateDateObj.getFullYear() - startDate.getFullYear()) * 12 +
       (updateDateObj.getMonth() - startDate.getMonth());
 
-    if (lease.updateFrequency === "semestral") {
-      return `Semestre ${Math.floor(monthsSinceStart / 6) + 1}`;
+    if (lease.updateFrequency === "trimestral") {
+      return `Trimestre ${Math.floor(monthsSinceStart / 3) + 1}`;
     } else if (lease.updateFrequency === "cuatrimestral") {
       return `Cuatrimestre ${Math.floor(monthsSinceStart / 4) + 1}`;
+    } else if (lease.updateFrequency === "semestral") {
+      return `Semestre ${Math.floor(monthsSinceStart / 6) + 1}`;
     } else if (lease.updateFrequency === "anual") {
       return `Año ${Math.floor(monthsSinceStart / 12) + 1}`;
     }

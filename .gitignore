@@ -7,6 +7,17 @@ yarn-error.log*
 lerna-debug.log*
 .pnpm-debug.log*
 
+# ============================================
+# Backup Scripts (contienen credenciales - NO SUBIR)
+# ============================================
+backup-database.bat
+backup-database.sh
+restore-database.bat
+restore-database.sh
+backups/
+*.sql
+*.sql.gz
+
 # Diagnostic reports (https://nodejs.org/api/report.html)
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 

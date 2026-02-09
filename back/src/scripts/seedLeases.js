@@ -57,6 +57,15 @@ const seedLeases = async () => {
         inventory: "Casa completa: living-comedor, cocina equipada, 3 dormitorios con placard, 2 baños, patio con parrilla, garage techado"
       },
       {
+        description: "Contrato que necesita actualización trimestral",
+        startDate: new Date(new Date().setMonth(new Date().getMonth() - 4)),
+        totalMonths: 12,
+        updateFrequency: 'trimestral',
+        rentAmount: 95000,
+        commission: 10,
+        inventory: "Local comercial pequeño: vitrina, mostrador, estanterías, baño, instalación eléctrica trifásica"
+      },
+      {
         description: "Contrato que necesita actualización cuatrimestral",
         startDate: new Date(new Date().setMonth(new Date().getMonth() - 5)),
         totalMonths: 18,
@@ -127,11 +136,14 @@ const seedLeases = async () => {
         let needsUpdate = false;
         
         switch (template.updateFrequency) {
-          case 'semestral':
-            needsUpdate = monthsSinceStart >= 6;
+          case 'trimestral':
+            needsUpdate = monthsSinceStart >= 3;
             break;
           case 'cuatrimestral':
             needsUpdate = monthsSinceStart >= 4;
+            break;
+          case 'semestral':
+            needsUpdate = monthsSinceStart >= 6;
             break;
           case 'anual':
             needsUpdate = monthsSinceStart >= 12;

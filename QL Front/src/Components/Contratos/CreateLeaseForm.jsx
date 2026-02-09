@@ -60,6 +60,10 @@ const CreateLeaseForm = () => {
     guarantor1MobilePhone: "",
     guarantor1Description: "",
     guarantor1CertificationEntity: "",
+    guarantor1InsuranceCompany: "",
+    guarantor1PolicyNumber: "",
+    guarantor1InsuredAmount: "",
+    guarantor1InsuranceStartDate: "",
     guarantor2Name: "",
     guarantor2Cuil: "",
     guarantor2Direccion: "",
@@ -67,6 +71,10 @@ const CreateLeaseForm = () => {
     guarantor2MobilePhone: "",
     guarantor2Description: "",
     guarantor2CertificationEntity: "",
+    guarantor2InsuranceCompany: "",
+    guarantor2PolicyNumber: "",
+    guarantor2InsuredAmount: "",
+    guarantor2InsuranceStartDate: "",
   });
 
   useEffect(() => {
@@ -440,8 +448,9 @@ const CreateLeaseForm = () => {
                           required
                         >
                           <option value="" className="bg-slate-800">Seleccionar frecuencia</option>
-                          <option value="semestral" className="bg-slate-800">Semestral</option>
+                          <option value="trimestral" className="bg-slate-800">Trimestral</option>
                           <option value="cuatrimestral" className="bg-slate-800">Cuatrimestral</option>
+                          <option value="semestral" className="bg-slate-800">Semestral</option>
                           <option value="anual" className="bg-slate-800">Anual</option>
                         </select>
                       </div>
@@ -555,10 +564,11 @@ const CreateLeaseForm = () => {
                           onChange={handleInputChange}
                           className="px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50"
                         >
-                          <option value="" className="bg-slate-800">Tipo de documentación</option>
+                          <option value="" className="bg-slate-800">Tipo de garantía</option>
                           <option value="recibos" className="bg-slate-800">Recibos de sueldo</option>
                           <option value="certificacion" className="bg-slate-800">Certificación de ingresos</option>
                           <option value="escritura" className="bg-slate-800">Escritura de propiedad</option>
+                          <option value="seguro" className="bg-slate-800">Seguro de caución</option>
                         </select>
                         {formData.guarantor1Description === "certificacion" && (
                           <div className="md:col-span-2">
@@ -569,6 +579,42 @@ const CreateLeaseForm = () => {
                               onChange={handleInputChange}
                               className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
                               placeholder="Entidad certificadora"
+                            />
+                          </div>
+                        )}
+                        {formData.guarantor1Description === "seguro" && (
+                          <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <input
+                              type="text"
+                              name="guarantor1InsuranceCompany"
+                              value={formData.guarantor1InsuranceCompany}
+                              onChange={handleInputChange}
+                              className="px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                              placeholder="Aseguradora"
+                            />
+                            <input
+                              type="text"
+                              name="guarantor1PolicyNumber"
+                              value={formData.guarantor1PolicyNumber}
+                              onChange={handleInputChange}
+                              className="px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                              placeholder="N.º de póliza"
+                            />
+                            <input
+                              type="number"
+                              name="guarantor1InsuredAmount"
+                              value={formData.guarantor1InsuredAmount}
+                              onChange={handleInputChange}
+                              className="px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                              placeholder="Suma asegurada"
+                            />
+                            <input
+                              type="date"
+                              name="guarantor1InsuranceStartDate"
+                              value={formData.guarantor1InsuranceStartDate}
+                              onChange={handleInputChange}
+                              className="px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                              placeholder="Vigencia desde"
                             />
                           </div>
                         )}
@@ -626,10 +672,11 @@ const CreateLeaseForm = () => {
                           onChange={handleInputChange}
                           className="px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50"
                         >
-                          <option value="" className="bg-slate-800">Tipo de documentación</option>
+                          <option value="" className="bg-slate-800">Tipo de garantía</option>
                           <option value="recibos" className="bg-slate-800">Recibos de sueldo</option>
                           <option value="certificacion" className="bg-slate-800">Certificación de ingresos</option>
                           <option value="escritura" className="bg-slate-800">Escritura de propiedad</option>
+                          <option value="seguro" className="bg-slate-800">Seguro de caución</option>
                         </select>
                         {formData.guarantor2Description === "certificacion" && (
                           <div className="md:col-span-2">
@@ -640,6 +687,42 @@ const CreateLeaseForm = () => {
                               onChange={handleInputChange}
                               className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
                               placeholder="Entidad certificadora"
+                            />
+                          </div>
+                        )}
+                        {formData.guarantor2Description === "seguro" && (
+                          <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <input
+                              type="text"
+                              name="guarantor2InsuranceCompany"
+                              value={formData.guarantor2InsuranceCompany}
+                              onChange={handleInputChange}
+                              className="px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                              placeholder="Aseguradora"
+                            />
+                            <input
+                              type="text"
+                              name="guarantor2PolicyNumber"
+                              value={formData.guarantor2PolicyNumber}
+                              onChange={handleInputChange}
+                              className="px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                              placeholder="N.º de póliza"
+                            />
+                            <input
+                              type="number"
+                              name="guarantor2InsuredAmount"
+                              value={formData.guarantor2InsuredAmount}
+                              onChange={handleInputChange}
+                              className="px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                              placeholder="Suma asegurada"
+                            />
+                            <input
+                              type="date"
+                              name="guarantor2InsuranceStartDate"
+                              value={formData.guarantor2InsuranceStartDate}
+                              onChange={handleInputChange}
+                              className="px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                              placeholder="Vigencia desde"
                             />
                           </div>
                         )}
@@ -693,6 +776,10 @@ const CreateLeaseForm = () => {
                       direccion: formData.guarantor1Direccion,
                       description: formData.guarantor1Description,
                       certificationEntity: formData.guarantor1CertificationEntity,
+                      insuranceCompany: formData.guarantor1InsuranceCompany,
+                      policyNumber: formData.guarantor1PolicyNumber,
+                      insuredAmount: formData.guarantor1InsuredAmount,
+                      insuranceStartDate: formData.guarantor1InsuranceStartDate,
                     }}
                     guarantor2Data={{
                       name: formData.guarantor2Name,
@@ -700,6 +787,10 @@ const CreateLeaseForm = () => {
                       direccion: formData.guarantor2Direccion,
                       description: formData.guarantor2Description,
                       certificationEntity: formData.guarantor2CertificationEntity,
+                      insuranceCompany: formData.guarantor2InsuranceCompany,
+                      policyNumber: formData.guarantor2PolicyNumber,
+                      insuredAmount: formData.guarantor2InsuredAmount,
+                      insuranceStartDate: formData.guarantor2InsuranceStartDate,
                     }}
                   />
                   
@@ -723,11 +814,19 @@ const CreateLeaseForm = () => {
                           guarantor1Direccion: "",
                           guarantor1Description: "",
                           guarantor1CertificationEntity: "",
+                          guarantor1InsuranceCompany: "",
+                          guarantor1PolicyNumber: "",
+                          guarantor1InsuredAmount: "",
+                          guarantor1InsuranceStartDate: "",
                           guarantor2Name: "",
                           guarantor2Cuil: "",
                           guarantor2Direccion: "",
                           guarantor2Description: "",
                           guarantor2CertificationEntity: "",
+                          guarantor2InsuranceCompany: "",
+                          guarantor2PolicyNumber: "",
+                          guarantor2InsuredAmount: "",
+                          guarantor2InsuranceStartDate: "",
                         });
                         setLeaseCreated(null);
                         setPdfData(null);

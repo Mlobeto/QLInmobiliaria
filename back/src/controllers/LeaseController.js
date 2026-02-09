@@ -628,8 +628,9 @@ exports.getAllLeases = async (req, res) => {
       
       // Determinar frecuencia en meses
       let freqMonths = 0;
-      if (lease.updateFrequency === 'semestral') freqMonths = 6;
+      if (lease.updateFrequency === 'trimestral') freqMonths = 3;
       else if (lease.updateFrequency === 'cuatrimestral') freqMonths = 4;
+      else if (lease.updateFrequency === 'semestral') freqMonths = 6;
       else if (lease.updateFrequency === 'anual') freqMonths = 12;
       
       // Verificar si necesita actualización basándose en startDate
@@ -734,13 +735,17 @@ function calculateUpdatePeriod(startDate, updateFrequency, updateDate) {
 
   let period = '';
   switch (updateFrequency) {
-      case 'semestral':
-          const semester = Math.floor(monthsDiff / 6) + 1;
-          period = `Semestre ${semester}`;
+      case 'trimestral':
+          const trimestre = Math.floor(monthsDiff / 3) + 1;
+          period = `Trimestre ${trimestre}`;
           break;
       case 'cuatrimestral':
           const cuatrimestre = Math.floor(monthsDiff / 4) + 1;
           period = `Cuatrimestre ${cuatrimestre}`;
+          break;
+      case 'semestral':
+          const semester = Math.floor(monthsDiff / 6) + 1;
+          period = `Semestre ${semester}`;
           break;
       case 'anual':
           const year = Math.floor(monthsDiff / 12) + 1;
@@ -756,8 +761,9 @@ function calculateUpdatePeriod(startDate, updateFrequency, updateDate) {
 
 function getNextUpdateDate(startDate, updateFrequency, lastUpdateDate = null) {
   let freqMonths = 0;
-  if (updateFrequency === 'semestral') freqMonths = 6;
+  if (updateFrequency === 'trimestral') freqMonths = 3;
   else if (updateFrequency === 'cuatrimestral') freqMonths = 4;
+  else if (updateFrequency === 'semestral') freqMonths = 6;
   else if (updateFrequency === 'anual') freqMonths = 12;
 
   const start = parseSafeDate(startDate);
@@ -795,8 +801,9 @@ function getNextUpdateDate(startDate, updateFrequency, lastUpdateDate = null) {
 
 function needsUpdate(startDate, updateFrequency, lastUpdateDate = null) {
   let freqMonths = 0;
-  if (updateFrequency === 'semestral') freqMonths = 6;
+  if (updateFrequency === 'trimestral') freqMonths = 3;
   else if (updateFrequency === 'cuatrimestral') freqMonths = 4;
+  else if (updateFrequency === 'semestral') freqMonths = 6;
   else if (updateFrequency === 'anual') freqMonths = 12;
 
   const start = parseSafeDate(startDate);
@@ -1018,8 +1025,9 @@ exports.getLeasesPendingUpdate = async (req, res) => {
                               (now.getMonth() - start.getMonth());
       
       let freqMonths = 0;
-      if (lease.updateFrequency === 'semestral') freqMonths = 6;
+      if (lease.updateFrequency === 'trimestral') freqMonths = 3;
       else if (lease.updateFrequency === 'cuatrimestral') freqMonths = 4;
+      else if (lease.updateFrequency === 'semestral') freqMonths = 6;
       else if (lease.updateFrequency === 'anual') freqMonths = 12;
       
       // Verificar cuántos períodos completos han pasado desde startDate
@@ -1054,8 +1062,9 @@ exports.getLeasesPendingUpdate = async (req, res) => {
                               (now.getMonth() - start.getMonth());
       
       let freqMonths = 0;
-      if (lease.updateFrequency === 'semestral') freqMonths = 6;
+      if (lease.updateFrequency === 'trimestral') freqMonths = 3;
       else if (lease.updateFrequency === 'cuatrimestral') freqMonths = 4;
+      else if (lease.updateFrequency === 'semestral') freqMonths = 6;
       else if (lease.updateFrequency === 'anual') freqMonths = 12;
       
       // Períodos completos desde startDate

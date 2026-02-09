@@ -178,10 +178,12 @@ const ActualizarAlquileres = () => {
                             (hoy.getMonth() - startDate.getMonth());
     
     let periodo = 'Período desconocido';
-    if (lease.updateFrequency === "semestral") {
-      periodo = `Semestre ${Math.floor(monthsSinceStart / 6) + 1}`;
+    if (lease.updateFrequency === "trimestral") {
+      periodo = `Trimestre ${Math.floor(monthsSinceStart / 3) + 1}`;
     } else if (lease.updateFrequency === "cuatrimestral") {
       periodo = `Cuatrimestre ${Math.floor(monthsSinceStart / 4) + 1}`;
+    } else if (lease.updateFrequency === "semestral") {
+      periodo = `Semestre ${Math.floor(monthsSinceStart / 6) + 1}`;
     } else if (lease.updateFrequency === "anual") {
       periodo = `Año ${Math.floor(monthsSinceStart / 12) + 1}`;
     }

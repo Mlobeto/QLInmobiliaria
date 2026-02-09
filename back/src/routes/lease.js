@@ -88,8 +88,9 @@ router.get('/debug/alerts', async (req, res) => {
     const debugInfo = leases.map(lease => {
       // Cálculo simple de próxima actualización
       let freqMonths = 0;
-      if (lease.updateFrequency === 'semestral') freqMonths = 6;
+      if (lease.updateFrequency === 'trimestral') freqMonths = 3;
       else if (lease.updateFrequency === 'cuatrimestral') freqMonths = 4;
+      else if (lease.updateFrequency === 'semestral') freqMonths = 6;
       else if (lease.updateFrequency === 'anual') freqMonths = 12;
 
       const startDate = new Date(lease.startDate);

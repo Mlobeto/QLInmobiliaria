@@ -568,8 +568,9 @@ import {
                               className="w-full px-2 py-1 text-sm bg-white/5 border border-white/10 rounded text-white focus:outline-none focus:ring-1 focus:ring-blue-500/50"
                             >
                               <option value="" className="bg-slate-800">Seleccionar</option>
-                              <option value="semestral" className="bg-slate-800">Semestral</option>
+                              <option value="trimestral" className="bg-slate-800">Trimestral</option>
                               <option value="cuatrimestral" className="bg-slate-800">Cuatrimestral</option>
+                              <option value="semestral" className="bg-slate-800">Semestral</option>
                               <option value="anual" className="bg-slate-800">Anual</option>
                             </select>
                           ) : (

@@ -39,10 +39,10 @@ module.exports = (sequelize) => {
         allowNull: false,
       },
       updateFrequency: {
-        type: DataTypes.ENUM("semestral", "cuatrimestral", "anual"),
-        allowNull: true, // ← Agregar esta línea
+        type: DataTypes.ENUM("trimestral", "cuatrimestral", "semestral", "anual"),
+        allowNull: false,
         validate: {
-          isIn: [["semestral", "cuatrimestral", "anual"]], // ← Validación adicional
+          isIn: [["trimestral", "cuatrimestral", "semestral", "anual"]],
         },
       },
       commission: {

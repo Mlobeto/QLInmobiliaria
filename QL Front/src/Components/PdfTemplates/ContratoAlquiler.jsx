@@ -13,7 +13,7 @@ if (pdfFonts.pdfMake && pdfFonts.pdfMake.vfs) {
   pdfMake.vfs = pdfFonts;
 }
 
-const ContratoAlquiler = ({ lease, autoGenerate = false }) => {
+const ContratoAlquiler = ({ lease, autoGenerate = false, guarantor1Data, guarantor2Data }) => {
   
   // Función para convertir números a letras
   const numeroALetras = (num) => {
@@ -191,7 +191,42 @@ const ContratoAlquiler = ({ lease, autoGenerate = false }) => {
     const property = lease.Property;
     const tenant = lease.Tenant;
     const landlord = lease.Landlord;
-    const guarantors = lease.Garantors || [];
+    
+    // Combinar garantes del backend con los del formulario
+    let guarantors = lease.Garantors || [];
+    
+    // Si hay datos de garantes desde el formulario (contrato recién creado)
+    if (guarantor1Data && guarantor1Data.name) {
+      guarantors.push({
+        name: guarantor1Data.name,
+        cuil: guarantor1Data.cuil,
+        address: guarantor1Data.direccion,
+        email: guarantor1Data.email || '',
+        mobilePhone: guarantor1Data.mobilePhone || '',
+        description: guarantor1Data.description || '',
+        certificationEntity: guarantor1Data.certificationEntity || '',
+        insuranceCompany: guarantor1Data.insuranceCompany || '',
+        policyNumber: guarantor1Data.policyNumber || '',
+        insuredAmount: guarantor1Data.insuredAmount || '',
+        insuranceStartDate: guarantor1Data.insuranceStartDate || '',
+      });
+    }
+    
+    if (guarantor2Data && guarantor2Data.name) {
+      guarantors.push({
+        name: guarantor2Data.name,
+        cuil: guarantor2Data.cuil,
+        address: guarantor2Data.direccion,
+        email: guarantor2Data.email || '',
+        mobilePhone: guarantor2Data.mobilePhone || '',
+        description: guarantor2Data.description || '',
+        certificationEntity: guarantor2Data.certificationEntity || '',
+        insuranceCompany: guarantor2Data.insuranceCompany || '',
+        policyNumber: guarantor2Data.policyNumber || '',
+        insuredAmount: guarantor2Data.insuredAmount || '',
+        insuranceStartDate: guarantor2Data.insuranceStartDate || '',
+      });
+    }
 
     // Determinar tipo de contrato según typeProperty
     const getTituloContrato = (typeProperty) => {
@@ -290,7 +325,7 @@ const ContratoAlquiler = ({ lease, autoGenerate = false }) => {
       },
       {
         title: "CUARTA: Precio:",
-        text: `El precio del alquiler se fija de comun acuerdo entre las partes por la suma de ${formatearMonto(lease.rentAmount)} para el ${lease.updateFrequency === "semestral" ? "primer semestre" : lease.updateFrequency === "anual" ? "primer ano" : "primer cuatrimestre"} de locacion. Para los ${lease.updateFrequency === "semestral" ? "siguientes semestres" : lease.updateFrequency === "anual" ? "siguientes anos" : "siguientes cuatrimestres"} el precio sera actualizado conforme al Indice de precios al consumidor (IPC) que confecciona y publica el Instituto Nacional de Estadisticas y Censos (INDEC). Si por una disposicion legal y futura, los alquileres se vieren grabados con el pago del impuesto al valor agregado (IVA), EL LOCATARIO debera adicionar al monto mensual a pagar en concepto de canon locativo, el porcentual correspondiente al IVA. El LOCATARIO abonara el alquiler en efectivo en moneda de curso legal, y por adelantado del 1° al 10° del mes en el local comercial de Q+L Servicios Inmobiliarios sito en Av. Gobernador Cubas N° 50 de la ciudad de Belen, o bien en el domicilio que en un futuro designe el LOCADOR. Por el presente acto el LOCADOR comunica al LOCATARIO que constituye a Q+L Servicios inmobiliarios, en adelante EL ADMINISTRADOR como su representante, quedando este facultado para actuar en su nombre en cualquier cuestion que emane del presente, percibir los alquileres mensuales y extender los correspondientes recibos de pago, tambien para conservar y archivar los comprobantes de pago de todos los impuestos, y servicios a cargo del LOCATARIO, quien tendra por constancia de pago el asiento de los mismos en los recibos de pago del alquiler. La falta de pago producira un interes equivalente al 1% diario contado a partir del primer dia del mes en mora.`
+        text: `El precio del alquiler se fija de comun acuerdo entre las partes por la suma de ${formatearMonto(lease.rentAmount)} para el ${lease.updateFrequency === "trimestral" ? "primer trimestre" : lease.updateFrequency === "cuatrimestral" ? "primer cuatrimestre" : lease.updateFrequency === "semestral" ? "primer semestre" : "primer ano"} de locacion. Para los ${lease.updateFrequency === "trimestral" ? "siguientes trimestres" : lease.updateFrequency === "cuatrimestral" ? "siguientes cuatrimestres" : lease.updateFrequency === "semestral" ? "siguientes semestres" : "siguientes anos"} el precio sera actualizado conforme al Indice de precios al consumidor (IPC) que confecciona y publica el Instituto Nacional de Estadisticas y Censos (INDEC). Si por una disposicion legal y futura, los alquileres se vieren grabados con el pago del impuesto al valor agregado (IVA), EL LOCATARIO debera adicionar al monto mensual a pagar en concepto de canon locativo, el porcentual correspondiente al IVA. El LOCATARIO abonara el alquiler en efectivo en moneda de curso legal, y por adelantado del 1° al 10° del mes en el local comercial de Q+L Servicios Inmobiliarios sito en Av. Gobernador Cubas N° 50 de la ciudad de Belen, o bien en el domicilio que en un futuro designe el LOCADOR. Por el presente acto el LOCADOR comunica al LOCATARIO que constituye a Q+L Servicios inmobiliarios, en adelante EL ADMINISTRADOR como su representante, quedando este facultado para actuar en su nombre en cualquier cuestion que emane del presente, percibir los alquileres mensuales y extender los correspondientes recibos de pago, tambien para conservar y archivar los comprobantes de pago de todos los impuestos, y servicios a cargo del LOCATARIO, quien tendra por constancia de pago el asiento de los mismos en los recibos de pago del alquiler. La falta de pago producira un interes equivalente al 1% diario contado a partir del primer dia del mes en mora.`
       },
       {
         title: "QUINTA: Modificaciones:",
@@ -323,10 +358,30 @@ const ContratoAlquiler = ({ lease, autoGenerate = false }) => {
     ];
 
     // Agregar cláusulas de garantes
-    const garantesClauses = guarantors.map((guarantor, index) => ({
-      title: `DECIMA SEGUNDA${index > 0 ? ` (${index + 1})` : ''}: Fianza.Garante:`,
-      text: `El Sr/Sra ${guarantor.name}, que acredita su identidad con CUIL ${guarantor.cuil}, nacionalidad Argentina, con domicilio en ${guarantor.address}, telefono ${guarantor.mobilePhone || 'N/A'}, correo electronico: ${guarantor.email || 'N/A'}, quien manifiesta no tener capacidad restringida para este acto, a estos efectos exhibe el recibo de sueldo del Gobierno de la provincia de Catamarca, el que acredita ${guarantor.description}. Quien se constituye a los efectos de este contrato en Fiador/a solidario/a, liso, llano y principal pagador/a de los alquileres, impuestos, servicios adeudados por el LOCATARIO. La parte Fiadora renuncia a los beneficios de division y excusion y declara expresamente que, si al vencimiento del contrato el Locatario permaneciese en el uso y goce del bien locado, su responsabilidad y fianza continuaran en vigencia hasta el momento en que el Locatario entregue en devolucion a la Locadora la propiedad libre de ocupantes y en las demas condiciones establecidas en este contrato. Comprometiendose en este acto que si por alguna circunstancia propia o ajena, cambiara de empleador o bien de domicilio laboral, lo comunicara inmediatamente al Locador, o sus representantes, mediante notificacion fehaciente. Es ademas obligacion del Fiador, vigilar que el Locatario cumpla con todas y cada una de las obligaciones contraidas en este Contrato de Locacion. Asimismo se avienen al pago de los alquileres adeudados por el Locatario, con la sola presentacion de los recibos de alquileres respectivos. REEMPLAZO DE LOS GARANTES: En caso de falencia, insolvencia, fallecimiento, desaparición y responsabilidad manifiesta, etc. del o de los fiadores, el LOCADOR podrá requerir un nuevo garante fiador, en término de cinco (5) días corridos, cuya solvencia no podrá ser inferior a la anterior, quedando ésta, a juicio y satisfacción de la locadora. En caso de incumplimiento de esta obligación por parte del LOCATARIO, quedará resuelto el contrato, como si el convenio fuese a término vencido. Es obligación del LOCATARIO dar aviso al LOCADOR en caso de presentarse alguna de las mencionadas circunstancias.`
-    }));
+    const garantesClauses = guarantors.map((guarantor, index) => {
+      // Si es un seguro de caución, generar cláusula específica
+      if (guarantor.description === 'seguro') {
+        // Calcular fecha de fin del contrato para la vigencia
+        const endDate = calcularFechaFin(lease.startDate, lease.totalMonths);
+        
+        return {
+          title: `DECIMA SEGUNDA${index > 0 ? ` (${index + 1})` : ''}: Fianza - Seguro de caución`,
+          text: `El LOCATARIO constituye como garantia Seguro de Caucion, emitido por aseguradora habilitada por la SSN y aceptada por el LOCADOR, que garantiza el cumplimiento integro del presente contrato.
+Aseguradora: ${guarantor.insuranceCompany || '________'}
+N.º de poliza: ${guarantor.policyNumber || '________'}
+Suma asegurada: ${guarantor.insuredAmount || '________'}
+Vigencia: desde ${guarantor.insuranceStartDate ? formatearFecha(guarantor.insuranceStartDate) : '__ / __ / ____'} hasta ${formatearFecha(endDate)}, debiendo mantenerse vigente durante todo el plazo contractual y hasta la restitucion efectiva del inmueble.
+
+La poliza debera cubrir alquileres, expensas, servicios y danos, contar con endoso a favor del LOCADOR y no podra cancelarse sin su consentimiento, bajo apercibimiento de incumplimiento grave.`
+        };
+      }
+      
+      // Para otros tipos de garantía, usar la cláusula tradicional
+      return {
+        title: `DECIMA SEGUNDA${index > 0 ? ` (${index + 1})` : ''}: Fianza.Garante:`,
+        text: `El Sr/Sra ${guarantor.name}, que acredita su identidad con CUIL ${guarantor.cuil}, nacionalidad Argentina, con domicilio en ${guarantor.address}, telefono ${guarantor.mobilePhone || 'N/A'}, correo electronico: ${guarantor.email || 'N/A'}, quien manifiesta no tener capacidad restringida para este acto, a estos efectos exhibe el recibo de sueldo del Gobierno de la provincia de Catamarca, el que acredita ${guarantor.description}. Quien se constituye a los efectos de este contrato en Fiador/a solidario/a, liso, llano y principal pagador/a de los alquileres, impuestos, servicios adeudados por el LOCATARIO. La parte Fiadora renuncia a los beneficios de division y excusion y declara expresamente que, si al vencimiento del contrato el Locatario permaneciese en el uso y goce del bien locado, su responsabilidad y fianza continuaran en vigencia hasta el momento en que el Locatario entregue en devolucion a la Locadora la propiedad libre de ocupantes y en las demas condiciones establecidas en este contrato. Comprometiendose en este acto que si por alguna circunstancia propia o ajena, cambiara de empleador o bien de domicilio laboral, lo comunicara inmediatamente al Locador, o sus representantes, mediante notificacion fehaciente. Es ademas obligacion del Fiador, vigilar que el Locatario cumpla con todas y cada una de las obligaciones contraidas en este Contrato de Locacion. Asimismo se avienen al pago de los alquileres adeudados por el Locatario, con la sola presentacion de los recibos de alquileres respectivos. REEMPLAZO DE LOS GARANTES: En caso de falencia, insolvencia, fallecimiento, desaparición y responsabilidad manifiesta, etc. del o de los fiadores, el LOCADOR podrá requerir un nuevo garante fiador, en término de cinco (5) días corridos, cuya solvencia no podrá ser inferior a la anterior, quedando ésta, a juicio y satisfacción de la locadora. En caso de incumplimiento de esta obligación por parte del LOCATARIO, quedará resuelto el contrato, como si el convenio fuese a término vencido. Es obligación del LOCATARIO dar aviso al LOCADOR en caso de presentarse alguna de las mencionadas circunstancias.`
+      };
+    });
 
     // Cláusulas finales
     const clausulasFinales = [
@@ -475,6 +530,8 @@ const ContratoAlquiler = ({ lease, autoGenerate = false }) => {
 ContratoAlquiler.propTypes = {
   lease: PropTypes.object,
   autoGenerate: PropTypes.bool,
+  guarantor1Data: PropTypes.object,
+  guarantor2Data: PropTypes.object,
 };
 
 export default ContratoAlquiler;
