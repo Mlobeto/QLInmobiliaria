@@ -16,9 +16,9 @@ router.post('/', createPayment);
 router.get('/', authMiddleware, checkRole('admin'), getAllPayments);
 router.get('/lease/:leaseId', getPaymentsByLeaseId);
 router.get('/client/:idClient', getPaymentsByIdClient);
-// Rutas para actualizar y eliminar pagos (solo admins)
-router.put('/:id', authMiddleware, checkRole('admin'), updatePayment);
-router.delete('/:id', authMiddleware, checkRole('admin'), deletePayment);
+// Rutas para actualizar y eliminar pagos (usuarios autenticados)
+router.put('/:id', authMiddleware, updatePayment);
+router.delete('/:id', authMiddleware, deletePayment);
 
 
 module.exports = router;

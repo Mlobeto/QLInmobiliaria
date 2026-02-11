@@ -29,8 +29,6 @@ const PaymentList = () => {
   const payments = useSelector(state => state.allPayments) || [];
   const loading = useSelector(state => state.loading);
   const error = useSelector(state => state.error);
-  const user = useSelector(state => state.user);
-  const isAdmin = user?.role === 'admin';
 
   // Estados para filtros y búsqueda
   const [filter, setFilter] = useState('');
@@ -493,25 +491,21 @@ const PaymentList = () => {
                         Descargar
                       </button>
                       
-                      {isAdmin && (
-                        <>
-                          <button 
-                            onClick={() => handleEditClick(payment)}
-                            className="flex items-center justify-center px-4 py-2 bg-amber-500/20 hover:bg-amber-500/30 text-amber-400 rounded-lg transition-colors border border-amber-400/30"
-                            title="Editar pago"
-                          >
-                            <IoCreateOutline className="w-4 h-4" />
-                          </button>
-                          
-                          <button 
-                            onClick={() => handleDelete(payment)}
-                            className="flex items-center justify-center px-4 py-2 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded-lg transition-colors border border-red-400/30"
-                            title="Eliminar pago"
-                          >
-                            <IoTrashOutline className="w-4 h-4" />
-                          </button>
-                        </>
-                      )}
+                      <button 
+                        onClick={() => handleEditClick(payment)}
+                        className="flex items-center justify-center px-4 py-2 bg-amber-500/20 hover:bg-amber-500/30 text-amber-400 rounded-lg transition-colors border border-amber-400/30"
+                        title="Editar pago"
+                      >
+                        <IoCreateOutline className="w-4 h-4" />
+                      </button>
+                      
+                      <button 
+                        onClick={() => handleDelete(payment)}
+                        className="flex items-center justify-center px-4 py-2 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded-lg transition-colors border border-red-400/30"
+                        title="Eliminar pago"
+                      >
+                        <IoTrashOutline className="w-4 h-4" />
+                      </button>
                     </div>
                   </div>
                 </div>
