@@ -56,8 +56,8 @@ const PaymentList = () => {
 
   // Filtrar pagos según los criterios
   const filteredPayments = payments.filter(payment => {
-    const matchesText = payment.leaseId.toString().includes(filter) ||
-      (payment.Client && payment.Client.name.toLowerCase().includes(filter.toLowerCase())) ||
+    const matchesText = (payment.leaseId && payment.leaseId.toString().includes(filter)) ||
+      (payment.Client && payment.Client.name && payment.Client.name.toLowerCase().includes(filter.toLowerCase())) ||
       (payment.period && payment.period.toLowerCase().includes(filter.toLowerCase()));
 
     const matchesType = typeFilter === 'all' || payment.type === typeFilter;
