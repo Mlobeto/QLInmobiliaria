@@ -152,6 +152,105 @@ exports.getAllPayments = async (req, res) => {
   }
 };
 
+exports.updatePayment = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const {
+      paymentDate,
+      amount,
+      period,
+      type,
+      installmentNumber,
+      totalInstallments
+    } = req.body;
+
+    // Buscar el pago
+    const payment = await PaymentReceipt.findByPk(id);
+    if (!payment) {
+      return res.status(404).json({ error: 'Pago no encontrado' });
+    }
+
+    // Si se está cambiando el tipo a "initial", validar que no exista otro pago inicial
+    if (type === 'initial' && payment.type !== 'initial') {
+      const existingInitial = await PaymentReceipt.findOne({
+        where: { 
+          leaseId: payment.leaseId, 
+          type: 'initial',
+          id: { [require('sequelize').Op.ne]: id } // Excluir el pago actual
+        },
+      });
+      if (existingInitial) {
+        return res.status(400).json({ 
+          error: 'Ya existe un pago inicial para este contrato.' 
+        });
+      }
+    }
+
+    // Actualizar los campos proporcionados
+    const updateData = {};
+    if (paymentDate !== undefined) updateData.paymentDate = paymentDate;
+    if (amount !== undefined) updateData.amount = amount;
+    if (period !== undefined) updateData.period = period;
+    if (type !== undefined) updateData.type = type;
+    if (installmentNumber !== undefined) updateData.installmentNumber = installmentNumber;
+    if (totalInstallments !== undefined) updateData.totalInstallments = totalInstallments;
+
+    await payment.update(updateData);
+
+    // Recargar con relaciones
+    const updatedPayment = await PaymentReceipt.findByPk(id, {
+      include: [
+        { model: Client },
+        { 
+          model: Lease,
+          include: [{ model: Property }]
+        },
+      ],
+    });
+
+    res.status(200).json(updatedPayment);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      error: 'Error al actualizar el pago',
+      details: error.message,
+    });
+  }
+};
+
+exports.deletePayment = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Buscar el pago
+    const payment = await PaymentReceipt.findByPk(id);
+    if (!payment) {
+      return res.status(404).json({ error: 'Pago no encontrado' });
+    }
+
+    // Guardar información antes de eliminar para el log
+    const paymentInfo = {
+      id: payment.id,
+      leaseId: payment.leaseId,
+      amount: payment.amount,
+      type: payment.type
+    };
+
+    await payment.destroy();
+
+    res.status(200).json({ 
+      message: 'Pago eliminado correctamente',
+      deletedPayment: paymentInfo
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      error: 'Error al eliminar el pago',
+      details: error.message,
+    });
+  }
+};
+
 exports.getPaymentsByLease = async (req, res) => {
   try {
     const { leaseId } = req.params;

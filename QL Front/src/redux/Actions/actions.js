@@ -52,6 +52,12 @@ import {
   CREATE_PAYMENT_REQUEST,
   CREATE_PAYMENT_SUCCESS,
   CREATE_PAYMENT_FAILURE,
+  UPDATE_PAYMENT_REQUEST,
+  UPDATE_PAYMENT_SUCCESS,
+  UPDATE_PAYMENT_FAILURE,
+  DELETE_PAYMENT_REQUEST,
+  DELETE_PAYMENT_SUCCESS,
+  DELETE_PAYMENT_FAILURE,
   GET_PAYMENTS_BY_LEASE_REQUEST,
   GET_PAYMENTS_BY_LEASE_SUCCESS,
   GET_PAYMENTS_BY_LEASE_FAILURE,
@@ -697,6 +703,46 @@ export const getAllPayments = () => async (dispatch) => {
         payload: error.response?.data?.error || error.message,
       });
     }
+  }
+};
+
+export const updatePayment = (id, paymentData) => async (dispatch) => {
+  dispatch({ type: UPDATE_PAYMENT_REQUEST });
+  try {
+    const response = await axios.put(`/payment/${id}`, paymentData);
+    dispatch({
+      type: UPDATE_PAYMENT_SUCCESS,
+      payload: response.data,
+    });
+    Swal.fire("Éxito", "Pago actualizado correctamente", "success");
+    // Recargar la lista de pagos
+    dispatch(getAllPayments());
+  } catch (error) {
+    dispatch({
+      type: UPDATE_PAYMENT_FAILURE,
+      payload: error.response?.data?.error || error.message,
+    });
+    Swal.fire("Error", error.response?.data?.error || "Error al actualizar el pago", "error");
+  }
+};
+
+export const deletePayment = (id) => async (dispatch) => {
+  dispatch({ type: DELETE_PAYMENT_REQUEST });
+  try {
+    const response = await axios.delete(`/payment/${id}`);
+    dispatch({
+      type: DELETE_PAYMENT_SUCCESS,
+      payload: id,
+    });
+    Swal.fire("Éxito", "Pago eliminado correctamente", "success");
+    // Recargar la lista de pagos
+    dispatch(getAllPayments());
+  } catch (error) {
+    dispatch({
+      type: DELETE_PAYMENT_FAILURE,
+      payload: error.response?.data?.error || error.message,
+    });
+    Swal.fire("Error", error.response?.data?.error || "Error al eliminar el pago", "error");
   }
 };
 

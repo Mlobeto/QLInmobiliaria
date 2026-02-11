@@ -53,6 +53,12 @@ import {
   CREATE_PAYMENT_REQUEST,
   CREATE_PAYMENT_SUCCESS,
   CREATE_PAYMENT_FAILURE,
+  UPDATE_PAYMENT_REQUEST,
+  UPDATE_PAYMENT_SUCCESS,
+  UPDATE_PAYMENT_FAILURE,
+  DELETE_PAYMENT_REQUEST,
+  DELETE_PAYMENT_SUCCESS,
+  DELETE_PAYMENT_FAILURE,
   GET_PAYMENTS_BY_LEASE_REQUEST,
   GET_PAYMENTS_BY_LEASE_SUCCESS,
   GET_PAYMENTS_BY_LEASE_FAILURE,
@@ -911,6 +917,52 @@ const rootReducer = (state = initialState, action) => {
       };
 
     case GET_ALL_PAYMENTS_FAILURE:
+      return {
+        ...state,
+        loading: false,
+        error: action.payload
+      };
+
+    case UPDATE_PAYMENT_REQUEST:
+      return {
+        ...state,
+        loading: true,
+        error: null
+      };
+
+    case UPDATE_PAYMENT_SUCCESS:
+      return {
+        ...state,
+        loading: false,
+        allPayments: state.allPayments.map(payment => 
+          payment.id === action.payload.id ? action.payload : payment
+        ),
+        error: null
+      };
+
+    case UPDATE_PAYMENT_FAILURE:
+      return {
+        ...state,
+        loading: false,
+        error: action.payload
+      };
+
+    case DELETE_PAYMENT_REQUEST:
+      return {
+        ...state,
+        loading: true,
+        error: null
+      };
+
+    case DELETE_PAYMENT_SUCCESS:
+      return {
+        ...state,
+        loading: false,
+        allPayments: state.allPayments.filter(payment => payment.id !== action.payload),
+        error: null
+      };
+
+    case DELETE_PAYMENT_FAILURE:
       return {
         ...state,
         loading: false,
