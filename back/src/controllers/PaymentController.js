@@ -164,11 +164,18 @@ exports.updatePayment = async (req, res) => {
       totalInstallments
     } = req.body;
 
+    console.log('=== UPDATE PAYMENT ===' );
+    console.log('Payment ID:', id);
+    console.log('Request body:', req.body);
+
     // Buscar el pago
     const payment = await PaymentReceipt.findByPk(id);
     if (!payment) {
+      console.log('Payment not found with ID:', id);
       return res.status(404).json({ error: 'Pago no encontrado' });
     }
+
+    console.log('Payment found:', payment.toJSON());
 
     // Si se está cambiando el tipo a "initial", validar que no exista otro pago inicial
     if (type === 'initial' && payment.type !== 'initial') {
@@ -197,6 +204,8 @@ exports.updatePayment = async (req, res) => {
 
     await payment.update(updateData);
 
+    console.log('Payment updated successfully');
+
     // Recargar con relaciones
     const updatedPayment = await PaymentReceipt.findByPk(id, {
       include: [
@@ -210,7 +219,7 @@ exports.updatePayment = async (req, res) => {
 
     res.status(200).json(updatedPayment);
   } catch (error) {
-    console.error(error);
+    console.error('Error updating payment:', error);
     res.status(500).json({
       error: 'Error al actualizar el pago',
       details: error.message,
@@ -222,9 +231,13 @@ exports.deletePayment = async (req, res) => {
   try {
     const { id } = req.params;
 
+    console.log('=== DELETE PAYMENT ===');
+    console.log('Payment ID:', id);
+
     // Buscar el pago
     const payment = await PaymentReceipt.findByPk(id);
     if (!payment) {
+      console.log('Payment not found with ID:', id);
       return res.status(404).json({ error: 'Pago no encontrado' });
     }
 
@@ -238,12 +251,14 @@ exports.deletePayment = async (req, res) => {
 
     await payment.destroy();
 
+    console.log('Payment deleted successfully:', paymentInfo);
+
     res.status(200).json({ 
       message: 'Pago eliminado correctamente',
       deletedPayment: paymentInfo
     });
   } catch (error) {
-    console.error(error);
+    console.error('Error deleting payment:', error);
     res.status(500).json({
       error: 'Error al eliminar el pago',
       details: error.message,

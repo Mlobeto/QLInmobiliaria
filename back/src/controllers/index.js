@@ -70,6 +70,8 @@ module.exports = {
   getExpiringLeases: catchedAsync(LeaseController.getExpiringLeases),
   getAllPayments: catchedAsync(PaymentController.getAllPayments),
   getPaymentsByIdClient: catchedAsync(PaymentController.getPaymentsByIdClient),
+  updatePayment: catchedAsync(PaymentController.updatePayment),
+  deletePayment: catchedAsync(PaymentController.deletePayment),
   getAllPayments: catchedAsync(PaymentController.getAllPayments),
   quickUpdateLeaseRent: catchedAsync(LeaseController.quickUpdateLeaseRent),
   getUpdateStatistics: catchedAsync(LeaseController.getUpdateStatistics),
