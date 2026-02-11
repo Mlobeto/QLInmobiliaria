@@ -18,6 +18,17 @@ axios.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    // Log para debug de peticiones PUT y DELETE
+    if (config.method === 'put' || config.method === 'delete') {
+      console.log('🔵 Axios interceptor - Request:', {
+        method: config.method.toUpperCase(),
+        url: config.url,
+        baseURL: config.baseURL,
+        fullURL: `${config.baseURL}${config.url}`,
+        hasToken: !!token,
+        headers: config.headers
+      });
+    }
     return config;
   },
   (error) => {

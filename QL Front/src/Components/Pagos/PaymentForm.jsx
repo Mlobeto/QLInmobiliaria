@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { createPayment, getClientById } from "../../redux/Actions/actions";
+import { createPayment, getClientById, getPaymentsByLeaseId } from "../../redux/Actions/actions";
 import EstadoContratos from "../Contratos/EstadoContratos";
 import ReciboPdf from "../PdfTemplates/ReciboPdf";
+import InstallmentSelector from "./InstallmentSelector";
 import {
   IoDocumentTextOutline,
   IoReceiptOutline,
@@ -18,12 +19,14 @@ import {
 const PaymentForm = () => {
   const dispatch = useDispatch();
   const paymentCreate = useSelector((state) => state.paymentCreate);
+  const leasePayments = useSelector((state) => state.payments) || [];
 
   // Estados para el modal y flujo
   const [selectedLease, setSelectedLease] = useState(null);
   const [showPaymentForm, setShowPaymentForm] = useState(false);
   const [paymentCreated, setPaymentCreated] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [showInstallmentSelector, setShowInstallmentSelector] = useState(false);
 
   // Estado del formulario
   const [formData, setFormData] = useState({
@@ -61,6 +64,7 @@ const PaymentForm = () => {
       leaseId: leaseId,
       idClient: tenantId,
       amount: lease.rentAmount || "",
+      totalInstallments: lease.duration || "",
     }));
     setShowPaymentForm(true);
 
@@ -68,15 +72,32 @@ const PaymentForm = () => {
     if (tenantId) {
       dispatch(getClientById(tenantId));
     }
+
+    // Obtener pagos existentes del contrato
+    if (leaseId) {
+      dispatch(getPaymentsByLeaseId(leaseId));
+    }
   };
 
   // Manejo de cambios en el formulario
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value,
-    }));
+    
+    // Si cambia el tipo de pago, limpiar el período
+    if (name === 'type') {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value,
+        period: '', // Limpiar período al cambiar tipo
+        installmentNumber: undefined,
+        totalInstallments: value === 'installment' ? selectedLease?.duration || '' : ''
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value,
+      }));
+    }
   };
 
   // Envío del formulario
@@ -108,6 +129,16 @@ const PaymentForm = () => {
       console.error('Error al crear el pago:', error);
       setIsLoading(false);
     }
+  };
+
+  // Manejar selección de cuota desde el selector visual
+  const handleInstallmentSelect = (installment) => {
+    setFormData(prev => ({
+      ...prev,
+      period: `${installment.fullPeriod} - Cuota ${installment.number}/${installment.totalInstallments}`,
+      installmentNumber: installment.number,
+      totalInstallments: installment.totalInstallments
+    }));
   };
 
   // Resetear formulario
@@ -211,8 +242,36 @@ const PaymentForm = () => {
                         />
                       </div>
 
-                      {/* Período - Solo para cuotas y comisiones */}
-                      {formData.type !== 'initial' && (
+                      {/* Período - Selector visual para cuotas, input para comisiones */}
+                      {formData.type === 'installment' && (
+                        <div className="space-y-2">
+                          <label className="flex items-center text-sm font-medium text-slate-300">
+                            <IoTimeOutline className="w-4 h-4 mr-2 text-amber-400" />
+                            Período / Cuota
+                          </label>
+                          <div className="relative">
+                            <input
+                              type="text"
+                              name="period"
+                              value={formData.period}
+                              readOnly
+                              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-400 cursor-pointer focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all duration-200"
+                              placeholder="Haz clic para seleccionar cuota..."
+                              onClick={() => setShowInstallmentSelector(true)}
+                              required
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowInstallmentSelector(true)}
+                              className="absolute right-3 top-1/2 -translate-y-1/2 px-3 py-1 bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 rounded-lg text-xs font-medium transition-colors border border-blue-400/30"
+                            >
+                              Seleccionar
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
+                      {formData.type === 'commission' && (
                         <div className="space-y-2">
                           <label className="flex items-center text-sm font-medium text-slate-300">
                             <IoTimeOutline className="w-4 h-4 mr-2 text-amber-400" />
@@ -224,7 +283,7 @@ const PaymentForm = () => {
                             value={formData.period}
                             onChange={handleChange}
                             className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all duration-200"
-                            placeholder={formData.type === 'installment' ? "Ej: Enero 2024, Cuota 1/12..." : "Ej: Comisión Noviembre 2024..."}
+                            placeholder="Ej: Comisión Noviembre 2024..."
                             required
                           />
                         </div>
@@ -250,22 +309,16 @@ const PaymentForm = () => {
                       </div>
                     </div>
 
-                    {/* Total de cuotas (solo si es installment) */}
-                    {formData.type === "installment" && (
-                      <div className="space-y-2">
-                        <label className="flex items-center text-sm font-medium text-slate-300">
-                          <IoListOutline className="w-4 h-4 mr-2 text-indigo-400" />
-                          Total de Cuotas
-                        </label>
-                        <input
-                          type="number"
-                          name="totalInstallments"
-                          value={formData.totalInstallments}
-                          onChange={handleChange}
-                          className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all duration-200"
-                          placeholder="Número total de cuotas..."
-                          required
-                        />
+                    {/* Información de la cuota seleccionada */}
+                    {formData.type === "installment" && formData.period && (
+                      <div className="bg-blue-500/10 border border-blue-400/20 rounded-xl p-4">
+                        <div className="flex items-center space-x-2 text-sm">
+                          <IoCheckmarkCircleOutline className="w-5 h-5 text-blue-400" />
+                          <div>
+                            <p className="text-slate-400">Cuota seleccionada:</p>
+                            <p className="text-white font-semibold">{formData.period}</p>
+                          </div>
+                        </div>
                       </div>
                     )}
                   </div>
@@ -337,6 +390,16 @@ const PaymentForm = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Modal de selector de cuotas */}
+      {showInstallmentSelector && selectedLease && (
+        <InstallmentSelector
+          lease={selectedLease}
+          existingPayments={leasePayments}
+          onSelect={handleInstallmentSelect}
+          onClose={() => setShowInstallmentSelector(false)}
+        />
       )}
     </div>
   );

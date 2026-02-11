@@ -72,6 +72,8 @@ const PaymentList = () => {
   };
 
   const handleEditClick = (payment) => {
+    console.log('=== EDIT CLICK ===');
+    console.log('Payment to edit:', payment);
     setEditingPayment(payment);
     setEditForm({
       paymentDate: payment.paymentDate ? payment.paymentDate.split('T')[0] : '',
@@ -95,6 +97,10 @@ const PaymentList = () => {
   const handleEditSubmit = async (e) => {
     e.preventDefault();
     
+    console.log('=== EDIT SUBMIT ===');
+    console.log('Editing payment ID:', editingPayment?.id);
+    console.log('Form data:', editForm);
+    
     if (!editingPayment) return;
 
     const updateData = {
@@ -110,12 +116,16 @@ const PaymentList = () => {
       updateData.totalInstallments = parseInt(editForm.totalInstallments) || null;
     }
 
+    console.log('Update data to send:', updateData);
     await dispatch(updatePayment(editingPayment.id, updateData));
     setEditModalOpen(false);
     setEditingPayment(null);
   };
 
   const handleDelete = async (payment) => {
+    console.log('=== DELETE CLICK ===');
+    console.log('Payment to delete:', payment);
+    
     const result = await Swal.fire({
       title: '¿Estás seguro?',
       text: `¿Deseas eliminar el pago #${payment.id} por ${formatCurrency(payment.amount)}?`,
@@ -133,6 +143,7 @@ const PaymentList = () => {
     });
 
     if (result.isConfirmed) {
+      console.log('Delete confirmed for payment ID:', payment.id);
       await dispatch(deletePayment(payment.id));
     }
   };

@@ -707,9 +707,15 @@ export const getAllPayments = () => async (dispatch) => {
 };
 
 export const updatePayment = (id, paymentData) => async (dispatch) => {
+  console.log('=== UPDATE PAYMENT ACTION ===');
+  console.log('Payment ID:', id);
+  console.log('Payment Data:', paymentData);
+  console.log('Request URL:', `/payment/${id}`);
+  
   dispatch({ type: UPDATE_PAYMENT_REQUEST });
   try {
     const response = await axios.put(`/payment/${id}`, paymentData);
+    console.log('Update response:', response.data);
     dispatch({
       type: UPDATE_PAYMENT_SUCCESS,
       payload: response.data,
@@ -718,6 +724,8 @@ export const updatePayment = (id, paymentData) => async (dispatch) => {
     // Recargar la lista de pagos
     dispatch(getAllPayments());
   } catch (error) {
+    console.error('Error updating payment:', error);
+    console.error('Error response:', error.response);
     dispatch({
       type: UPDATE_PAYMENT_FAILURE,
       payload: error.response?.data?.error || error.message,
@@ -727,9 +735,14 @@ export const updatePayment = (id, paymentData) => async (dispatch) => {
 };
 
 export const deletePayment = (id) => async (dispatch) => {
+  console.log('=== DELETE PAYMENT ACTION ===');
+  console.log('Payment ID:', id);
+  console.log('Request URL:', `/payment/${id}`);
+  
   dispatch({ type: DELETE_PAYMENT_REQUEST });
   try {
     const response = await axios.delete(`/payment/${id}`);
+    console.log('Delete response:', response.data);
     dispatch({
       type: DELETE_PAYMENT_SUCCESS,
       payload: id,
@@ -738,6 +751,8 @@ export const deletePayment = (id) => async (dispatch) => {
     // Recargar la lista de pagos
     dispatch(getAllPayments());
   } catch (error) {
+    console.error('Error deleting payment:', error);
+    console.error('Error response:', error.response);
     dispatch({
       type: DELETE_PAYMENT_FAILURE,
       payload: error.response?.data?.error || error.message,
