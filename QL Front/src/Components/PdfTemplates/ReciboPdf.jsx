@@ -29,6 +29,10 @@ const ReciboPdf = ({ payment, lease, autoGenerate = false }) => {
   }, []);
 
   const generatePdf = async () => {
+    console.log('=== GENERATE PDF ===');
+    console.log('Payment:', payment);
+    console.log('Lease:', lease);
+    
     const doc = new jsPDF();
     doc.setFont("Nunito-VariableFont_wght", "normal");
 
@@ -43,9 +47,13 @@ const ReciboPdf = ({ payment, lease, autoGenerate = false }) => {
     };
 
     // Priorizar datos del payment si vienen con relaciones, sino usar lease
-    const tenant = payment.Lease?.Tenant || lease?.Tenant || {};
+    const tenant = payment.Lease?.Tenant || lease?.Tenant || payment.Client || {};
     const property = payment.Lease?.Property || lease?.Property || {};
     const leaseData = payment.Lease || lease || {};
+    
+    console.log('Tenant extraído:', tenant);
+    console.log('Property extraída:', property);
+    console.log('LeaseData:', leaseData);
     
     const amount = Number(payment.amount);
     const { day, month, year } = formatDate(payment.paymentDate);
