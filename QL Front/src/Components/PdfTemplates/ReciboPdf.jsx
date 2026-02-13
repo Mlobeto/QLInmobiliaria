@@ -42,7 +42,11 @@ const ReciboPdf = ({ payment, lease, autoGenerate = false }) => {
       };
     };
 
-    const tenant = lease?.Tenant || {};
+    // Priorizar datos del payment si vienen con relaciones, sino usar lease
+    const tenant = payment.Lease?.Tenant || lease?.Tenant || {};
+    const property = payment.Lease?.Property || lease?.Property || {};
+    const leaseData = payment.Lease || lease || {};
+    
     const amount = Number(payment.amount);
     const { day, month, year } = formatDate(payment.paymentDate);
     const receiptNumber = String(payment.id || 0).padStart(8, "0");
@@ -184,10 +188,10 @@ const ReciboPdf = ({ payment, lease, autoGenerate = false }) => {
 
     const concepto =
       payment.type === "initial"
-        ? `Honorarios - ${lease.Property?.address || ""}`
+        ? `Honorarios - ${property?.address || ""}`
         : payment.type === "commission"
-        ? `Comision - ${lease.Property?.address || ""}`
-        : `Cuota ${payment.installmentNumber}/${lease.totalMonths} ${payment.period} - ${lease.Property?.address || ""}`;
+        ? `Comision - ${property?.address || ""}`
+        : `Cuota ${payment.installmentNumber}/${leaseData.totalMonths} ${payment.period} - ${property?.address || ""}`;
     doc.text(concepto, 55, 159);
 
     doc.line(20, 170, 190, 170);
@@ -241,7 +245,17 @@ const ReciboPdf = ({ payment, lease, autoGenerate = false }) => {
     doc.setFontSize(10);
     doc.text("ORIGINAL", 165, 260);
 
-    doc.save(`Recibo_${receiptNumber}_${tenant.name || "Cliente"}.pdf`);
+    // Generar nombre de archivo limpio y descriptivo
+    const tenantName = (tenant.name || "Cliente")
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "") // Quitar acentos
+      .replace(/[^a-zA-Z0-9\s]/g, "") // Quitar caracteres especiales
+      .replace(/\s+/g, "_") // Reemplazar espacios con guion bajo
+      .substring(0, 50); // Limitar longitud
+    
+    const fileName = `Recibo_${receiptNumber}_${tenantName}.pdf`;
+    console.log('Generando PDF con nombre:', fileName);
+    doc.save(fileName);
     setPdfGenerated(true);
   };
 

@@ -64,7 +64,7 @@ const PaymentForm = () => {
       leaseId: leaseId,
       idClient: tenantId,
       amount: lease.rentAmount || "",
-      totalInstallments: lease.duration || "",
+      totalInstallments: lease.totalMonths || lease.duration || "",
     }));
     setShowPaymentForm(true);
 

@@ -76,8 +76,19 @@ exports.createPayment = async (req, res) => {
         installmentNumber: type === "installment" ? finalInstallmentNumber : null,
         totalInstallments: type === "installment" ? finalTotalInstallments : null,
       });
+
+      // Recargar el pago con todas las relaciones
+      const paymentWithRelations = await PaymentReceipt.findByPk(newPaymentReceipt.id, {
+        include: [
+          { model: Client },
+          { 
+            model: Lease,
+            include: [{ model: Property }, { model: Client, as: 'Tenant' }]
+          }
+        ]
+      });
   
-      res.status(201).json(newPaymentReceipt);
+      res.status(201).json(paymentWithRelations);
     } catch (error) {
       console.error(error);
       res.status(500).json({

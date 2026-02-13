@@ -15,7 +15,7 @@ const InstallmentSelector = ({ lease, existingPayments, onSelect, onClose }) => 
     if (!lease?.startDate) return;
     
     const startDate = new Date(lease.startDate);
-    const duration = parseInt(lease.duration) || 12; // Duración en meses del contrato
+    const duration = parseInt(lease.totalMonths || lease.duration) || 12; // Duración en meses del contrato
 
     const generatedInstallments = [];
     
@@ -105,7 +105,7 @@ const InstallmentSelector = ({ lease, existingPayments, onSelect, onClose }) => 
               </div>
               <div>
                 <p className="text-slate-400">Duración</p>
-                <p className="text-white font-semibold">{lease?.duration || 0} meses</p>
+                <p className="text-white font-semibold">{lease?.totalMonths || lease?.duration || 0} meses</p>
               </div>
             </div>
           </div>
@@ -215,6 +215,7 @@ InstallmentSelector.propTypes = {
     id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
     startDate: PropTypes.string,
     duration: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    totalMonths: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
     Tenant: PropTypes.shape({
       name: PropTypes.string
     })
