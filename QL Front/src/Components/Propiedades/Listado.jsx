@@ -51,6 +51,44 @@ const Listado = ({ mode = "default", onSelectProperty }) => {
     }).format(value);
   };
 
+  // Función para formatear fecha de disponibilidad
+  const formatAvailabilityDate = (isoDate) => {
+    if (!isoDate) return '';
+    const date = new Date(isoDate);
+    return date.toLocaleDateString('es-AR', { year: 'numeric', month: 'short', day: 'numeric' });
+  };
+
+  // Función para obtener el estado de disponibilidad de una propiedad
+  const getAvailabilityStatus = (property) => {
+    const occupancyInfo = property.occupancyInfo;
+    
+    // Si no hay información de ocupación, usar el campo isAvailable
+    if (!occupancyInfo) {
+      return {
+        label: property.isAvailable ? 'Disponible' : 'No Disponible',
+        type: property.isAvailable ? 'available' : 'unavailable',
+        date: null
+      };
+    }
+
+    // Si está ocupada actualmente
+    if (occupancyInfo.isCurrentlyOccupied) {
+      return {
+        label: `Ocupada hasta ${formatAvailabilityDate(occupancyInfo.leaseEndDate)}`,
+        type: 'occupied',
+        date: occupancyInfo.leaseEndDate,
+        availableFrom: occupancyInfo.availableFrom
+      };
+    }
+
+    // Si está disponible
+    return {
+      label: 'Disponible',
+      type: 'available',
+      date: null
+    };
+  };
+
   // eslint-disable-next-line no-unused-vars
   const [editingId, setEditingId] = useState(null);
   const [formData, setFormData] = useState({});
@@ -66,11 +104,12 @@ const Listado = ({ mode = "default", onSelectProperty }) => {
   const [authProperty, setAuthProperty] = useState(null);
   const propertiesPerPage = 5;
 
-  // Filtrar solo propiedades disponibles para alquiler/venta según el modo
-  // Función optimizada para obtener propiedades disponibles
+  // Filtrar solo propiedades para alquiler/venta según el modo
+  // Función optimizada para obtener propiedades según el modo
   const availableProperties = useMemo(() => {
     if (mode === "lease") {
-      return allProperties.filter(property => property.type === "alquiler" && property.isAvailable === true);
+      // Para alquileres: mostrar todas las propiedades de alquiler (disponibles Y ocupadas)
+      return allProperties.filter(property => property.type === "alquiler");
     }
     if (mode === "sale") {
       return allProperties.filter(property => property.type === "venta" && property.isAvailable === true);
@@ -383,13 +422,30 @@ const Listado = ({ mode = "default", onSelectProperty }) => {
                     
                     {/* Estado */}
                     <td className="px-4 py-4 text-center">
-                      <span className={`inline-block text-xs px-3 py-1.5 rounded-full font-medium ${
-                        property.isAvailable 
-                          ? 'bg-green-500/20 text-green-300 border border-green-500/30' 
-                          : 'bg-red-500/20 text-red-300 border border-red-500/30'
-                      }`}>
-                        {property.isAvailable ? '✓ Disponible' : '✗ No Disponible'}
-                      </span>
+                      {(() => {
+                        const status = getAvailabilityStatus(property);
+                        const colorClasses = {
+                          available: 'bg-green-500/20 text-green-300 border-green-500/30',
+                          occupied: 'bg-amber-500/20 text-amber-300 border-amber-500/30',
+                          unavailable: 'bg-red-500/20 text-red-300 border-red-500/30'
+                        };
+                        
+                        return (
+                          <div className="flex flex-col items-center gap-1">
+                            <span className={`inline-block text-xs px-3 py-1.5 rounded-full font-medium border ${colorClasses[status.type]}`}>
+                              {status.type === 'available' && '✓ '}
+                              {status.type === 'unavailable' && '✗ '}
+                              {status.type === 'occupied' && '🔒 '}
+                              {status.label}
+                            </span>
+                            {status.type === 'occupied' && (
+                              <span className="text-xs text-slate-400">
+                                Disponible: {formatAvailabilityDate(status.availableFrom)}
+                              </span>
+                            )}
+                          </div>
+                        );
+                      })()}
                     </td>
                     
                     {/* Acciones */}

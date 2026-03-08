@@ -20,22 +20,17 @@ export const getArgentinaDate = () => {
 
 /**
  * Calcula la fecha de inicio del contrato según las reglas del negocio:
- * - Si se crea del día 1 al 15: startDate = día 1 del mes corriente
- * - Si se crea del día 16 en adelante: startDate = día 1 del mes siguiente
+ * - SIEMPRE el día 1 del mes siguiente al actual
+ * - Ejemplo: si hoy es 8 de marzo, el contrato inicia el 1 de abril
+ * - La primera cuota corresponde al mes de inicio (abril en el ejemplo)
  * 
- * @returns {Date} Fecha de inicio calculada
+ * @returns {Date} Fecha de inicio calculada (día 1 del mes siguiente)
  */
 export const calculateLeaseStartDate = () => {
   const today = getArgentinaDate();
-  const dayOfMonth = today.getDate();
   
-  // Crear fecha para el día 1 del mes
-  const startDate = new Date(today.getFullYear(), today.getMonth(), 1);
-  
-  // Si estamos del 16 en adelante, mover al próximo mes
-  if (dayOfMonth >= 16) {
-    startDate.setMonth(startDate.getMonth() + 1);
-  }
+  // Crear fecha para el día 1 del mes siguiente
+  const startDate = new Date(today.getFullYear(), today.getMonth() + 1, 1);
   
   return startDate;
 };

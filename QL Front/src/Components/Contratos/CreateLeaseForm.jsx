@@ -36,6 +36,7 @@ const CreateLeaseForm = () => {
   const [leaseCreated, setLeaseCreated] = useState(null);
   const [filteredClients, setFilteredClients] = useState([]);
   const [showClientList, setShowClientList] = useState(false);
+  const [selectedPropertyOccupancy, setSelectedPropertyOccupancy] = useState(null);
   // eslint-disable-next-line no-unused-vars
   const [selectedClient, setSelectedClient] = useState(null);
   // eslint-disable-next-line no-unused-vars
@@ -126,18 +127,61 @@ const CreateLeaseForm = () => {
     setIsLoading(true);
 
     try {
-      // Validar que la propiedad no tenga contratos activos
+      // Validar que la propiedad no tenga contratos activos o validar fechas
       const propertyData = await dispatch(getPropertiesById(formData.propertyId));
+      
       if (propertyData && propertyData.Leases) {
         const activeLeases = filteredActiveLeases(propertyData.Leases);
+        
         if (activeLeases.length > 0) {
-          Swal.fire({
-            icon: "error",
-            title: "Error",
-            text: "Esta propiedad ya tiene un contrato de alquiler activo.",
+          // Hay un contrato activo - validar fechas
+          const currentLease = activeLeases[0];
+          const currentLeaseEndDate = new Date(currentLease.startDate);
+          currentLeaseEndDate.setMonth(currentLeaseEndDate.getMonth() + currentLease.totalMonths);
+          
+          const newLeaseStartDate = new Date(formData.startDate);
+          
+          // Validar que la nueva fecha de inicio sea >= fecha fin del contrato actual
+          if (newLeaseStartDate < currentLeaseEndDate) {
+            Swal.fire({
+              icon: "warning",
+              title: "Propiedad Ocupada",
+              html: `
+                <div class="text-left">
+                  <p class="mb-3">Esta propiedad tiene un contrato activo hasta:</p>
+                  <p class="font-bold text-amber-500 mb-3">${currentLeaseEndDate.toLocaleDateString('es-AR', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                  <p class="mb-2">La fecha de inicio del nuevo contrato debe ser posterior a esa fecha.</p>
+                  <p class="text-sm text-gray-500">Puede crear un contrato que inicie cuando se desocupe la propiedad.</p>
+                </div>
+              `,
+              confirmButtonText: "Entendido",
+            });
+            setIsLoading(false);
+            return;
+          }
+          
+          // Si la fecha es válida, mostrar confirmación
+          const result = await Swal.fire({
+            icon: "info",
+            title: "Confirmar Contrato Futuro",
+            html: `
+              <div class="text-left">
+                <p class="mb-2">La propiedad está ocupada hasta:</p>
+                <p class="font-bold text-amber-500 mb-3">${currentLeaseEndDate.toLocaleDateString('es-AR', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                <p class="mb-2">El nuevo contrato iniciará:</p>
+                <p class="font-bold text-green-500">${newLeaseStartDate.toLocaleDateString('es-AR', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                <p class="text-sm text-gray-500 mt-3">¿Desea crear este contrato futuro?</p>
+              </div>
+            `,
+            showCancelButton: true,
+            confirmButtonText: "Sí, crear contrato",
+            cancelButtonText: "Cancelar",
           });
-          setIsLoading(false);
-          return;
+          
+          if (!result.isConfirmed) {
+            setIsLoading(false);
+            return;
+          }
         }
       }
 
@@ -296,6 +340,13 @@ const CreateLeaseForm = () => {
         formatted: formattedStartDate
       });
       
+      // Guardar información de ocupación si existe
+      if (fullProperty.occupancyInfo) {
+        setSelectedPropertyOccupancy(fullProperty.occupancyInfo);
+      } else {
+        setSelectedPropertyOccupancy(null);
+      }
+      
       setFormData((prevData) => ({
         ...prevData,
         propertyId: fullProperty.propertyId,
@@ -352,12 +403,43 @@ const CreateLeaseForm = () => {
                 <form onSubmit={handleSubmit} className="space-y-8">
                   {/* Información de la propiedad seleccionada */}
                   <div className="bg-blue-500/10 border border-blue-400/20 rounded-xl p-4 mb-6">
-                    <h3 className="text-lg font-semibold text-blue-300 mb-2 flex items-center">
+                    <h3 className="text-lg font-semibold text-blue-300 mb-3 flex items-center">
                       <IoBusinessOutline className="w-5 h-5 mr-2" />
                       Propiedad Seleccionada
                     </h3>
-                    <p className="text-white">ID: {formData.propertyId}</p>
-                    <p className="text-slate-300">Propietario: {formData.locador}</p>
+                    <div className="space-y-2">
+                      <p className="text-white">ID: {formData.propertyId}</p>
+                      <p className="text-slate-300">Propietario: {formData.locador}</p>
+                      
+                      {/* Información de ocupación */}
+                      {selectedPropertyOccupancy && selectedPropertyOccupancy.isCurrentlyOccupied ? (
+                        <div className="mt-3 pt-3 border-t border-white/10">
+                          <div className="bg-amber-500/10 border border-amber-400/30 rounded-lg p-3">
+                            <div className="flex items-start gap-2">
+                              <span className="text-amber-400 text-lg">⚠️</span>
+                              <div>
+                                <p className="text-amber-300 font-semibold mb-1">Propiedad Ocupada</p>
+                                <p className="text-slate-300 text-sm">
+                                  Ocupada hasta: <span className="font-semibold text-white">
+                                    {new Date(selectedPropertyOccupancy.leaseEndDate).toLocaleDateString('es-AR', { year: 'numeric', month: 'long', day: 'numeric' })}
+                                  </span>
+                                </p>
+                                <p className="text-slate-400 text-xs mt-1">
+                                  💡 Puede crear un contrato que inicie después de esta fecha
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="mt-3 pt-3 border-t border-white/10">
+                          <div className="flex items-center gap-2 text-green-400 text-sm">
+                            <span className="text-lg">✓</span>
+                            <span>Propiedad disponible inmediatamente</span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   {/* Información básica del contrato */}
@@ -413,7 +495,7 @@ const CreateLeaseForm = () => {
                           required
                         />
                         <p className="text-xs text-slate-400 italic">
-                          💡 Regla: Días 1-15 → inicio el 1° del mes actual | Días 16-31 → inicio el 1° del mes siguiente. Puede modificarse si es necesario.
+                          💡 Regla: El contrato siempre inicia el día 1 del mes siguiente. Puede modificarse manualmente si es necesario.
                         </p>
                       </div>
 

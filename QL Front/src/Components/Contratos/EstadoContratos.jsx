@@ -6,7 +6,7 @@ import { getAllLeases, updateLease } from "../../redux/Actions/actions";
 import CreateLeaseForm from "./CreateLeaseForm";
 import CompraVenta from "./CompraVenta";
 import ContratoAlquiler from "../PdfTemplates/ContratoAlquiler";
-import ContratoEditor from "./ContratoEditor";
+import ContratoPreviewEditor from "../PdfTemplates/ContratoPreviewEditor";
 import Swal from 'sweetalert2';
 import {
   IoArrowBackOutline,
@@ -25,7 +25,6 @@ import {
   IoAddOutline,
   IoKeyOutline,
   IoDownloadOutline,
-  IoCreateOutline,
   IoSearchOutline,
   IoFilterOutline,
   IoChevronBackOutline,
@@ -43,7 +42,7 @@ import {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showSaleModal, setShowSaleModal] = useState(false);
   const [pdfLease, setPdfLease] = useState(null);
-  const [editorLease, setEditorLease] = useState(null);
+  const [previewLease, setPreviewLease] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const contractsPerPage = 6;
@@ -110,15 +109,7 @@ import {
     setEditedLease(lease);
   };
 
-  const handleEditContract = (lease) => {
-    setEditorLease(lease);
-  };
 
-  const handleCloseEditor = () => {
-    setEditorLease(null);
-    // Recargar los leases para obtener el contenido actualizado
-    dispatch(getAllLeases());
-  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -157,12 +148,16 @@ import {
   };
 
   const handleDownloadPdf = (lease) => {
-    console.log("Generando PDF para contrato:", lease);
-    setPdfLease(lease);
+    console.log("Abriendo preview/edición para contrato:", lease);
+    setPreviewLease(lease);
   };
 
   const handleClosePdf = () => {
     setPdfLease(null);
+  };
+
+  const handleClosePreview = () => {
+    setPreviewLease(null);
   };
 
   if (loading) {
@@ -482,13 +477,6 @@ import {
                                       <IoPencilOutline className="w-4 h-4" />
                                     </button>
                                     <button
-                                      onClick={() => handleEditContract(lease)}
-                                      className="p-2 bg-purple-500/20 hover:bg-purple-500/30 text-purple-400 rounded-lg transition-colors duration-200"
-                                      title="Editar Contrato"
-                                    >
-                                      <IoCreateOutline className="w-4 h-4" />
-                                    </button>
-                                    <button
                                       onClick={() => handleDownloadPdf(lease)}
                                       className="p-2 bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 rounded-lg transition-colors duration-200"
                                       title="Descargar PDF"
@@ -757,9 +745,12 @@ import {
         </div>
       )}
 
-      {/* Modal del Editor de Contrato */}
-      {editorLease && (
-        <ContratoEditor lease={editorLease} onClose={handleCloseEditor} />
+      {/* Modal de Preview/Edición de Contrato */}
+      {previewLease && (
+        <ContratoPreviewEditor 
+          lease={previewLease} 
+          onClose={handleClosePreview} 
+        />
       )}
     </div>
   );

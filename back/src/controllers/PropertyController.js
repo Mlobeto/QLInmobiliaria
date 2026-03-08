@@ -1,4 +1,4 @@
-const { Client, Property, ClientProperty } = require("../data");
+const { Client, Property, ClientProperty, Lease } = require("../data");
 
 // POST: Crear una propiedad
 exports.createProperty = async (req, res) => {
@@ -318,11 +318,60 @@ exports.getAllProperties = async (req, res) => {
           },
           attributes: ['idClient', 'name', 'email', 'mobilePhone', 'cuil', 'direccion'], // ✅ direccion, no address
         },
+        {
+          model: Lease,
+          required: false, // LEFT JOIN - incluir propiedades sin contratos
+          where: { status: 'active' }, // Solo contratos activos
+          attributes: ['id', 'startDate', 'totalMonths', 'status'],
+        },
       ],
     });
 
+    // Procesar cada propiedad para agregar información de disponibilidad
+    const propertiesWithAvailability = properties.map(property => {
+      const propertyData = property.toJSON();
+      
+      // Buscar el contrato activo más reciente (si existe)
+      const activeLeases = propertyData.Leases || [];
+      
+      if (activeLeases.length > 0) {
+        // Ordenar por fecha de fin (más lejana primero)
+        const sortedLeases = activeLeases.sort((a, b) => {
+          const endDateA = new Date(a.startDate);
+          endDateA.setMonth(endDateA.getMonth() + a.totalMonths);
+          
+          const endDateB = new Date(b.startDate);
+          endDateB.setMonth(endDateB.getMonth() + b.totalMonths);
+          
+          return endDateB - endDateA;
+        });
+        
+        const latestLease = sortedLeases[0];
+        const leaseEndDate = new Date(latestLease.startDate);
+        leaseEndDate.setMonth(leaseEndDate.getMonth() + latestLease.totalMonths);
+        
+        // Agregar información de disponibilidad
+        propertyData.occupancyInfo = {
+          isCurrentlyOccupied: true,
+          currentLeaseId: latestLease.id,
+          availableFrom: leaseEndDate.toISOString(),
+          leaseEndDate: leaseEndDate.toISOString(),
+        };
+      } else {
+        // Propiedad disponible ahora
+        propertyData.occupancyInfo = {
+          isCurrentlyOccupied: false,
+          currentLeaseId: null,
+          availableFrom: new Date().toISOString(),
+          leaseEndDate: null,
+        };
+      }
+      
+      return propertyData;
+    });
+
     // Responder con las propiedades obtenidas
-    res.status(200).json(properties);
+    res.status(200).json(propertiesWithAvailability);
   } catch (error) {
     console.error("Error al obtener propiedades con clientes:", error);
     res.status(500).json({
@@ -353,6 +402,11 @@ exports.getPropertyById = async (req, res) => {
           },
           attributes: ['idClient', 'name', 'email', 'mobilePhone'],
         },
+        {
+          model: Lease,
+          required: false, // LEFT JOIN - incluir propiedad incluso sin contratos
+          attributes: ['id', 'startDate', 'totalMonths', 'status'],
+        },
       ],
     });
 
@@ -361,8 +415,43 @@ exports.getPropertyById = async (req, res) => {
       return res.status(404).json({ error: 'Propiedad no encontrada' });
     }
 
-    console.log('Propiedad encontrada:', JSON.stringify(property, null, 2));
-    res.status(200).json(property);
+    // Agregar información de ocupación
+    const propertyData = property.toJSON();
+    const activeLeases = (propertyData.Leases || []).filter(lease => lease.status === 'active');
+    
+    if (activeLeases.length > 0) {
+      // Ordenar por fecha de fin (más lejana primero)
+      const sortedLeases = activeLeases.sort((a, b) => {
+        const endDateA = new Date(a.startDate);
+        endDateA.setMonth(endDateA.getMonth() + a.totalMonths);
+        
+        const endDateB = new Date(b.startDate);
+        endDateB.setMonth(endDateB.getMonth() + b.totalMonths);
+        
+        return endDateB - endDateA;
+      });
+      
+      const latestLease = sortedLeases[0];
+      const leaseEndDate = new Date(latestLease.startDate);
+      leaseEndDate.setMonth(leaseEndDate.getMonth() + latestLease.totalMonths);
+      
+      propertyData.occupancyInfo = {
+        isCurrentlyOccupied: true,
+        currentLeaseId: latestLease.id,
+        availableFrom: leaseEndDate.toISOString(),
+        leaseEndDate: leaseEndDate.toISOString(),
+      };
+    } else {
+      propertyData.occupancyInfo = {
+        isCurrentlyOccupied: false,
+        currentLeaseId: null,
+        availableFrom: new Date().toISOString(),
+        leaseEndDate: null,
+      };
+    }
+
+    console.log('Propiedad encontrada con info de ocupación:', JSON.stringify(propertyData, null, 2));
+    res.status(200).json(propertyData);
   } catch (error) {
     console.error('Error completo:', error);
     res.status(500).json({
