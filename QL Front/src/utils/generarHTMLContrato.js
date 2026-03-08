@@ -1,5 +1,5 @@
 // Utilidad para generar el HTML del contrato desde los datos del lease
-export const generarHTMLContrato = (lease) => {
+export const generarHTMLContrato = (lease, clausulasAdicionales = []) => {
   const property = lease.Property || {};
   const tenant = lease.Tenant || {};
   const landlord = lease.Landlord || {};
@@ -152,46 +152,88 @@ export const generarHTMLContrato = (lease) => {
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700&display=swap');
     
+    @page {
+      size: A4;
+      margin: 20mm 25mm;
+    }
+    
+    html {
+      background: #f5f5f5;
+    }
+    
     body {
       font-family: 'Nunito', Arial, sans-serif;
-      line-height: 1.6;
-      max-width: 800px;
+      line-height: 1.5;
+      max-width: 210mm;
+      min-height: 297mm;
       margin: 0 auto;
-      padding: 40px;
-      font-size: 11pt;
+      padding: 20mm 25mm;
+      font-size: 10pt;
+      background: white;
+      box-sizing: border-box;
+      color: #000;
     }
+    
+    /* Contenedor de página para controlar saltos */
+    .page {
+      min-height: 257mm; /* 297mm - 20mm top - 20mm bottom */
+      page-break-after: always;
+      padding: 0;
+      margin: 0;
+      position: relative;
+    }
+    
+    .page:last-child {
+      page-break-after: auto;
+    }
+    
     h1 {
       text-align: center;
-      font-size: 14pt;
+      font-size: 13pt;
       font-weight: bold;
-      margin-bottom: 30px;
+      margin: 0 0 20px 0;
+      padding: 0;
     }
+    
     p {
       text-align: justify;
-      margin: 10px 0;
+      margin: 8px 0;
+      line-height: 1.5;
+      orphans: 3;
+      widows: 3;
     }
+    
     .fecha {
-      margin: 20px 0;
-    }
-    .clausula {
       margin: 15px 0;
     }
+    
+    .clausula {
+      margin: 12px 0;
+      page-break-inside: avoid;
+    }
+    
     .titulo-clausula {
       font-weight: bold;
     }
+    
     .inventario {
       white-space: pre-wrap;
-      margin: 15px 0;
-      padding: 15px;
+      margin: 12px 0;
+      padding: 12px;
       background-color: #f8f9fa;
       border-left: 3px solid #007bff;
       text-align: left;
+      font-size: 9pt;
+      page-break-inside: avoid;
     }
+    
     .firmas {
-      margin-top: 60px;
+      margin-top: 40px;
       display: flex;
       justify-content: space-around;
+      page-break-inside: avoid;
     }
+    
     .firma {
       text-align: center;
       padding-top: 50px;
@@ -281,6 +323,15 @@ export const generarHTMLContrato = (lease) => {
     </div>
   `;
   }).join('') : ''}
+
+  ${clausulasAdicionales && clausulasAdicionales.length > 0 ? `
+    <!-- CLÁUSULAS ADICIONALES SELECCIONADAS -->
+    ${clausulasAdicionales.map((clausula, index) => `
+      <div class="clausula" style="background-color: #f0f9ff; padding: 15px; border-left: 4px solid #3b82f6; margin: 20px 0;">
+        <p><span class="titulo-clausula">CLÁUSULA ADICIONAL ${index + 1}: ${clausula.titulo}</span> ${clausula.contenido}</p>
+      </div>
+    `).join('')}
+  ` : ''}
 
   <div class="clausula">
     <p><span class="titulo-clausula">DECIMA TERCERA: Renovación:</span> Este contrato no puede ser prorrogado total o parcialmente ni renovado por idéntico periodo sin previo acuerdo escrito de las partes acerca de las nuevas condiciones del arrendamiento, especialmente sobre el precio del alquiler.</p>

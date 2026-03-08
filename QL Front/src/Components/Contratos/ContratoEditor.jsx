@@ -5,18 +5,39 @@ import Swal from 'sweetalert2';
 import { useDispatch } from 'react-redux';
 import { updateLease } from '../../redux/Actions/actions';
 import { generarHTMLContrato } from '../../utils/generarHTMLContrato';
+import ClausulasSelector from './ClausulasSelector';
+import { IoAddCircleOutline } from 'react-icons/io5';
 
 const ContratoEditor = ({ lease, onClose }) => {
   const editorRef = useRef(null);
   const dispatch = useDispatch();
   const [contenido, setContenido] = useState('');
   const [loading, setLoading] = useState(false);
+  const [mostrarSelectorClausulas, setMostrarSelectorClausulas] = useState(false);
+  const [clausulasSeleccionadas, setClausulasSeleccionadas] = useState([]);
 
   useEffect(() => {
     // Si ya tiene contenido personalizado, usarlo; si no, generar uno nuevo
-    const htmlInicial = lease.customContent || generarHTMLContrato(lease);
+    const htmlInicial = lease.customContent || generarHTMLContrato(lease, []);
     setContenido(htmlInicial);
   }, [lease]);
+
+  const handleClausulasSelected = (clausulas) => {
+    setClausulasSeleccionadas(clausulas);
+    setMostrarSelectorClausulas(false);
+    
+    // Regenerar el HTML con las nuevas cláusulas
+    const nuevoHTML = generarHTMLContrato(lease, clausulas);
+    setContenido(nuevoHTML);
+    
+    Swal.fire({
+      icon: 'success',
+      title: 'Cláusulas agregadas',
+      text: `Se agregaron ${clausulas.length} cláusula(s) al contrato`,
+      timer: 2000,
+      showConfirmButton: false
+    });
+  };
 
   const handleSave = async () => {
     if (editorRef.current) {
@@ -204,13 +225,25 @@ const ContratoEditor = ({ lease, onClose }) => {
         {/* Footer con botones */}
         <div className="flex items-center justify-between p-6 border-t border-gray-200 bg-gray-50">
           <button
-            onClick={handleResetToDefault}
-            className="px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors"
+            onClick={() => setMostrarSelectorClausulas(true)}
+            className="px-6 py-3 bg-purple-500 hover:bg-purple-600 text-white rounded-lg transition-colors duration-300 font-medium flex items-center space-x-2"
           >
-            Restaurar Original
+            <IoAddCircleOutline className="w-5 h-5" />
+            <span>Agregar Cláusulas</span>
+            {clausulasSeleccionadas.length > 0 && (
+              <span className="ml-2 px-2 py-1 bg-white/20 rounded-full text-xs">
+                {clausulasSeleccionadas.length}
+              </span>
+            )}
           </button>
           
           <div className="flex gap-3">
+            <button
+              onClick={handleResetToDefault}
+              className="px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors"
+            >
+              Restaurar Original
+            </button>
             <button
               onClick={onClose}
               className="px-6 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors"
@@ -227,6 +260,15 @@ const ContratoEditor = ({ lease, onClose }) => {
           </div>
         </div>
       </div>
+
+      {/* Modal selector de cláusulas */}
+      {mostrarSelectorClausulas && (
+        <ClausulasSelector
+          tipoPropiedad={lease.Property?.typeProperty || 'general'}
+          onClausulasSelected={handleClausulasSelected}
+          onClose={() => setMostrarSelectorClausulas(false)}
+        />
+      )}
     </div>
   );
 };
