@@ -37,21 +37,28 @@ const PaymentReport = () => {
 
   // Filtrar por rango de fecha y tipo (optimizado con useMemo)
   const filteredPayments = useMemo(() => {
-    return payments.filter(payment => {
-      const paymentDate = new Date(payment.paymentDate);
-      const fromDate = dateFrom ? new Date(dateFrom) : null;
-      const toDate = dateTo ? new Date(dateTo) : null;
-      
-      // Filtro por fecha
-      if (fromDate && paymentDate < fromDate) return false;
-      if (toDate && paymentDate > toDate) return false;
-      
-      // Filtro por tipo
-      if (activeFilter === 'commission' && payment.type !== 'commission') return false;
-      if (activeFilter === 'installment' && payment.type !== 'installment') return false;
-      
-      return true;
-    });
+    return payments
+      .filter(payment => {
+        const paymentDate = new Date(payment.paymentDate);
+        const fromDate = dateFrom ? new Date(dateFrom) : null;
+        const toDate = dateTo ? new Date(dateTo) : null;
+        
+        // Filtro por fecha
+        if (fromDate && paymentDate < fromDate) return false;
+        if (toDate && paymentDate > toDate) return false;
+        
+        // Filtro por tipo
+        if (activeFilter === 'commission' && payment.type !== 'commission') return false;
+        if (activeFilter === 'installment' && payment.type !== 'installment') return false;
+        
+        return true;
+      })
+      .sort((a, b) => {
+        // Ordenar por fecha descendente (más reciente primero)
+        const dateA = new Date(a.paymentDate);
+        const dateB = new Date(b.paymentDate);
+        return dateB - dateA;
+      });
   }, [payments, dateFrom, dateTo, activeFilter]);
 
   // Calcular estadísticas (optimizado con useMemo)
