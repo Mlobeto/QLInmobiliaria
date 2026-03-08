@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { getAllPayments } from '../../redux/Actions/actions';
+import { getAllPayments, getAllLeases } from '../../redux/Actions/actions';
 import { 
   IoCalendarOutline, 
   IoCheckmarkCircleOutline,
@@ -18,10 +18,12 @@ const InformeCuotasMensuales = () => {
   const dispatch = useDispatch();
   
   const allPayments = useSelector(state => state.allPayments);
+  const allLeases = useSelector(state => state.leases);
   const loading = useSelector(state => state.loading);
   const adminInfo = useSelector(state => state.adminInfo);
   
   const payments = useMemo(() => allPayments || [], [allPayments]);
+  const leases = useMemo(() => allLeases || [], [allLeases]);
 
   // Estados para filtros
   const [selectedMonth, setSelectedMonth] = useState('');
@@ -31,6 +33,7 @@ const InformeCuotasMensuales = () => {
 
   useEffect(() => {
     dispatch(getAllPayments());
+    dispatch(getAllLeases());
     
     // Establecer mes y año actual por defecto
     const now = new Date();
@@ -39,20 +42,20 @@ const InformeCuotasMensuales = () => {
   }, [dispatch]);
 
   // Función para generar el mensaje de WhatsApp para una cuota pendiente
-  const generarMensajeRecordatorio = (pago) => {
-    const fechaVencimiento = new Date(pago.paymentDate);
-    const nombreCliente = pago.Client?.name || 'Estimado cliente';
-    const direccionPropiedad = pago.Lease?.Property?.address || 'la propiedad';
-    const monto = Number(pago.amount).toLocaleString('es-AR', { 
+  const generarMensajeRecordatorio = (cuota) => {
+    const fechaVencimiento = new Date(cuota.fechaVencimiento);
+    const nombreCliente = cuota.nombreCliente || 'Estimado cliente';
+    const direccionPropiedad = cuota.direccionPropiedad || 'la propiedad';
+    const monto = Number(cuota.monto).toLocaleString('es-AR', { 
       style: 'currency', 
       currency: 'ARS' 
     });
-    const periodo = pago.period || 'este mes';
-    const cuota = pago.installmentNumber ? `(Cuota ${pago.installmentNumber}/${pago.totalInstallments})` : '';
+    const periodo = cuota.periodo || 'este mes';
+    const numeroCuota = cuota.numeroCuota || '';
 
-    const mensaje = `Hola ${nombreCliente},
+    return `Hola ${nombreCliente},
 
-Le recordamos que tiene pendiente el pago de la cuota de alquiler correspondiente a ${periodo} ${cuota}.
+Le recordamos que tiene pendiente el pago de la cuota de alquiler correspondiente a ${periodo}${numeroCuota ? ` ${numeroCuota}` : ''}.
 
 📍 Propiedad: ${direccionPropiedad}
 💰 Monto: ${monto}
@@ -64,8 +67,6 @@ Quedamos a su disposición ante cualquier consulta.
 
 Saludos cordiales,
 QL Inmobiliaria`;
-
-    return mensaje;
   };
 
   // Función para copiar mensaje al portapapeles
@@ -80,21 +81,85 @@ QL Inmobiliaria`;
     }
   };
 
-  // Filtrar cuotas del mes seleccionado
+  // Generar opciones de meses y años
+  const meses = useMemo(() => [
+    { value: '01', label: 'Enero' },
+    { value: '02', label: 'Febrero' },
+    { value: '03', label: 'Marzo' },
+    { value: '04', label: 'Abril' },
+    { value: '05', label: 'Mayo' },
+    { value: '06', label: 'Junio' },
+    { value: '07', label: 'Julio' },
+    { value: '08', label: 'Agosto' },
+    { value: '09', label: 'Septiembre' },
+    { value: '10', label: 'Octubre' },
+    { value: '11', label: 'Noviembre' },
+    { value: '12', label: 'Diciembre' }
+  ], []);
+
+  const años = useMemo(() => {
+    const añoActual = new Date().getFullYear();
+    return Array.from({ length: 5 }, (_, i) => añoActual - 2 + i);
+  }, []);
+
+  // Filtrar cuotas del mes seleccionado - TODOS los contratos activos
   const cuotasDelMes = useMemo(() => {
     if (!selectedMonth || !selectedYear) return [];
 
-    return payments.filter(payment => {
-      // Solo cuotas de alquiler (installment)
-      if (payment.type !== 'installment') return false;
+    const mesSeleccionado = parseInt(selectedMonth);
+    const añoSeleccionado = parseInt(selectedYear);
 
-      const fechaPago = new Date(payment.paymentDate);
-      const mesPago = String(fechaPago.getMonth() + 1).padStart(2, '0');
-      const añoPago = String(fechaPago.getFullYear());
+    // Obtener todos los contratos activos
+    const contratosActivos = leases.filter(lease => lease.status === 'active');
 
-      return mesPago === selectedMonth && añoPago === selectedYear;
-    });
-  }, [payments, selectedMonth, selectedYear]);
+    // Para cada contrato activo, generar su cuota del mes
+    const cuotasGeneradas = contratosActivos.map(contrato => {
+      const fechaInicio = new Date(contrato.startDate);
+      const mesesDesdeInicio = (añoSeleccionado - fechaInicio.getFullYear()) * 12 + 
+                               (mesSeleccionado - (fechaInicio.getMonth() + 1));
+      
+      //Verificar si el contrato ya debería estar activo en el mes seleccionado
+      if (mesesDesdeInicio < 0) return null; // Contrato aún no comenzó
+      
+      // Verificar si el contrato ya terminó
+      if (mesesDesdeInicio >= contrato.totalMonths) return null; // Contrato ya terminó
+
+      const numeroCuota = mesesDesdeInicio + 1;
+      
+      // Calcular fecha de vencimiento (primer día del mes seleccionado + 10 días)
+      const fechaVencimiento = new Date(añoSeleccionado, mesSeleccionado - 1, 10);
+      
+      // Buscar si existe un pago registrado para este contrato en este mes
+      const pagoRegistrado = payments.find(pago => 
+        pago.leaseId === contrato.id && 
+        pago.type === 'installment' &&
+        pago.paymentDate && 
+        new Date(pago.paymentDate).getMonth() === mesSeleccionado - 1 &&
+        new Date(pago.paymentDate).getFullYear() === añoSeleccionado
+      );
+
+      const mesLabel = meses.find(m => m.value === selectedMonth)?.label || '';
+
+      return {
+        contratoId: contrato.id,
+        pagoId: pagoRegistrado?.id,
+        nombreCliente: contrato.Tenant?.name || 'Sin nombre',
+        direccionPropiedad: contrato.Property?.address || 'Sin dirección',
+        monto: pagoRegistrado?.amount || contrato.rentAmount,
+        fechaVencimiento: fechaVencimiento,
+        periodo: `${mesLabel} ${añoSeleccionado}`,
+        numeroCuota: `(Cuota ${numeroCuota}/${contrato.totalMonths})`,
+        esPagada: !!pagoRegistrado,
+        fechaPago: pagoRegistrado?.paymentDate,
+        // Datos adicionales para referencia
+        cliente: contrato.Tenant,
+        propiedad: contrato.Property,
+        contrato: contrato
+      };
+    }).filter(cuota => cuota !== null); // Eliminar contratos que no aplican
+
+    return cuotasGeneradas;
+  }, [leases, payments, selectedMonth, selectedYear, meses]);
 
   // Separar en pagadas y pendientes
   const cuotasAnalisis = useMemo(() => {
@@ -103,23 +168,14 @@ QL Inmobiliaria`;
     let totalPagado = 0;
     let totalPendiente = 0;
 
-    cuotasDelMes.forEach(payment => {
-      const monto = Number(payment.amount);
+    cuotasDelMes.forEach(cuota => {
+      const monto = Number(cuota.monto);
       
-      // Verificar si está pagada (podemos agregar una propiedad isPaid en el backend)
-      // Por ahora, asumimos que si existe el pago, está confirmado
-      // Podrías agregar una propiedad "status" en el modelo para diferenciar
-      
-      // Para este ejemplo, consideramos que si tiene paymentDate en el pasado, está pagada
-      const fechaPago = new Date(payment.paymentDate);
-      const hoy = new Date();
-      const esPagada = fechaPago <= hoy; // Esto es una simplificación
-
-      if (esPagada) {
-        pagadas.push(payment);
+      if (cuota.esPagada) {
+        pagadas.push(cuota);
         totalPagado += monto;
       } else {
-        pendientes.push(payment);
+        pendientes.push(cuota);
         totalPendiente += monto;
       }
     });
@@ -139,27 +195,6 @@ QL Inmobiliaria`;
     if (filterStatus === 'pending') return cuotasAnalisis.pendientes;
     return [...cuotasAnalisis.pagadas, ...cuotasAnalisis.pendientes];
   }, [cuotasAnalisis, filterStatus]);
-
-  // Generar opciones de meses y años
-  const meses = [
-    { value: '01', label: 'Enero' },
-    { value: '02', label: 'Febrero' },
-    { value: '03', label: 'Marzo' },
-    { value: '04', label: 'Abril' },
-    { value: '05', label: 'Mayo' },
-    { value: '06', label: 'Junio' },
-    { value: '07', label: 'Julio' },
-    { value: '08', label: 'Agosto' },
-    { value: '09', label: 'Septiembre' },
-    { value: '10', label: 'Octubre' },
-    { value: '11', label: 'Noviembre' },
-    { value: '12', label: 'Diciembre' }
-  ];
-
-  const años = useMemo(() => {
-    const añoActual = new Date().getFullYear();
-    return Array.from({ length: 5 }, (_, i) => añoActual - 2 + i);
-  }, []);
 
   // Verificar permisos
   if (!adminInfo || adminInfo.role !== 'admin') {
@@ -181,12 +216,12 @@ QL Inmobiliaria`;
     );
   }
 
-  if (loading && payments.length === 0) {
+  if (loading && (payments.length === 0 || leases.length === 0)) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-400 mx-auto mb-4"></div>
-          <p className="text-slate-300 text-lg">Cargando cuotas...</p>
+          <p className="text-slate-300 text-lg">Cargando contratos y cuotas...</p>
         </div>
       </div>
     );
@@ -208,7 +243,7 @@ QL Inmobiliaria`;
             
             <div>
               <h1 className="text-xl font-bold text-white">Informe de Cuotas Mensuales</h1>
-              <p className="text-slate-300 text-sm">Control de pagos y recordatorios</p>
+              <p className="text-slate-300 text-sm">Control de todos los contratos activos</p>
             </div>
           </div>
         </div>
@@ -339,16 +374,13 @@ QL Inmobiliaria`;
           ) : (
             <div className="space-y-4">
               {cuotasFiltradas.map((cuota, index) => {
-                const fechaPago = new Date(cuota.paymentDate);
-                const hoy = new Date();
-                const esPagada = fechaPago <= hoy;
-                const mensaje = !esPagada ? generarMensajeRecordatorio(cuota) : null;
+                const mensaje = !cuota.esPagada ? generarMensajeRecordatorio(cuota) : null;
 
                 return (
                   <div 
-                    key={cuota.id}
+                    key={`${cuota.contratoId}-${index}`}
                     className={`p-5 rounded-xl border transition-all duration-300 ${
-                      esPagada 
+                      cuota.esPagada 
                         ? 'bg-green-500/10 border-green-500/30' 
                         : 'bg-red-500/10 border-red-500/30'
                     }`}
@@ -358,9 +390,9 @@ QL Inmobiliaria`;
                       <div className="flex-1">
                         <div className="flex items-start gap-3">
                           <div className={`p-2 rounded-lg ${
-                            esPagada ? 'bg-green-500/20' : 'bg-red-500/20'
+                            cuota.esPagada ? 'bg-green-500/20' : 'bg-red-500/20'
                           }`}>
-                            {esPagada ? (
+                            {cuota.esPagada ? (
                               <IoCheckmarkCircleOutline className="w-6 h-6 text-green-400" />
                             ) : (
                               <IoCloseCircleOutline className="w-6 h-6 text-red-400" />
@@ -369,15 +401,15 @@ QL Inmobiliaria`;
                           
                           <div className="flex-1">
                             <h3 className="text-lg font-bold text-white mb-1">
-                              {cuota.Client?.name || 'Cliente sin nombre'}
+                              {cuota.nombreCliente || 'Cliente sin nombre'}
                             </h3>
                             <p className="text-slate-300 text-sm mb-2">
-                              📍 {cuota.Lease?.Property?.address || 'Dirección no disponible'}
+                              📍 {cuota.direccionPropiedad || 'Dirección no disponible'}
                             </p>
                             <div className="flex flex-wrap gap-3 text-sm">
                               <span className="text-slate-400">
                                 💰 <span className="text-white font-semibold">
-                                  {Number(cuota.amount).toLocaleString('es-AR', { 
+                                  {Number(cuota.monto).toLocaleString('es-AR', { 
                                     style: 'currency', 
                                     currency: 'ARS' 
                                   })}
@@ -385,18 +417,21 @@ QL Inmobiliaria`;
                               </span>
                               <span className="text-slate-400">
                                 📅 <span className="text-white">
-                                  {fechaPago.toLocaleDateString('es-AR')}
+                                  {cuota.esPagada && cuota.fechaPago 
+                                    ? new Date(cuota.fechaPago).toLocaleDateString('es-AR')
+                                    : new Date(cuota.fechaVencimiento).toLocaleDateString('es-AR')
+                                  }
                                 </span>
                               </span>
                               <span className="text-slate-400">
                                 📄 <span className="text-white">
-                                  {cuota.period || 'Sin período'}
+                                  {cuota.periodo || 'Sin período'}
                                 </span>
                               </span>
-                              {cuota.installmentNumber && (
+                              {cuota.numeroCuota && (
                                 <span className="text-slate-400">
                                   🔢 <span className="text-white">
-                                    Cuota {cuota.installmentNumber}/{cuota.totalInstallments}
+                                    {cuota.numeroCuota}
                                   </span>
                                 </span>
                               )}
@@ -406,7 +441,7 @@ QL Inmobiliaria`;
                       </div>
 
                       {/* Botón de WhatsApp para pendientes */}
-                      {!esPagada && mensaje && (
+                      {!cuota.esPagada && mensaje && (
                         <div className="flex items-center gap-2">
                           <button
                             onClick={() => copiarMensaje(mensaje, index)}
@@ -433,7 +468,7 @@ QL Inmobiliaria`;
                       )}
 
                       {/* Badge de estado */}
-                      {esPagada && (
+                      {cuota.esPagada && (
                         <span className="px-4 py-2 bg-green-500/20 text-green-300 rounded-lg text-sm font-medium border border-green-500/30">
                           ✓ Pagada
                         </span>

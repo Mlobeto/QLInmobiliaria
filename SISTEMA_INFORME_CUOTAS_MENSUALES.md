@@ -2,15 +2,27 @@
 
 ## 📋 Descripción General
 
-Componente de React que permite gestionar y controlar las cuotas de alquiler del mes actual (o cualquier mes seleccionado), mostrando cuáles están pagadas y cuáles pendientes. Incluye funcionalidad para generar mensajes de recordatorio personalizados que se pueden copiar y enviar por WhatsApp.
+Componente de React que permite gestionar y controlar las cuotas de alquiler del mes seleccionado, mostrando **TODOS los contratos activos** independientemente de si tienen pagos registrados. El sistema calcula automáticamente en qué mes de contrato se encuentra cada alquiler y determina si la cuota está pagada o pendiente. Incluye funcionalidad para generar mensajes de recordatorio personalizados que se pueden copiar y enviar por WhatsApp.
 
 ## ✨ Características Principales
 
 ### 1. **Control de Cuotas Mensuales**
-- Visualización de todas las cuotas de alquiler del mes seleccionado
+- **Visualización completa**: Muestra TODOS los contratos activos del mes seleccionado
+- **Cálculo automático**: Determina el número de cuota basándose en la fecha de inicio del contrato
+- **Cross-reference inteligente**: Verifica si existe un pago registrado para cada contrato/mes
 - Separación automática entre cuotas pagadas y pendientes
 - Filtros por mes, año y estado (pagadas/pendientes/todas)
 - Estadísticas en tiempo real con totales por categoría
+
+### 2. **Lógica Avanzada de Contratos**
+- **Cálculo de Meses Transcurridos**: 
+  ```
+  mesesDesdeInicio = (añoSeleccionado - añoInicio) * 12 + (mesSeleccionado - mesInicio)
+  numeroCuota = mesesDesdeInicio + 1
+  ```
+- **Validación de Vigencia**: Excluye contratos que aún no comenzaron o ya terminaron
+- **Integración con Redux**: Utiliza `getAllLeases()` y `getAllPayments()`
+- **Estado Dinámico**: Determina pagado/pendiente mediante cross-reference con PaymentReceipt
 
 ### 2. **Mensajes de Recordatorio para WhatsApp**
 - Generación automática de mensajes personalizados
@@ -181,44 +193,113 @@ Cada cuota muestra:
 
 ### Redux Actions Utilizadas
 - `getAllPayments()`: Obtiene todos los pagos registrados en el sistema
-- Los pagos se filtran en el frontend por tipo (`installment`), mes y año
+- `getAllLeases()`: **CRÍTICO** - Obtiene todos los contratos de alquiler con información de Tenant y Property
+- Los contratos activos se procesan para generar las cuotas del mes
+- Los pagos se cruzan por `leaseId` + mes + año para determinar estado
 
 ### Estructura de Datos
-Cada pago (cuota) incluye:
+
+#### Lease (Contrato):
 ```javascript
 {
   id: number,
-  amount: number,
-  paymentDate: Date,
-  period: string,
-  type: 'installment',
-  installmentNumber: number,
-  totalInstallments: number,
-  Client: {
+  startDate: Date,           // Fecha de inicio del contrato
+  rentAmount: number,        // Monto de la cuota mensual
+  totalMonths: number,       // Duración total del contrato
+  status: 'active',          // Solo se procesan contratos activos
+  tenantId: number,
+  propertyId: number,
+  Tenant: {
     id: number,
-    name: string
+    name: string             // Nombre del inquilino
   },
-  Lease: {
+  Property: {
     id: number,
-    Property: {
-      address: string
-    }
+    address: string          // Dirección de la propiedad
   }
 }
 ```
 
-### Lógica de Determinación de Estado
+#### PaymentReceipt (Pago):
 ```javascript
-// Simplificación actual
-const fechaPago = new Date(payment.paymentDate);
-const hoy = new Date();
-const esPagada = fechaPago <= hoy;
+{
+  id: number,
+  leaseId: number,           // Relación con el contrato
+  amount: number,
+  paymentDate: Date,
+  period: string,
+  type: 'installment',       // Solo se consideran cuotas, no initial_payment ni otros
+  // ... otros campos
+}
 ```
 
-**Nota**: Esta lógica podría mejorarse agregando un campo `status` en el modelo de pagos para diferenciar explícitamente:
-- "pending" - Pendiente de pago
-- "paid" - Pagado
-- "overdue" - Vencido
+#### Cuota Generada (Estructura Calculada):
+```javascript
+{
+  contratoId: number,
+  pagoId: number | undefined,
+  nombreCliente: string,
+  direccionPropiedad: string,
+  monto: number,
+  fechaVencimiento: Date,    // Día 10 del mes seleccionado
+  periodo: string,           // "Marzo 2026"
+  numeroCuota: string,       // "(Cuota 12/36)"
+  esPagada: boolean,         // !!pagoRegistrado
+  fechaPago: Date | undefined,
+  cliente: Tenant,           // Objeto completo del inquilino
+  propiedad: Property,       // Objeto completo de la propiedad
+  contrato: Lease            // Objeto completo del contrato
+}
+```
+
+### Lógica de Determinación de Estado
+
+**CAMBIO CRÍTICO**: El sistema ya NO filtra solo pagos registrados. Ahora:
+
+1. **Obtiene TODOS los contratos activos** mediante `getAllLeases()`
+2. **Calcula el número de cuota** para el mes seleccionado:
+   ```javascript
+   const fechaInicio = new Date(contrato.startDate);
+   const mesesDesdeInicio = (añoSeleccionado - fechaInicio.getFullYear()) * 12 + 
+                            (mesSeleccionado - (fechaInicio.getMonth() + 1));
+   
+   // Validaciones
+   if (mesesDesdeInicio < 0) return null;  // Contrato aún no comenzó
+   if (mesesDesdeInicio >= contrato.totalMonths) return null;  // Contrato terminó
+   
+   const numeroCuota = mesesDesdeInicio + 1;
+   ```
+
+3. **Cross-reference con pagos** para determinar si está pagada:
+   ```javascript
+   const pagoRegistrado = payments.find(pago => 
+     pago.leaseId === contrato.id && 
+     pago.type === 'installment' &&
+     new Date(pago.paymentDate).getMonth() === mesSeleccionado - 1 &&
+     new Date(pago.paymentDate).getFullYear() === añoSeleccionado
+   );
+   
+   const esPagada = !!pagoRegistrado;
+   ```
+
+4. **Devuelve la cuota** con toda la información, tenga o no pago registrado
+
+**Antes (INCORRECTO)**:
+```javascript
+// ❌ Solo mostraba pagos registrados
+const cuotasDelMes = payments.filter(p => p.type === 'installment' && matchMonth);
+```
+
+**Ahora (CORRECTO)**:
+```javascript
+// ✅ Muestra todos los contratos activos, pagados o no
+const cuotasDelMes = leases
+  .filter(l => l.status === 'active')
+  .map(contrato => {
+    // Calcula cuota, verifica pago, retorna objeto completo
+  })
+  .filter(Boolean);
+```
 
 ### Generación de Mensajes
 La función `generarMensajeRecordatorio()` crea un mensaje personalizado con:
@@ -228,6 +309,8 @@ La función `generarMensajeRecordatorio()` crea un mensaje personalizado con:
 - Monto formateado en ARS
 - Fecha de vencimiento
 - Firma institucional
+
+**Solo se genera para cuotas pendientes** (`!cuota.esPagada`)
 
 ## 📊 Mejoras Futuras Sugeridas
 
@@ -294,9 +377,57 @@ La función `generarMensajeRecordatorio()` crea un mensaje personalizado con:
 ## 🐛 Solución de Problemas
 
 ### "No hay cuotas para el período seleccionado"
-- Verificar que existan contratos activos en ese período
-- Confirmar que los pagos estén registrados correctamente
-- Revisar que el tipo de pago sea `installment`
+- **Verificar contratos activos**: Confirmar que existan contratos con `status: 'active'` en ese período
+- **Revisar fechas de inicio**: El contrato debe haber comenzado antes o durante el mes seleccionado
+- **Verificar duración**: El contrato no debe haber terminado (`mesesDesdeInicio < totalMonths`)
+- **Comprobar Redux**: Asegurarse de que `getAllLeases()` se ejecutó correctamente
+
+### "Faltan contratos en la lista" (PROBLEMA RESUELTO)
+**Problema anterior**: El componente solo mostraba contratos con pagos registrados en la base de datos, omitiendo contratos activos sin pagos.
+
+**Solución implementada**: 
+- El sistema ahora obtiene TODOS los contratos activos mediante `getAllLeases()`
+- Calcula el número de cuota para cada contrato basándose en su fecha de inicio
+- Realiza cross-reference con `payments` para determinar estado
+- **Resultado**: Se listan todos los contratos activos, tengan o no pagos registrados
+
+**Indicadores del problema**:
+- Muchos menos contratos de los esperados en el informe
+- Solo aparecen contratos que tienen al menos un pago en el sistema
+- Contratos nuevos o sin pagos no aparecen
+
+**Validación de la corrección**:
+```javascript
+// ✅ Correcto: Se ven N contratos activos
+const contratosActivos = leases.filter(l => l.status === 'active').length;
+
+// ✅ Correcto: Algunos con pago, otros sin pago
+const cuotasPagadas = cuotasDelMes.filter(c => c.esPagada).length;
+const cuotasPendientes = cuotasDelMes.filter(c => !c.esPagada).length;
+```
+
+### "Fechas de vencimiento incorrectas"
+- Las fechas de vencimiento se calculan como día 10 del mes seleccionado
+- Para cambiar este comportamiento, modificar el cálculo en `cuotasDelMes`:
+  ```javascript
+  const fechaVencimiento = new Date(añoSeleccionado, mesSeleccionado - 1, 10);
+  // Cambiar '10' por el día deseado
+  ```
+
+### "Número de cuota incorrecto"
+- Verificar que `startDate` del contrato esté correctamente registrado
+- La fórmula es: `numeroCuota = mesesDesdeInicio + 1`
+- Ejemplo: Contrato inicia en Enero 2025, consulta Marzo 2025 → Cuota 3
+
+### "No se puede copiar el mensaje de WhatsApp"
+- **Permisos del navegador**: Algunos navegadores requieren permisos para la Clipboard API
+- **HTTPS requerido**: La función `navigator.clipboard` solo funciona en contextos seguros
+- **Alternativa**: Copiar manualmente el texto del mensaje si aparece un error
+
+### "El botón de WhatsApp no aparece"
+- Los botones solo se muestran para **cuotas pendientes** (`!cuota.esPagada`)
+- Verificar que el filtro no esté en "Pagadas"
+- Las cuotas con `esPagada: true` no muestran el botón de recordatorio
 
 ### El botón "Copiar recordatorio" no funciona
 - Verificar permisos del navegador para acceder al portapapeles
