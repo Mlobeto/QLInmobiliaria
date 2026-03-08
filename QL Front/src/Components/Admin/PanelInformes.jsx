@@ -7,7 +7,8 @@ import {
   IoHomeOutline,
   IoDocumentTextOutline,
   IoCashOutline,
-  IoStatsChartOutline
+  IoStatsChartOutline,
+  IoCalendarOutline
 } from 'react-icons/io5';
 
 const PanelInformes = () => {
@@ -26,6 +27,15 @@ const PanelInformes = () => {
       gradient: 'from-blue-500 to-blue-600',
       hoverGradient: 'from-blue-600 to-blue-700',
       description: 'Generar informes y reportes',
+      requiredRole: 'admin'
+    },
+    {
+      title: 'Cuotas Mensuales',
+      path: '/informeCuotasMensuales',
+      icon: IoCalendarOutline,
+      gradient: 'from-purple-500 to-purple-600',
+      hoverGradient: 'from-purple-600 to-purple-700',
+      description: 'Control de cuotas y recordatorios WhatsApp',
       requiredRole: 'admin'
     },
     {

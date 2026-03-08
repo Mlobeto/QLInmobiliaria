@@ -1,0 +1,453 @@
+import { useEffect, useState, useMemo } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { getAllPayments } from '../../redux/Actions/actions';
+import { 
+  IoCalendarOutline, 
+  IoCheckmarkCircleOutline,
+  IoCloseCircleOutline,
+  IoCopyOutline,
+  IoLogoWhatsapp,
+  IoArrowBackOutline,
+  IoFilterOutline,
+  IoCashOutline,
+  IoAlertCircleOutline
+} from 'react-icons/io5';
+import { Link } from 'react-router-dom';
+
+const InformeCuotasMensuales = () => {
+  const dispatch = useDispatch();
+  
+  const allPayments = useSelector(state => state.allPayments);
+  const loading = useSelector(state => state.loading);
+  const adminInfo = useSelector(state => state.adminInfo);
+  
+  const payments = useMemo(() => allPayments || [], [allPayments]);
+
+  // Estados para filtros
+  const [selectedMonth, setSelectedMonth] = useState('');
+  const [selectedYear, setSelectedYear] = useState('');
+  const [copiedIndex, setCopiedIndex] = useState(null);
+  const [filterStatus, setFilterStatus] = useState('all'); // 'all', 'paid', 'pending'
+
+  useEffect(() => {
+    dispatch(getAllPayments());
+    
+    // Establecer mes y año actual por defecto
+    const now = new Date();
+    setSelectedMonth(String(now.getMonth() + 1).padStart(2, '0'));
+    setSelectedYear(String(now.getFullYear()));
+  }, [dispatch]);
+
+  // Función para generar el mensaje de WhatsApp para una cuota pendiente
+  const generarMensajeRecordatorio = (pago) => {
+    const fechaVencimiento = new Date(pago.paymentDate);
+    const nombreCliente = pago.Client?.name || 'Estimado cliente';
+    const direccionPropiedad = pago.Lease?.Property?.address || 'la propiedad';
+    const monto = Number(pago.amount).toLocaleString('es-AR', { 
+      style: 'currency', 
+      currency: 'ARS' 
+    });
+    const periodo = pago.period || 'este mes';
+    const cuota = pago.installmentNumber ? `(Cuota ${pago.installmentNumber}/${pago.totalInstallments})` : '';
+
+    const mensaje = `Hola ${nombreCliente},
+
+Le recordamos que tiene pendiente el pago de la cuota de alquiler correspondiente a ${periodo} ${cuota}.
+
+📍 Propiedad: ${direccionPropiedad}
+💰 Monto: ${monto}
+📅 Fecha de vencimiento: ${fechaVencimiento.toLocaleDateString('es-AR')}
+
+Por favor, gestione el pago a la brevedad para evitar recargos.
+
+Quedamos a su disposición ante cualquier consulta.
+
+Saludos cordiales,
+QL Inmobiliaria`;
+
+    return mensaje;
+  };
+
+  // Función para copiar mensaje al portapapeles
+  const copiarMensaje = async (mensaje, index) => {
+    try {
+      await navigator.clipboard.writeText(mensaje);
+      setCopiedIndex(index);
+      setTimeout(() => setCopiedIndex(null), 3000);
+    } catch (error) {
+      console.error('Error al copiar:', error);
+      alert('Error al copiar el mensaje');
+    }
+  };
+
+  // Filtrar cuotas del mes seleccionado
+  const cuotasDelMes = useMemo(() => {
+    if (!selectedMonth || !selectedYear) return [];
+
+    return payments.filter(payment => {
+      // Solo cuotas de alquiler (installment)
+      if (payment.type !== 'installment') return false;
+
+      const fechaPago = new Date(payment.paymentDate);
+      const mesPago = String(fechaPago.getMonth() + 1).padStart(2, '0');
+      const añoPago = String(fechaPago.getFullYear());
+
+      return mesPago === selectedMonth && añoPago === selectedYear;
+    });
+  }, [payments, selectedMonth, selectedYear]);
+
+  // Separar en pagadas y pendientes
+  const cuotasAnalisis = useMemo(() => {
+    const pagadas = [];
+    const pendientes = [];
+    let totalPagado = 0;
+    let totalPendiente = 0;
+
+    cuotasDelMes.forEach(payment => {
+      const monto = Number(payment.amount);
+      
+      // Verificar si está pagada (podemos agregar una propiedad isPaid en el backend)
+      // Por ahora, asumimos que si existe el pago, está confirmado
+      // Podrías agregar una propiedad "status" en el modelo para diferenciar
+      
+      // Para este ejemplo, consideramos que si tiene paymentDate en el pasado, está pagada
+      const fechaPago = new Date(payment.paymentDate);
+      const hoy = new Date();
+      const esPagada = fechaPago <= hoy; // Esto es una simplificación
+
+      if (esPagada) {
+        pagadas.push(payment);
+        totalPagado += monto;
+      } else {
+        pendientes.push(payment);
+        totalPendiente += monto;
+      }
+    });
+
+    return {
+      pagadas,
+      pendientes,
+      totalPagado,
+      totalPendiente,
+      totalCuotas: cuotasDelMes.length
+    };
+  }, [cuotasDelMes]);
+
+  // Aplicar filtro de estado
+  const cuotasFiltradas = useMemo(() => {
+    if (filterStatus === 'paid') return cuotasAnalisis.pagadas;
+    if (filterStatus === 'pending') return cuotasAnalisis.pendientes;
+    return [...cuotasAnalisis.pagadas, ...cuotasAnalisis.pendientes];
+  }, [cuotasAnalisis, filterStatus]);
+
+  // Generar opciones de meses y años
+  const meses = [
+    { value: '01', label: 'Enero' },
+    { value: '02', label: 'Febrero' },
+    { value: '03', label: 'Marzo' },
+    { value: '04', label: 'Abril' },
+    { value: '05', label: 'Mayo' },
+    { value: '06', label: 'Junio' },
+    { value: '07', label: 'Julio' },
+    { value: '08', label: 'Agosto' },
+    { value: '09', label: 'Septiembre' },
+    { value: '10', label: 'Octubre' },
+    { value: '11', label: 'Noviembre' },
+    { value: '12', label: 'Diciembre' }
+  ];
+
+  const años = useMemo(() => {
+    const añoActual = new Date().getFullYear();
+    return Array.from({ length: 5 }, (_, i) => añoActual - 2 + i);
+  }, []);
+
+  // Verificar permisos
+  if (!adminInfo || adminInfo.role !== 'admin') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-4">
+        <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-8 max-w-md text-center">
+          <IoAlertCircleOutline className="w-16 h-16 text-amber-500 mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-white mb-2">Acceso Denegado</h2>
+          <p className="text-amber-300 mb-6">No tienes permisos para ver este informe.</p>
+          <Link 
+            to="/panel"
+            className="inline-flex items-center space-x-2 px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors"
+          >
+            <IoArrowBackOutline />
+            <span>Volver al Panel</span>
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  if (loading && payments.length === 0) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-400 mx-auto mb-4"></div>
+          <p className="text-slate-300 text-lg">Cargando cuotas...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+      {/* Header */}
+      <div className="w-full bg-white/10 backdrop-blur-md border-b border-white/20 p-4 shadow-lg">
+        <div className="max-w-7xl mx-auto flex justify-between items-center">
+          <div className="flex items-center space-x-4">
+            <Link 
+              to="/PanelInformes" 
+              className="text-white hover:text-blue-300 transition-colors duration-300 flex items-center space-x-2 px-3 py-2 rounded-lg bg-blue-500/20 hover:bg-blue-500/30 border border-blue-400/30"
+            >
+              <IoArrowBackOutline className="w-5 h-5" />
+              <span className="hidden sm:inline">Volver</span>
+            </Link>
+            
+            <div>
+              <h1 className="text-xl font-bold text-white">Informe de Cuotas Mensuales</h1>
+              <p className="text-slate-300 text-sm">Control de pagos y recordatorios</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        {/* Filtros */}
+        <div className="bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10 p-6 mb-6">
+          <div className="flex items-center space-x-2 mb-4">
+            <IoFilterOutline className="w-5 h-5 text-blue-400" />
+            <h2 className="text-lg font-semibold text-white">Filtros</h2>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Selector de Mes */}
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-2">
+                <IoCalendarOutline className="inline w-4 h-4 mr-1" />
+                Mes
+              </label>
+              <select
+                value={selectedMonth}
+                onChange={(e) => setSelectedMonth(e.target.value)}
+                className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:ring-2 focus:ring-blue-400 focus:border-transparent"
+              >
+                {meses.map(mes => (
+                  <option key={mes.value} value={mes.value} className="bg-slate-800">
+                    {mes.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Selector de Año */}
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-2">
+                Año
+              </label>
+              <select
+                value={selectedYear}
+                onChange={(e) => setSelectedYear(e.target.value)}
+                className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:ring-2 focus:ring-blue-400 focus:border-transparent"
+              >
+                {años.map(año => (
+                  <option key={año} value={año} className="bg-slate-800">
+                    {año}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Filtro de Estado */}
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-2">
+                Estado
+              </label>
+              <select
+                value={filterStatus}
+                onChange={(e) => setFilterStatus(e.target.value)}
+                className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:ring-2 focus:ring-blue-400 focus:border-transparent"
+              >
+                <option value="all" className="bg-slate-800">Todas</option>
+                <option value="paid" className="bg-slate-800">Pagadas</option>
+                <option value="pending" className="bg-slate-800">Pendientes</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        {/* Estadísticas */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+          <div className="bg-gradient-to-br from-blue-500/20 to-blue-600/20 border border-blue-400/30 rounded-xl p-6">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-blue-300 text-sm font-medium">Total Cuotas</span>
+              <IoCashOutline className="w-6 h-6 text-blue-400" />
+            </div>
+            <p className="text-3xl font-bold text-white">{cuotasAnalisis.totalCuotas}</p>
+          </div>
+
+          <div className="bg-gradient-to-br from-green-500/20 to-green-600/20 border border-green-400/30 rounded-xl p-6">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-green-300 text-sm font-medium">Pagadas</span>
+              <IoCheckmarkCircleOutline className="w-6 h-6 text-green-400" />
+            </div>
+            <p className="text-3xl font-bold text-white">{cuotasAnalisis.pagadas.length}</p>
+            <p className="text-green-300 text-sm mt-2">
+              {cuotasAnalisis.totalPagado.toLocaleString('es-AR', { style: 'currency', currency: 'ARS' })}
+            </p>
+          </div>
+
+          <div className="bg-gradient-to-br from-red-500/20 to-red-600/20 border border-red-400/30 rounded-xl p-6">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-red-300 text-sm font-medium">Pendientes</span>
+              <IoCloseCircleOutline className="w-6 h-6 text-red-400" />
+            </div>
+            <p className="text-3xl font-bold text-white">{cuotasAnalisis.pendientes.length}</p>
+            <p className="text-red-300 text-sm mt-2">
+              {cuotasAnalisis.totalPendiente.toLocaleString('es-AR', { style: 'currency', currency: 'ARS' })}
+            </p>
+          </div>
+
+          <div className="bg-gradient-to-br from-purple-500/20 to-purple-600/20 border border-purple-400/30 rounded-xl p-6">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-purple-300 text-sm font-medium">Total General</span>
+              <IoCashOutline className="w-6 h-6 text-purple-400" />
+            </div>
+            <p className="text-2xl font-bold text-white">
+              {(cuotasAnalisis.totalPagado + cuotasAnalisis.totalPendiente).toLocaleString('es-AR', { 
+                style: 'currency', 
+                currency: 'ARS' 
+              })}
+            </p>
+          </div>
+        </div>
+
+        {/* Lista de Cuotas */}
+        <div className="bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10 p-6">
+          <h2 className="text-xl font-bold text-white mb-4">
+            Detalle de Cuotas ({cuotasFiltradas.length})
+          </h2>
+
+          {cuotasFiltradas.length === 0 ? (
+            <div className="text-center py-12">
+              <IoCalendarOutline className="w-16 h-16 text-slate-500 mx-auto mb-4" />
+              <p className="text-slate-400 text-lg">No hay cuotas para el período seleccionado</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {cuotasFiltradas.map((cuota, index) => {
+                const fechaPago = new Date(cuota.paymentDate);
+                const hoy = new Date();
+                const esPagada = fechaPago <= hoy;
+                const mensaje = !esPagada ? generarMensajeRecordatorio(cuota) : null;
+
+                return (
+                  <div 
+                    key={cuota.id}
+                    className={`p-5 rounded-xl border transition-all duration-300 ${
+                      esPagada 
+                        ? 'bg-green-500/10 border-green-500/30' 
+                        : 'bg-red-500/10 border-red-500/30'
+                    }`}
+                  >
+                    <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                      {/* Info Principal */}
+                      <div className="flex-1">
+                        <div className="flex items-start gap-3">
+                          <div className={`p-2 rounded-lg ${
+                            esPagada ? 'bg-green-500/20' : 'bg-red-500/20'
+                          }`}>
+                            {esPagada ? (
+                              <IoCheckmarkCircleOutline className="w-6 h-6 text-green-400" />
+                            ) : (
+                              <IoCloseCircleOutline className="w-6 h-6 text-red-400" />
+                            )}
+                          </div>
+                          
+                          <div className="flex-1">
+                            <h3 className="text-lg font-bold text-white mb-1">
+                              {cuota.Client?.name || 'Cliente sin nombre'}
+                            </h3>
+                            <p className="text-slate-300 text-sm mb-2">
+                              📍 {cuota.Lease?.Property?.address || 'Dirección no disponible'}
+                            </p>
+                            <div className="flex flex-wrap gap-3 text-sm">
+                              <span className="text-slate-400">
+                                💰 <span className="text-white font-semibold">
+                                  {Number(cuota.amount).toLocaleString('es-AR', { 
+                                    style: 'currency', 
+                                    currency: 'ARS' 
+                                  })}
+                                </span>
+                              </span>
+                              <span className="text-slate-400">
+                                📅 <span className="text-white">
+                                  {fechaPago.toLocaleDateString('es-AR')}
+                                </span>
+                              </span>
+                              <span className="text-slate-400">
+                                📄 <span className="text-white">
+                                  {cuota.period || 'Sin período'}
+                                </span>
+                              </span>
+                              {cuota.installmentNumber && (
+                                <span className="text-slate-400">
+                                  🔢 <span className="text-white">
+                                    Cuota {cuota.installmentNumber}/{cuota.totalInstallments}
+                                  </span>
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Botón de WhatsApp para pendientes */}
+                      {!esPagada && mensaje && (
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => copiarMensaje(mensaje, index)}
+                            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
+                              copiedIndex === index
+                                ? 'bg-green-500 text-white'
+                                : 'bg-gradient-to-r from-green-400 to-green-600 text-white hover:from-green-500 hover:to-green-700'
+                            }`}
+                          >
+                            {copiedIndex === index ? (
+                              <>
+                                <IoCheckmarkCircleOutline className="w-5 h-5" />
+                                <span className="hidden sm:inline">¡Copiado!</span>
+                              </>
+                            ) : (
+                              <>
+                                <IoLogoWhatsapp className="w-5 h-5" />
+                                <IoCopyOutline className="w-5 h-5" />
+                                <span className="hidden sm:inline">Copiar recordatorio</span>
+                              </>
+                            )}
+                          </button>
+                        </div>
+                      )}
+
+                      {/* Badge de estado */}
+                      {esPagada && (
+                        <span className="px-4 py-2 bg-green-500/20 text-green-300 rounded-lg text-sm font-medium border border-green-500/30">
+                          ✓ Pagada
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default InformeCuotasMensuales;

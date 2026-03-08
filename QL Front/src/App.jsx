@@ -18,6 +18,7 @@ import PaymentForm from "./Components/Pagos/PaymentForm";
 
 import PaymentList from "./Components/Pagos/PaymentList";
 import PaymentReport from "./Components/Pagos/PaymentReport";
+import InformeCuotasMensuales from "./Components/Pagos/InformeCuotasMensuales";
 import PanelInformes from "./Components/Admin/PanelInformes";
 import ContractAlerts from "./Components/Contratos/ContractAlerts";
 import ActualizarAlquileres from "./Components/Contratos/ActualizarAlquileres";
@@ -170,6 +171,15 @@ function App() {
         element={
           <RoleBasedRoute allowedRoles={['admin']}>
           <PaymentList />
+          </RoleBasedRoute>
+        }
+      />
+
+<Route
+        path="/informeCuotasMensuales"
+        element={
+          <RoleBasedRoute allowedRoles={['admin']}>
+          <InformeCuotasMensuales />
           </RoleBasedRoute>
         }
       />
