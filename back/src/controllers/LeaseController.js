@@ -620,11 +620,8 @@ exports.getAllLeases = async (req, res) => {
 
     const leasesWithUpdateInfo = leases.map(lease => {
       const start = parseSafeDate(lease.startDate);
+      const createdAt = parseSafeDate(lease.createdAt);
       const now = new Date();
-      
-      // Calcular meses desde el inicio del contrato (NO desde hoy)
-      const monthsSinceStart = (now.getFullYear() - start.getFullYear()) * 12 + 
-                              (now.getMonth() - start.getMonth());
       
       // Determinar frecuencia en meses
       let freqMonths = 0;
@@ -633,29 +630,98 @@ exports.getAllLeases = async (req, res) => {
       else if (lease.updateFrequency === 'semestral') freqMonths = 6;
       else if (lease.updateFrequency === 'anual') freqMonths = 12;
       
-      // Verificar si necesita actualización basándose en startDate
-      const shouldUpdate = monthsSinceStart >= freqMonths;
-      
-      // Calcular próxima fecha de actualización basándose en startDate
-      // NO en la fecha del sistema
-      const periodsElapsed = Math.floor(monthsSinceStart / freqMonths);
-      const nextUpdate = new Date(start);
-      nextUpdate.setMonth(nextUpdate.getMonth() + (periodsElapsed + 1) * freqMonths);
-      
-      // Verificar si ya tiene actualizaciones registradas
+      // Obtener la última actualización de alquiler registrada (NO lease.updatedAt)
       const lastUpdate = lease.RentUpdates && lease.RentUpdates.length > 0 
         ? lease.RentUpdates[0] 
         : null;
+      
+      // CASO 1: Si tiene actualizaciones registradas, usar la última como referencia
+      if (lastUpdate) {
+        const lastUpdateDate = parseSafeDate(lastUpdate.updateDate);
+        const monthsSinceLastUpdate = (now.getFullYear() - lastUpdateDate.getFullYear()) * 12 + 
+                                     (now.getMonth() - lastUpdateDate.getMonth());
+        
+        const monthsSinceStart = (now.getFullYear() - start.getFullYear()) * 12 + 
+                                (now.getMonth() - start.getMonth());
+        const periodsElapsed = Math.floor(monthsSinceStart / freqMonths);
+        const shouldUpdate = monthsSinceLastUpdate >= freqMonths;
+        
+        const nextUpdate = new Date(start);
+        nextUpdate.setMonth(nextUpdate.getMonth() + (periodsElapsed + 1) * freqMonths);
+        
+        return {
+          ...lease.toJSON(),
+          updateInfo: {
+            monthsSinceStart,
+            monthsSinceLastUpdate,
+            shouldUpdate,
+            lastUpdateDate: lastUpdate.updateDate,
+            nextUpdateDate: nextUpdate,
+            periodsElapsed,
+            hasUpdates: true,
+            isOldContractRecentlyLoaded: false
+          }
+        };
+      }
+      
+      // CASO 2: Sin actualizaciones - verificar si es contrato viejo recién cargado
+      const monthsSinceStart = (now.getFullYear() - start.getFullYear()) * 12 + 
+                              (now.getMonth() - start.getMonth());
+      
+      // Si createdAt es más de 2 meses después de startDate, es un contrato viejo recién cargado
+      const monthsBetweenStartAndCreation = (createdAt.getFullYear() - start.getFullYear()) * 12 + 
+                                           (createdAt.getMonth() - start.getMonth());
+      
+      const isOldContractRecentlyLoaded = monthsBetweenStartAndCreation > 2;
+      
+      if (isOldContractRecentlyLoaded) {
+        // Contrato viejo recién cargado: asumir que el monto está actualizado
+        // Calcular próxima actualización desde createdAt, no desde startDate
+        const monthsSinceCreation = (now.getFullYear() - createdAt.getFullYear()) * 12 + 
+                                   (now.getMonth() - createdAt.getMonth());
+        
+        // Calcular cuántos períodos completos han pasado desde la carga del contrato
+        const periodsElapsedSinceLoad = Math.floor(monthsSinceCreation / freqMonths);
+        const shouldUpdate = periodsElapsedSinceLoad > 0;
+        
+        // Próxima actualización: alinear con startDate pero considerar la carga reciente
+        const periodsElapsedTotal = Math.floor(monthsSinceStart / freqMonths);
+        const nextUpdate = new Date(start);
+        nextUpdate.setMonth(nextUpdate.getMonth() + (periodsElapsedTotal + 1) * freqMonths);
+        
+        return {
+          ...lease.toJSON(),
+          updateInfo: {
+            monthsSinceStart,
+            monthsSinceLastUpdate: monthsSinceCreation,
+            shouldUpdate,
+            lastUpdateDate: createdAt, // Usar createdAt como "actualización implícita"
+            nextUpdateDate: nextUpdate,
+            periodsElapsed: periodsElapsedTotal,
+            hasUpdates: false,
+            isOldContractRecentlyLoaded: true
+          }
+        };
+      }
+      
+      // CASO 3: Contrato nuevo (createdAt cercano a startDate)
+      const periodsElapsed = Math.floor(monthsSinceStart / freqMonths);
+      const shouldUpdate = periodsElapsed > 0;
+      
+      const nextUpdate = new Date(start);
+      nextUpdate.setMonth(nextUpdate.getMonth() + (periodsElapsed + 1) * freqMonths);
       
       return {
         ...lease.toJSON(),
         updateInfo: {
           monthsSinceStart,
+          monthsSinceLastUpdate: monthsSinceStart,
           shouldUpdate,
-          lastUpdateDate: lastUpdate ? lastUpdate.updateDate : null,
-          nextUpdateDate: nextUpdate, // Calculado desde startDate
+          lastUpdateDate: null,
+          nextUpdateDate: nextUpdate,
           periodsElapsed,
-          hasUpdates: lease.RentUpdates && lease.RentUpdates.length > 0
+          hasUpdates: false,
+          isOldContractRecentlyLoaded: false
         }
       };
     });
@@ -767,24 +833,14 @@ function getNextUpdateDate(startDate, updateFrequency, lastUpdateDate = null) {
   else if (updateFrequency === 'anual') freqMonths = 12;
 
   const start = parseSafeDate(startDate);
-  
-  // Si hay una última actualización, calcular desde esa fecha
-  // Si no, calcular desde startDate
-  let referenceDate = start;
-  if (lastUpdateDate) {
-    referenceDate = parseSafeDate(lastUpdateDate);
-  }
-  
-  // Calcular cuántos períodos completos han pasado desde startDate (NO desde hoy)
   const now = new Date();
+  
+  // Calcular cuántos períodos completos han pasado desde startDate
   const monthsSinceStart = (now.getFullYear() - start.getFullYear()) * 12 + 
                           (now.getMonth() - start.getMonth());
-  
-  // Calcular cuántos períodos de actualización deberían haber ocurrido desde el inicio
   const periodsElapsed = Math.floor(monthsSinceStart / freqMonths);
   
-  // La próxima actualización es: start + (períodos + 1) * freqMonths
-  // Esto asegura que SIEMPRE se base en startDate, no en la fecha actual
+  // La próxima actualización siempre se alinea con startDate
   const nextUpdate = parseSafeDate(start);
   nextUpdate.setMonth(nextUpdate.getMonth() + (periodsElapsed + 1) * freqMonths);
   
@@ -948,14 +1004,25 @@ const debugLeaseAlerts = async (req, res) => {
         { model: PaymentReceipt, required: false },
         { model: Garantor, required: false },
         { model: Client, as: 'Tenant', attributes: ['name', 'cuil', 'direccion', 'ciudad', 'provincia', 'email', 'mobilePhone'] },
-        { model: Client, as: 'Landlord', attributes: ['name', 'cuil', 'direccion', 'ciudad', 'provincia', 'email', 'mobilePhone'] }
+        { model: Client, as: 'Landlord', attributes: ['name', 'cuil', 'direccion', 'ciudad', 'provincia', 'email', 'mobilePhone'] },
+        { model: RentUpdate, required: false, order: [['updateDate', 'DESC']] }
       ],
     });
 
-    const leasesWithNextUpdate = leases.map(lease => ({
-      ...lease.toJSON(),
-      nextUpdateDate: getNextUpdateDate(lease.startDate, lease.updateFrequency, lease.updatedAt)
-    }));
+    const leasesWithNextUpdate = leases.map(lease => {
+      // Obtener la última actualización de alquiler registrada (NO lease.updatedAt)
+      const lastUpdate = lease.RentUpdates && lease.RentUpdates.length > 0 
+        ? lease.RentUpdates[0] 
+        : null;
+      
+      // Calcular nextUpdateDate correctamente usando startDate y la última actualización si existe
+      const lastUpdateDate = lastUpdate ? parseSafeDate(lastUpdate.updateDate) : null;
+      
+      return {
+        ...lease.toJSON(),
+        nextUpdateDate: getNextUpdateDate(lease.startDate, lease.updateFrequency, lastUpdateDate)
+      };
+    });
 
     // Calcular información de debug adicional
     const now = new Date();
@@ -963,6 +1030,11 @@ const debugLeaseAlerts = async (req, res) => {
       const nextUpdate = new Date(lease.nextUpdateDate);
       const daysUntilUpdate = Math.ceil((nextUpdate - now) / (1000 * 60 * 60 * 24));
       const shouldAlert = daysUntilUpdate <= 30 && daysUntilUpdate >= 0;
+      
+      // Obtener la última actualización de alquiler
+      const lastRentUpdate = lease.RentUpdates && lease.RentUpdates.length > 0 
+        ? lease.RentUpdates[0] 
+        : null;
 
       return {
         leaseId: lease.id,
@@ -972,7 +1044,7 @@ const debugLeaseAlerts = async (req, res) => {
         startDate: lease.startDate,
         updateFrequency: lease.updateFrequency,
         currentRent: lease.rentAmount,
-        lastUpdateDate: lease.updatedAt || 'Nunca actualizado',
+        lastUpdateDate: lastRentUpdate ? lastRentUpdate.updateDate : 'Nunca actualizado',
         nextUpdateDate: lease.nextUpdateDate,
         daysUntilUpdate,
         shouldAlert
@@ -988,6 +1060,12 @@ const debugLeaseAlerts = async (req, res) => {
       alertCount: debugInfo.filter(info => info.shouldAlert).length,
       debugInfo
     });
+
+  } catch (error) {
+    console.error('Error en debugLeaseAlerts:', error);
+    res.status(500).json({ message: 'Error al debuggear alertas', error: error.message });
+  }
+};
 
   } catch (error) {
     console.error('Error en debugLeaseAlerts:', error);
@@ -1018,48 +1096,55 @@ exports.getLeasesPendingUpdate = async (req, res) => {
 
     const pendingUpdates = leases.filter(lease => {
       const start = parseSafeDate(lease.startDate);
+      const createdAt = parseSafeDate(lease.createdAt);
       const now = new Date();
-      
-      // Calcular meses desde startDate (NO desde hoy como referencia genérica)
-      const monthsSinceStart = (now.getFullYear() - start.getFullYear()) * 12 + 
-                              (now.getMonth() - start.getMonth());
       
       let freqMonths = 0;
       if (lease.updateFrequency === 'trimestral') freqMonths = 3;
       else if (lease.updateFrequency === 'cuatrimestral') freqMonths = 4;
       else if (lease.updateFrequency === 'semestral') freqMonths = 6;
       else if (lease.updateFrequency === 'anual') freqMonths = 12;
-      
-      // Verificar cuántos períodos completos han pasado desde startDate
-      const periodsElapsed = Math.floor(monthsSinceStart / freqMonths);
-      const shouldUpdate = periodsElapsed > 0; // Hay al menos un período completo
       
       const lastUpdate = lease.RentUpdates && lease.RentUpdates.length > 0 
         ? lease.RentUpdates[0] 
         : null;
       
-      console.log(`Contrato ${lease.id}: ${monthsSinceStart} meses desde startDate, ${periodsElapsed} períodos, frecuencia: ${freqMonths}, necesita actualización: ${shouldUpdate}`);
-        
+      // CASO 1: Si tiene actualizaciones, verificar desde la última
       if (lastUpdate) {
         const lastUpdateDate = parseSafeDate(lastUpdate.updateDate);
         const monthsSinceLastUpdate = (now.getFullYear() - lastUpdateDate.getFullYear()) * 12 + 
                                      (now.getMonth() - lastUpdateDate.getMonth());
         
-        console.log(`  - Última actualización hace ${monthsSinceLastUpdate} meses`);
-        // Solo necesita actualización si han pasado suficientes meses desde la última
-        return shouldUpdate && monthsSinceLastUpdate >= freqMonths;
+        console.log(`Contrato ${lease.id}: última actualización hace ${monthsSinceLastUpdate} meses`);
+        return monthsSinceLastUpdate >= freqMonths;
       }
       
-      return shouldUpdate;
+      // CASO 2: Sin actualizaciones - verificar si es contrato viejo recién cargado
+      const monthsSinceStart = (now.getFullYear() - start.getFullYear()) * 12 + 
+                              (now.getMonth() - start.getMonth());
+      const monthsBetweenStartAndCreation = (createdAt.getFullYear() - start.getFullYear()) * 12 + 
+                                           (createdAt.getMonth() - start.getMonth());
+      
+      const isOldContractRecentlyLoaded = monthsBetweenStartAndCreation > 2;
+      
+      if (isOldContractRecentlyLoaded) {
+        // Contrato viejo recién cargado: verificar desde createdAt
+        const monthsSinceCreation = (now.getFullYear() - createdAt.getFullYear()) * 12 + 
+                                   (now.getMonth() - createdAt.getMonth());
+        console.log(`Contrato ${lease.id} (viejo recién cargado): ${monthsSinceCreation} meses desde carga`);
+        return monthsSinceCreation >= freqMonths;
+      }
+      
+      // CASO 3: Contrato nuevo
+      const periodsElapsed = Math.floor(monthsSinceStart / freqMonths);
+      console.log(`Contrato ${lease.id}: ${monthsSinceStart} meses desde startDate, ${periodsElapsed} períodos`);
+      return periodsElapsed > 0;
     });
 
     const detailedPendingUpdates = pendingUpdates.map(lease => {
       const start = parseSafeDate(lease.startDate);
+      const createdAt = parseSafeDate(lease.createdAt);
       const now = new Date();
-      
-      // Calcular meses desde startDate (base del cálculo)
-      const monthsSinceStart = (now.getFullYear() - start.getFullYear()) * 12 + 
-                              (now.getMonth() - start.getMonth());
       
       let freqMonths = 0;
       if (lease.updateFrequency === 'trimestral') freqMonths = 3;
@@ -1067,11 +1152,33 @@ exports.getLeasesPendingUpdate = async (req, res) => {
       else if (lease.updateFrequency === 'semestral') freqMonths = 6;
       else if (lease.updateFrequency === 'anual') freqMonths = 12;
       
-      // Períodos completos desde startDate
+      const lastUpdate = lease.RentUpdates && lease.RentUpdates.length > 0 
+        ? lease.RentUpdates[0] 
+        : null;
+      
+      // Calcular meses desde startDate
+      const monthsSinceStart = (now.getFullYear() - start.getFullYear()) * 12 + 
+                              (now.getMonth() - start.getMonth());
       const periodsElapsed = Math.floor(monthsSinceStart / freqMonths);
       
+      // Determinar si es contrato viejo recién cargado
+      const monthsBetweenStartAndCreation = (createdAt.getFullYear() - start.getFullYear()) * 12 + 
+                                           (createdAt.getMonth() - start.getMonth());
+      const isOldContractRecentlyLoaded = monthsBetweenStartAndCreation > 2;
+      
+      // Calcular meses relevantes para mostrar urgencia
+      let relevantMonths = monthsSinceStart;
+      if (lastUpdate) {
+        const lastUpdateDate = parseSafeDate(lastUpdate.updateDate);
+        relevantMonths = (now.getFullYear() - lastUpdateDate.getFullYear()) * 12 + 
+                        (now.getMonth() - lastUpdateDate.getMonth());
+      } else if (isOldContractRecentlyLoaded) {
+        relevantMonths = (now.getFullYear() - createdAt.getFullYear()) * 12 + 
+                        (now.getMonth() - createdAt.getMonth());
+      }
+      
       // Calcular cuánto tiempo lleva de retraso en el período actual
-      const monthsIntoCurrentPeriod = monthsSinceStart % freqMonths;
+      const monthsIntoCurrentPeriod = relevantMonths % freqMonths;
       
       return {
         id: lease.id,
@@ -1081,13 +1188,13 @@ exports.getLeasesPendingUpdate = async (req, res) => {
         currentRent: lease.rentAmount,
         updateFrequency: lease.updateFrequency,
         startDate: lease.startDate,
+        createdAt: lease.createdAt,
+        isOldContractRecentlyLoaded,
         monthsSinceStart, // Desde startDate
         periodsElapsed, // Períodos completos desde startDate
         monthsIntoCurrentPeriod, // Meses dentro del período actual
         urgency: monthsIntoCurrentPeriod > 3 ? 'high' : monthsIntoCurrentPeriod > 1 ? 'medium' : 'low',
-        lastUpdate: lease.RentUpdates && lease.RentUpdates.length > 0 
-          ? lease.RentUpdates[0].updateDate 
-          : null
+        lastUpdate: lastUpdate ? lastUpdate.updateDate : null
       };
     });
 
