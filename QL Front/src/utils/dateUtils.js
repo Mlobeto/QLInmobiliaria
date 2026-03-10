@@ -3,6 +3,57 @@
  */
 
 /**
+ * Parsea una fecha de forma segura evitando conversiones UTC
+ * Compatible con el parseSafeDate del backend
+ * @param {string|Date} dateValue - Fecha a parsear
+ * @returns {Date|null} - Fecha parseada o null si es inválida
+ */
+export const parseSafeDate = (dateValue) => {
+  if (!dateValue) return null;
+  
+  if (dateValue instanceof Date) {
+    return dateValue;
+  }
+  
+  if (typeof dateValue === 'string') {
+    // Si el string contiene 'T', tomar solo la parte de fecha
+    const dateOnly = dateValue.includes('T') ? dateValue.split('T')[0] : dateValue;
+    
+    // Validar que sea un formato YYYY-MM-DD válido
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateOnly)) {
+      const [year, month, day] = dateOnly.split('-').map(Number);
+      // Crear fecha en hora local (mediodía para evitar problemas de zona horaria)
+      return new Date(year, month - 1, day, 12, 0, 0);
+    }
+  }
+  
+  // Fallback: intentar parsear como Date normal
+  const parsed = new Date(dateValue);
+  // Si la fecha es válida, ajustar a mediodía para evitar cambios de día
+  if (!isNaN(parsed.getTime())) {
+    return new Date(parsed.getFullYear(), parsed.getMonth(), parsed.getDate(), 12, 0, 0);
+  }
+  
+  return null;
+};
+
+/**
+ * Formatea una fecha de forma segura en formato DD/MM/YYYY
+ * Usa parseSafeDate para evitar problemas de zona horaria
+ * @param {string|Date} date - Fecha a formatear
+ * @returns {string} - Fecha formateada
+ */
+export const formatDateSafe = (date) => {
+  const d = parseSafeDate(date);
+  if (!d) return 'Fecha inválida';
+  
+  const dia = String(d.getDate()).padStart(2, '0');
+  const mes = String(d.getMonth() + 1).padStart(2, '0');
+  const anio = d.getFullYear();
+  return `${dia}/${mes}/${anio}`;
+};
+
+/**
  * Obtiene la fecha actual en Argentina
  * @returns {Date} Fecha actual en Argentina
  */
@@ -53,18 +104,13 @@ export const formatDateForInput = (date) => {
 
 /**
  * Formatea una fecha en formato legible para Argentina (DD/MM/YYYY)
+ * Usa parseSafeDate para evitar problemas de zona horaria
  * @param {Date|string} date - Fecha a formatear
  * @returns {string} Fecha en formato DD/MM/YYYY
  */
 export const formatArgentinaDate = (date) => {
-  if (!date) return '';
-  
-  const d = date instanceof Date ? date : new Date(date);
-  const day = String(d.getDate()).padStart(2, '0');
-  const month = String(d.getMonth() + 1).padStart(2, '0');
-  const year = d.getFullYear();
-  
-  return `${day}/${month}/${year}`;
+  // Usar formatDateSafe que ya maneja el parseo correcto
+  return formatDateSafe(date);
 };
 
 /**
@@ -74,14 +120,8 @@ export const formatArgentinaDate = (date) => {
  * @returns {Date} Fecha parseada correctamente
  */
 export const parseArgentinaDate = (isoString) => {
-  if (!isoString) return null;
-  
-  // Si viene con hora (T00:00:00), tomar solo la parte de fecha
-  const dateOnly = isoString.split('T')[0];
-  const [year, month, day] = dateOnly.split('-').map(Number);
-  
-  // Crear fecha en hora local sin conversión UTC
-  return new Date(year, month - 1, day);
+  // Usar parseSafeDate que ya maneja esto correctamente
+  return parseSafeDate(isoString);
 };
 
 /**

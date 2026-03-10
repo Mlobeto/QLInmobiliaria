@@ -5,6 +5,7 @@ import {
   getAllLeases, 
   updateLeaseRentAmount
 } from "../../redux/Actions/actions";
+import { parseSafeDate, formatDateSafe } from "../../utils/dateUtils";
 import Swal from "sweetalert2";
 import pdfMake from 'pdfmake/build/pdfmake';
 import * as pdfFonts from 'pdfmake/build/vfs_fonts';
@@ -56,10 +57,9 @@ const ActualizarAlquileres = () => {
     }
 
     const hoy = new Date();
-    // Parseo seguro de startDate
-    const startDateStr = lease.startDate.split('T')[0];
-    const [year, month, day] = startDateStr.split('-').map(Number);
-    const inicio = new Date(year, month - 1, day, 12, 0, 0);
+    const inicio = parseSafeDate(lease.startDate);
+    
+    if (!inicio) return false;
     
     const mesesPorFrecuencia = {
       semestral: 6,
@@ -84,9 +84,8 @@ const ActualizarAlquileres = () => {
     }
     
     // Fallback: calcular desde startDate
-    const startDateStr = lease.startDate.split('T')[0];
-    const [year, month, day] = startDateStr.split('-').map(Number);
-    const inicio = new Date(year, month - 1, day, 12, 0, 0);
+    const inicio = parseSafeDate(lease.startDate);
+    if (!inicio) return new Date().toISOString();
     
     const mesesPorFrecuencia = {
       semestral: 6,
@@ -108,8 +107,6 @@ const ActualizarAlquileres = () => {
     
     // Retornar en formato ISO
     return proximaActualizacion.toISOString();
-    
-    return proximaActualizacion;
   };
 
   // Filtrar contratos que necesitan actualización
@@ -148,14 +145,8 @@ const ActualizarAlquileres = () => {
 
   const getLeaseById = (id) => leases.find(l => l.id === id);
 
-  // Formatear fecha
-  const formatearFecha = (date) => {
-    const d = typeof date === 'string' ? new Date(date.split('T')[0] + 'T12:00:00') : new Date(date);
-    const dia = String(d.getDate()).padStart(2, '0');
-    const mes = String(d.getMonth() + 1).padStart(2, '0');
-    const anio = d.getFullYear();
-    return `${dia}/${mes}/${anio}`;
-  };
+  // Formatear fecha usando la función de utilidades
+  const formatearFecha = (date) => formatDateSafe(date);
 
   // Formatear monto
   const formatearMonto = (monto) => {
@@ -171,8 +162,8 @@ const ActualizarAlquileres = () => {
     const porcentajeAumento = (((nuevoMonto - lease.rentAmount) / lease.rentAmount) * 100).toFixed(2);
     const fechaHoy = formatearFecha(new Date());
 
-    // Calcular período
-    const startDate = new Date(lease.startDate);
+    // Calcular período usando parseSafeDate
+    const startDate = parseSafeDate(lease.startDate);
     const hoy = new Date();
     const monthsSinceStart = (hoy.getFullYear() - startDate.getFullYear()) * 12 + 
                             (hoy.getMonth() - startDate.getMonth());

@@ -3,6 +3,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { useNavigate, useLocation } from "react-router-dom";
 import PropTypes from 'prop-types';
 import { getAllLeases, updateLease } from "../../redux/Actions/actions";
+import { formatDateSafe, formatDateForInput } from "../../utils/dateUtils";
 import CreateLeaseForm from "./CreateLeaseForm";
 import CompraVenta from "./CompraVenta";
 import ContratoAlquiler from "../PdfTemplates/ContratoAlquiler";
@@ -402,7 +403,7 @@ import {
                                 name="startDate"
                                 value={
                                   displayLease.startDate
-                                    ? new Date(displayLease.startDate).toISOString().substring(0, 10)
+                                    ? formatDateForInput(displayLease.startDate)
                                     : ""
                                 }
                                 onChange={handleInputChange}
@@ -410,7 +411,7 @@ import {
                               />
                             ) : (
                               <div className="text-white">
-                                {new Date(lease.startDate).toLocaleDateString()}
+                                {formatDateSafe(lease.startDate)}
                               </div>
                             )}
                           </td>

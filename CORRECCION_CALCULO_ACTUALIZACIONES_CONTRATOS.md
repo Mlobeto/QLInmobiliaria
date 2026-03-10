@@ -154,6 +154,87 @@ El backend ahora envía en `updateInfo`:
 2. **Ajuste Manual**: Permitir al usuario ajustar la "fecha de referencia" para contratos viejos si es necesario
 3. **Auditoría**: Agregar logs detallados de cuándo se detectan contratos viejos recién cargados
 
+## Corrección Adicional: Problema de Zona Horaria en Frontend
+
+### Problema Detectado
+Las fechas en la base de datos se almacenan como `2024-08-01` pero se mostraban como `31/7/2024` en el frontend.
+
+**Causa**: Al usar `new Date(dateString)` con un string ISO (`2024-08-01T00:00:00Z`), JavaScript lo interpreta como UTC medianoche, que al convertirse a la zona horaria de Argentina (UTC-3) resulta en el día anterior (31 de julio a las 21:00).
+
+### Solución Implementada
+
+#### 1. Utilidades de Fecha Mejoradas (`utils/dateUtils.js`)
+
+Se agregaron dos funciones clave que replican el comportamiento del backend:
+
+```javascript
+/**
+ * Parsea una fecha de forma segura evitando conversiones UTC
+ * Compatible con el parseSafeDate del backend
+ */
+export const parseSafeDate = (dateValue) => {
+  if (!dateValue) return null;
+  
+  if (typeof dateValue === 'string') {
+    const dateOnly = dateValue.includes('T') ? dateValue.split('T')[0] : dateValue;
+    
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateOnly)) {
+      const [year, month, day] = dateOnly.split('-').map(Number);
+      // Crear fecha en hora local (mediodía) para evitar cambios de día
+      return new Date(year, month - 1, day, 12, 0, 0);
+    }
+  }
+  // ... más manejo de casos
+};
+
+/**
+ * Formatea una fecha de forma segura en formato DD/MM/YYYY
+ */
+export const formatDateSafe = (date) => {
+  const d = parseSafeDate(date);
+  if (!d) return 'Fecha inválida';
+  
+  const dia = String(d.getDate()).padStart(2, '0');
+  const mes = String(d.getMonth() + 1).padStart(2, '0');
+  const anio = d.getFullYear();
+  return `${dia}/${mes}/${anio}`;
+};
+```
+
+#### 2. Componentes Actualizados
+
+**EstadoContratos.jsx**
+- ❌ Antes: `{new Date(lease.startDate).toLocaleDateString()}`
+- ✅ Ahora: `{formatDateSafe(lease.startDate)}`
+
+**ActualizarAlquileres.jsx**
+- Reemplazada función `formatearFecha` local por `formatDateSafe` de utilidades
+- Actualizado parseo de fechas en `necesitaActualizacion()` y `calcularProximaActualizacion()` para usar `parseSafeDate`
+- Corregido cálculo de período en `generarPdfActualizacion()`
+
+#### 3. Archivos Modificados
+
+1. `QL Front/src/utils/dateUtils.js`
+   - Agregado `parseSafeDate()`
+   - Agregado `formatDateSafe()`
+   - Actualizados `formatArgentinaDate()` y `parseArgentinaDate()` para usar `parseSafeDate`
+
+2. `QL Front/src/Components/Contratos/EstadoContratos.jsx`
+   - Importado `formatDateSafe` y `formatDateForInput`
+   - Reemplazado `new Date().toLocaleDateString()` por `formatDateSafe()`
+   - Reemplazado `.toISOString().substring(0, 10)` por `formatDateForInput()`
+
+3. `QL Front/src/Components/Contratos/ActualizarAlquileres.jsx`
+   - Importado `parseSafeDate` y `formatDateSafe`
+   - Reemplazada función local de parseo por utilidades
+   - Actualizado cálculo de períodos
+
+### Resultado
+✅ Las fechas ahora se muestran correctamente:
+- `startDate: 2024-08-01` → Se muestra como `01/08/2024`
+- `startDate: 2024-07-31` → Se muestra como `31/07/2024`
+- No más desfases de un día por zona horaria
+
 ## Testing Recomendado
 
 1. Crear un contrato con `startDate` antiguo (ej: 2024-01-15)
