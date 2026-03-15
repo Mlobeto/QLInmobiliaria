@@ -54,19 +54,23 @@ export const formatDateSafe = (date) => {
 };
 
 /**
- * Obtiene la fecha actual en Argentina
+ * Obtiene la fecha actual en Argentina (America/Argentina/Buenos_Aires)
+ * Usa Intl.DateTimeFormat para obtener los componentes correctos sin importar
+ * el timezone del dispositivo donde corra la app.
  * @returns {Date} Fecha actual en Argentina
  */
 export const getArgentinaDate = () => {
-  // Crear fecha en UTC
   const now = new Date();
+  // Obtener componentes de fecha/hora en zona horaria de Argentina
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Argentina/Buenos_Aires',
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false,
+  }).formatToParts(now);
   
-  // Convertir a Argentina (UTC-3)
-  const argentinaOffset = -3 * 60; // -3 horas en minutos
-  const localOffset = now.getTimezoneOffset(); // offset del navegador en minutos
-  const argentinaTime = new Date(now.getTime() + (localOffset - argentinaOffset) * 60000);
-  
-  return argentinaTime;
+  const get = (type) => Number(parts.find(p => p.type === type)?.value ?? 0);
+  // Crear Date local con los componentes argentinos (a mediodía para evitar edge cases)
+  return new Date(get('year'), get('month') - 1, get('day'), get('hour'), get('minute'), get('second'));
 };
 
 /**
@@ -88,13 +92,16 @@ export const calculateLeaseStartDate = () => {
 
 /**
  * Formatea una fecha como string en formato ISO para inputs type="date"
- * @param {Date} date - Fecha a formatear
+ * Usa parseSafeDate para evitar desfase de timezone con strings ISO.
+ * @param {Date|string} date - Fecha a formatear
  * @returns {string} Fecha en formato YYYY-MM-DD
  */
 export const formatDateForInput = (date) => {
   if (!date) return '';
   
-  const d = date instanceof Date ? date : new Date(date);
+  const d = parseSafeDate(date);
+  if (!d) return '';
+  
   const year = d.getFullYear();
   const month = String(d.getMonth() + 1).padStart(2, '0');
   const day = String(d.getDate()).padStart(2, '0');
