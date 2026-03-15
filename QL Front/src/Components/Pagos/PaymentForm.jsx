@@ -255,15 +255,15 @@ const PaymentForm = () => {
                               name="period"
                               value={formData.period}
                               readOnly
-                              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-400 cursor-pointer focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all duration-200"
-                              placeholder="Haz clic para seleccionar cuota..."
+                              className="w-full pl-4 pr-32 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-400 cursor-pointer focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all duration-200"
+                              placeholder="Seleccionar cuota..."
                               onClick={() => setShowInstallmentSelector(true)}
                               required
                             />
                             <button
                               type="button"
                               onClick={() => setShowInstallmentSelector(true)}
-                              className="absolute right-3 top-1/2 -translate-y-1/2 px-3 py-1 bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 rounded-lg text-xs font-medium transition-colors border border-blue-400/30"
+                              className="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 rounded-lg text-xs font-medium transition-colors border border-blue-400/30"
                             >
                               Seleccionar
                             </button>
