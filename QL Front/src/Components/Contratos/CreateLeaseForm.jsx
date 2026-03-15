@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { parseSafeDate } from '../../utils/dateUtils';
 import {
   createLease,
   getPropertiesById,
@@ -85,8 +86,8 @@ const CreateLeaseForm = () => {
 
   const filteredActiveLeases = (leases) => {
     return leases.filter((lease) => {
-      const endDate = new Date(lease.startDate);
-      endDate.setMonth(endDate.getMonth() + lease.totalMonths);
+      const start = parseSafeDate(lease.startDate);
+      const endDate = new Date(start.getFullYear(), start.getMonth() + lease.totalMonths, 1);
       return endDate > new Date();
     });
   };
@@ -136,10 +137,10 @@ const CreateLeaseForm = () => {
         if (activeLeases.length > 0) {
           // Hay un contrato activo - validar fechas
           const currentLease = activeLeases[0];
-          const currentLeaseEndDate = new Date(currentLease.startDate);
-          currentLeaseEndDate.setMonth(currentLeaseEndDate.getMonth() + currentLease.totalMonths);
+          const currentLeaseStart = parseSafeDate(currentLease.startDate);
+          const currentLeaseEndDate = new Date(currentLeaseStart.getFullYear(), currentLeaseStart.getMonth() + currentLease.totalMonths, 1);
           
-          const newLeaseStartDate = new Date(formData.startDate);
+          const newLeaseStartDate = parseSafeDate(formData.startDate);
           
           // Validar que la nueva fecha de inicio sea >= fecha fin del contrato actual
           if (newLeaseStartDate < currentLeaseEndDate) {

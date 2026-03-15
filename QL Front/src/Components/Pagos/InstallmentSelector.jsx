@@ -6,6 +6,7 @@ import {
   IoCalendarOutline,
   IoCheckmarkOutline 
 } from 'react-icons/io5';
+import { parseSafeDate } from '../../utils/dateUtils';
 
 const InstallmentSelector = ({ lease, existingPayments, onSelect, onClose }) => {
   const [installments, setInstallments] = useState([]);
@@ -14,14 +15,15 @@ const InstallmentSelector = ({ lease, existingPayments, onSelect, onClose }) => 
   const generateInstallments = useCallback(() => {
     if (!lease?.startDate) return;
     
-    const startDate = new Date(lease.startDate);
+    // Usar parseSafeDate para evitar desfase UTC (startDate viene como ISO string)
+    const startDate = parseSafeDate(lease.startDate);
     const duration = parseInt(lease.totalMonths || lease.duration) || 12; // Duración en meses del contrato
 
     const generatedInstallments = [];
     
     for (let i = 0; i < duration; i++) {
-      const installmentDate = new Date(startDate);
-      installmentDate.setMonth(startDate.getMonth() + i);
+      // Crear cada fecha de cuota en tiempo local para no sufrir desfase
+      const installmentDate = new Date(startDate.getFullYear(), startDate.getMonth() + i, 1);
       
       const monthName = installmentDate.toLocaleDateString('es-AR', { month: 'long' });
       const year = installmentDate.getFullYear();

@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { useSelector } from "react-redux";
+import { parseSafeDate } from '../../utils/dateUtils';
 
 const UpcomingExpiryPopup = () => {
   const leases = useSelector((state) => state.leases);
@@ -36,14 +37,14 @@ const UpcomingExpiryPopup = () => {
     const now = new Date();
     return leases.filter((lease) => {
       // Calcula la fecha de culminación sumando totalMonths a la fecha de inicio
-      const terminationDate = new Date(lease.startDate);
-      terminationDate.setMonth(terminationDate.getMonth() + lease.totalMonths);
+      const start = parseSafeDate(lease.startDate);
+      const terminationDate = new Date(start.getFullYear(), start.getMonth() + lease.totalMonths, 1);
       // Calcula la diferencia en días
       const daysToTermination = Math.ceil((terminationDate - now) / (1000 * 60 * 60 * 24));
       return daysToTermination > 0 && daysToTermination <= 90; // 3 meses
     }).map(lease => {
-      const terminationDate = new Date(lease.startDate);
-      terminationDate.setMonth(terminationDate.getMonth() + lease.totalMonths);
+      const start = parseSafeDate(lease.startDate);
+      const terminationDate = new Date(start.getFullYear(), start.getMonth() + lease.totalMonths, 1);
       const daysToTermination = Math.ceil((terminationDate - now) / (1000 * 60 * 60 * 24));
       return {
         ...lease,

@@ -1,6 +1,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { getAllPayments, getAllLeases } from '../../redux/Actions/actions';
+import { parseSafeDate } from '../../utils/dateUtils';
 import { 
   IoCalendarOutline, 
   IoCheckmarkCircleOutline,
@@ -114,7 +115,7 @@ QL Inmobiliaria`;
 
     // Para cada contrato activo, generar su cuota del mes
     const cuotasGeneradas = contratosActivos.map(contrato => {
-      const fechaInicio = new Date(contrato.startDate);
+      const fechaInicio = parseSafeDate(contrato.startDate);
       const mesesDesdeInicio = (añoSeleccionado - fechaInicio.getFullYear()) * 12 + 
                                (mesSeleccionado - (fechaInicio.getMonth() + 1));
       
@@ -134,8 +135,8 @@ QL Inmobiliaria`;
         pago.leaseId === contrato.id && 
         pago.type === 'installment' &&
         pago.paymentDate && 
-        new Date(pago.paymentDate).getMonth() === mesSeleccionado - 1 &&
-        new Date(pago.paymentDate).getFullYear() === añoSeleccionado
+        parseSafeDate(pago.paymentDate).getMonth() === mesSeleccionado - 1 &&
+        parseSafeDate(pago.paymentDate).getFullYear() === añoSeleccionado
       );
 
       const mesLabel = meses.find(m => m.value === selectedMonth)?.label || '';
