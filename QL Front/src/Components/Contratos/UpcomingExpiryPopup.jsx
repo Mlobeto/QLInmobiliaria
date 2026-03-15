@@ -2,6 +2,10 @@ import React, { useEffect, useState, useMemo } from "react";
 import { useSelector } from "react-redux";
 import { parseSafeDate } from '../../utils/dateUtils';
 
+// Variable de módulo: persiste entre montajes del componente
+// pero se resetea al recargar/cerrar la pestaña del navegador
+let alertsShownThisPageLoad = false;
+
 const UpcomingExpiryPopup = () => {
   const leases = useSelector((state) => state.leases);
   const [showPopup, setShowPopup] = useState(false);
@@ -81,12 +85,12 @@ const UpcomingExpiryPopup = () => {
 
   useEffect(() => {
     if (upcomingContracts.length > 0 || upcomingUpdates.length > 0) {
-      // Solo mostrar una vez por sesión (se limpia al cerrar/refrescar la pestaña)
-      if (!sessionStorage.getItem('alertsPopupShown')) {
+      // Solo mostrar una vez por carga de página (se resetea al refrescar)
+      if (!alertsShownThisPageLoad) {
         setAlertContracts(upcomingContracts);
         setUpdateAlerts(upcomingUpdates);
         setShowPopup(true);
-        sessionStorage.setItem('alertsPopupShown', '1');
+        alertsShownThisPageLoad = true;
       }
     }
   }, [upcomingContracts, upcomingUpdates]);
@@ -106,9 +110,9 @@ const UpcomingExpiryPopup = () => {
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-60 z-[9999] p-4">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full relative z-[10000] max-h-[90vh] overflow-y-auto">
-        {/* Header */}
-        <div className="bg-gradient-to-r from-purple-600 via-orange-500 to-red-600 text-white p-6 rounded-t-2xl flex items-start justify-between">
+      <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full relative z-[10000] max-h-[90vh] flex flex-col">
+        {/* Header — fuera del área scrolleable, siempre visible */}
+        <div className="bg-gradient-to-r from-purple-600 via-orange-500 to-red-600 text-white p-6 rounded-t-2xl flex items-start justify-between flex-shrink-0">
           <div>
             <h2 className="text-2xl font-bold flex items-center">
               <span className="mr-3 text-3xl">⚠️</span>
@@ -125,15 +129,15 @@ const UpcomingExpiryPopup = () => {
           </div>
           <button
             onClick={() => setShowPopup(false)}
-            className="ml-4 mt-1 p-1.5 rounded-full bg-white/20 hover:bg-white/40 transition-colors text-white font-bold text-lg leading-none"
+            className="ml-4 mt-1 p-2 rounded-full bg-white/20 hover:bg-white/40 transition-colors text-white font-bold text-xl leading-none flex-shrink-0"
             title="Cerrar"
           >
             ✕
           </button>
         </div>
 
-        {/* Contenido */}
-        <div className="p-6 space-y-6">
+        {/* Contenido scrolleable */}
+        <div className="overflow-y-auto flex-1 p-6 space-y-6">
           {/* ========== SECCIÓN: ACTUALIZACIONES DE ALQUILER ========== */}
           {updateAlerts.length > 0 && (
             <div className="border-2 border-purple-200 rounded-xl p-4 bg-purple-50/50">
@@ -335,8 +339,8 @@ const UpcomingExpiryPopup = () => {
           </div>
         </div>
 
-        {/* Footer */}
-        <div className="bg-gray-50 p-4 rounded-b-2xl flex justify-between items-center">
+        {/* Footer — fuera del área scrolleable, siempre visible */}
+        <div className="bg-gray-50 p-4 rounded-b-2xl flex justify-between items-center flex-shrink-0">
           <span className="text-sm text-gray-600">
             Total: {totalAlerts} alerta(s) activas
           </span>

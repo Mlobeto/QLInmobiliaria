@@ -29,10 +29,11 @@ const InstallmentSelector = ({ lease, existingPayments, onSelect, onClose }) => 
       const year = installmentDate.getFullYear();
       const monthYear = `${monthName.charAt(0).toUpperCase() + monthName.slice(1)} ${year}`;
       
-      // Verificar si esta cuota ya está pagada
+      // Verificar si esta cuota ya está pagada (filtrando por leaseId para evitar falsos positivos)
       const isPaid = existingPayments?.some(payment => 
         payment.type === 'installment' && 
-        payment.installmentNumber === (i + 1)
+        payment.installmentNumber === (i + 1) &&
+        (payment.leaseId === lease.id || payment.leaseId === lease.leaseId)
       );
 
       generatedInstallments.push({
@@ -215,6 +216,7 @@ const InstallmentSelector = ({ lease, existingPayments, onSelect, onClose }) => 
 InstallmentSelector.propTypes = {
   lease: PropTypes.shape({
     id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    leaseId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
     startDate: PropTypes.string,
     duration: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
     totalMonths: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
