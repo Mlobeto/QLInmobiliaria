@@ -81,9 +81,13 @@ const UpcomingExpiryPopup = () => {
 
   useEffect(() => {
     if (upcomingContracts.length > 0 || upcomingUpdates.length > 0) {
-      setAlertContracts(upcomingContracts);
-      setUpdateAlerts(upcomingUpdates);
-      setShowPopup(true);
+      // Solo mostrar una vez por sesión (se limpia al cerrar/refrescar la pestaña)
+      if (!sessionStorage.getItem('alertsPopupShown')) {
+        setAlertContracts(upcomingContracts);
+        setUpdateAlerts(upcomingUpdates);
+        setShowPopup(true);
+        sessionStorage.setItem('alertsPopupShown', '1');
+      }
     }
   }, [upcomingContracts, upcomingUpdates]);
 
@@ -104,19 +108,28 @@ const UpcomingExpiryPopup = () => {
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-60 z-[9999] p-4">
       <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full relative z-[10000] max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="bg-gradient-to-r from-purple-600 via-orange-500 to-red-600 text-white p-6 rounded-t-2xl">
-          <h2 className="text-2xl font-bold flex items-center">
-            <span className="mr-3 text-3xl">⚠️</span>
-            Alertas de Contratos
-          </h2>
-          <p className="text-white/90 text-sm mt-2">
-            {updateAlerts.length > 0 && (
-              <span className="mr-4">💰 {updateAlerts.length} actualización(es) de alquiler</span>
-            )}
-            {alertContracts.length > 0 && (
-              <span>📋 {alertContracts.length} contrato(s) próximos a vencer</span>
-            )}
-          </p>
+        <div className="bg-gradient-to-r from-purple-600 via-orange-500 to-red-600 text-white p-6 rounded-t-2xl flex items-start justify-between">
+          <div>
+            <h2 className="text-2xl font-bold flex items-center">
+              <span className="mr-3 text-3xl">⚠️</span>
+              Alertas de Contratos
+            </h2>
+            <p className="text-white/90 text-sm mt-2">
+              {updateAlerts.length > 0 && (
+                <span className="mr-4">💰 {updateAlerts.length} actualización(es) de alquiler</span>
+              )}
+              {alertContracts.length > 0 && (
+                <span>📋 {alertContracts.length} contrato(s) próximos a vencer</span>
+              )}
+            </p>
+          </div>
+          <button
+            onClick={() => setShowPopup(false)}
+            className="ml-4 mt-1 p-1.5 rounded-full bg-white/20 hover:bg-white/40 transition-colors text-white font-bold text-lg leading-none"
+            title="Cerrar"
+          >
+            ✕
+          </button>
         </div>
 
         {/* Contenido */}
