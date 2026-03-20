@@ -128,11 +128,11 @@ const ContratoPreviewEditor = ({ lease, onClose }) => {
         heightLeft -= pdfHeight;
       }
 
-      // Descargar PDF
+      // Descargar PDF editado (guardado local, sin tocar DB)
       const fechaActual = new Date().toISOString().split('T')[0].replace(/-/g, '_');
-      pdf.save(`Contrato_${lease.id}_${fechaActual}.pdf`);
-      
-      onClose();
+      pdf.save(`Contrato_${lease.id}_${fechaActual}_editado.pdf`);
+
+      alert('PDF editado guardado correctamente en tu dispositivo.');
     } catch (error) {
       console.error('Error generando PDF:', error);
       alert('Error al generar el PDF. Por favor, intenta nuevamente.');
@@ -189,8 +189,16 @@ const ContratoPreviewEditor = ({ lease, onClose }) => {
                   max-width: 210mm;
                   margin: 0 auto;
                   padding: 25mm;
-                  background: white;
+                  background:
+                    linear-gradient(
+                      to bottom,
+                      transparent calc(297mm - 2px),
+                      #ef4444 calc(297mm - 2px),
+                      #ef4444 297mm
+                    ) 0 0 / 100% 297mm repeat-y,
+                    #ffffff;
                   color: #000;
+                  box-sizing: border-box;
                 }
                 p {
                   text-align: justify;
@@ -223,7 +231,7 @@ const ContratoPreviewEditor = ({ lease, onClose }) => {
         {/* Footer con botones */}
         <div className="p-6 border-t border-white/10 flex justify-between items-center">
           <p className="text-slate-400 text-sm">
-            💡 Los cambios NO se guardan en la base de datos. Edita y genera el PDF directamente.
+            💡 Los cambios se guardan en el PDF descargado. No se modifican datos del contrato en la base.
           </p>
           <div className="flex gap-3">
             <button
@@ -246,7 +254,7 @@ const ContratoPreviewEditor = ({ lease, onClose }) => {
               ) : (
                 <>
                   <IoDownloadOutline className="w-5 h-5" />
-                  Generar PDF (A4)
+                  Guardar PDF editado (A4)
                 </>
               )}
             </button>
