@@ -11,11 +11,61 @@ const ContratoPreviewEditor = ({ lease, onClose }) => {
   const [contenido, setContenido] = useState('');
   const [loading, setLoading] = useState(false);
 
+  const leaseId = lease?.id || lease?.leaseId;
+  const draftStorageKey = `contrato_preview_draft_${leaseId}`;
+
+  const saveDraftLocally = (content) => {
+    if (!leaseId || !content) return;
+
+    try {
+      localStorage.setItem(draftStorageKey, content);
+    } catch (error) {
+      console.warn('No se pudo guardar borrador local del contrato:', error);
+    }
+  };
+
+  const getOriginalHtml = () => generarHTMLContrato(lease);
+
+  const handleRestoreOriginal = () => {
+    const confirmed = window.confirm('¿Restaurar la versión original del contrato? Se reemplazará el borrador actual.');
+    if (!confirmed) return;
+
+    const originalHtml = getOriginalHtml();
+    setContenido(originalHtml);
+    saveDraftLocally(originalHtml);
+    alert('Se restauró la versión original del contrato para este borrador.');
+  };
+
+  const handleClearLocalDraft = () => {
+    const confirmed = window.confirm('¿Eliminar el borrador local guardado? Esta acción no se puede deshacer.');
+    if (!confirmed) return;
+
+    try {
+      localStorage.removeItem(draftStorageKey);
+    } catch (error) {
+      console.warn('No se pudo limpiar borrador local del contrato:', error);
+    }
+
+    const originalHtml = getOriginalHtml();
+    setContenido(originalHtml);
+    alert('Borrador local eliminado. Se cargó la versión original.');
+  };
+
   useEffect(() => {
-    // Generar HTML del contrato desde los datos
+    // Cargar último borrador local si existe; si no, generar HTML base
+    try {
+      const savedDraft = localStorage.getItem(draftStorageKey);
+      if (savedDraft) {
+        setContenido(savedDraft);
+        return;
+      }
+    } catch (error) {
+      console.warn('No se pudo leer borrador local del contrato:', error);
+    }
+
     const htmlContrato = generarHTMLContrato(lease);
     setContenido(htmlContrato);
-  }, [lease]);
+  }, [lease, draftStorageKey]);
 
   const handleGeneratePDF = async () => {
     if (!editorRef.current) return;
@@ -24,6 +74,7 @@ const ContratoPreviewEditor = ({ lease, onClose }) => {
     
     try {
       const content = editorRef.current.getContent();
+      saveDraftLocally(content);
       
       // Crear contenedor temporal con tamaño A4 exacto
       const pageContainer = document.createElement('div');
@@ -174,7 +225,10 @@ const ContratoPreviewEditor = ({ lease, onClose }) => {
             tinymceScriptSrc="https://cdn.tiny.cloud/1/se2bvqg48curpyywfqprsxuygl0ycppdzaefay32hp988nbi/tinymce/7/tinymce.min.js"
             onInit={(evt, editor) => editorRef.current = editor}
             value={contenido}
-            onEditorChange={(newContent) => setContenido(newContent)}
+            onEditorChange={(newContent) => {
+              setContenido(newContent);
+              saveDraftLocally(newContent);
+            }}
             init={{
               height: 600,
               menubar: false,
@@ -231,9 +285,23 @@ const ContratoPreviewEditor = ({ lease, onClose }) => {
         {/* Footer con botones */}
         <div className="p-6 border-t border-white/10 flex justify-between items-center">
           <p className="text-slate-400 text-sm">
-            💡 Los cambios se guardan en el PDF descargado. No se modifican datos del contrato en la base.
+            💡 Última versión guardada automáticamente en este navegador. No se modifican datos del contrato en la base.
           </p>
           <div className="flex gap-3">
+            <button
+              onClick={handleRestoreOriginal}
+              disabled={loading}
+              className="px-6 py-3 bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/30 text-amber-200 rounded-xl font-medium transition-all duration-300 disabled:opacity-50"
+            >
+              Restaurar original
+            </button>
+            <button
+              onClick={handleClearLocalDraft}
+              disabled={loading}
+              className="px-6 py-3 bg-red-500/20 hover:bg-red-500/30 border border-red-400/30 text-red-200 rounded-xl font-medium transition-all duration-300 disabled:opacity-50"
+            >
+              Limpiar borrador local
+            </button>
             <button
               onClick={onClose}
               disabled={loading}
