@@ -882,7 +882,8 @@ const rootReducer = (state = initialState, action) => {
       return { 
         ...state, 
         loading: true, 
-        error: null 
+        error: null,
+        payments: []
       };
 
     case GET_PAYMENTS_BY_LEASE_SUCCESS:

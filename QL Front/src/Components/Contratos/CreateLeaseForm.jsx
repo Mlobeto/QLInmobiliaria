@@ -29,7 +29,7 @@ import {
   getArgentinaDate 
 } from "../../utils/dateUtils";
 
-const CreateLeaseForm = () => {
+const CreateLeaseForm = ({ preselectedProperty = null, isModal = false, onClose = null }) => {
   const dispatch = useDispatch();
   const property = useSelector((state) => state.property);
   const [isLoading, setIsLoading] = useState(false);
@@ -38,6 +38,7 @@ const CreateLeaseForm = () => {
   const [filteredClients, setFilteredClients] = useState([]);
   const [showClientList, setShowClientList] = useState(false);
   const [selectedPropertyOccupancy, setSelectedPropertyOccupancy] = useState(null);
+  const [isInitializingPreselected, setIsInitializingPreselected] = useState(false);
   // eslint-disable-next-line no-unused-vars
   const [selectedClient, setSelectedClient] = useState(null);
   // eslint-disable-next-line no-unused-vars
@@ -369,11 +370,50 @@ const CreateLeaseForm = () => {
     }
   };
 
+  useEffect(() => {
+    if (!preselectedProperty?.propertyId || formData.propertyId) return;
+
+    setIsInitializingPreselected(true);
+    handlePropertySelect(preselectedProperty)
+      .finally(() => setIsInitializingPreselected(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [preselectedProperty, formData.propertyId]);
+
+  const handleCloseForm = () => {
+    if (isModal && typeof onClose === 'function') {
+      onClose();
+      return;
+    }
+
+    setFormData(prev => ({ ...prev, propertyId: "" }));
+    setLeaseCreated(null);
+  };
+
   return (
     <div className="min-h-screen">
       {/* Mostrar Listado si no hay propiedad seleccionada */}
       {!formData.propertyId ? (
-        <Listado mode="lease" onSelectProperty={handlePropertySelect} />
+        isModal && preselectedProperty ? (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div className="bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 shadow-2xl max-w-xl w-full p-8 text-center">
+              <h3 className="text-xl font-semibold text-white mb-3">Preparando formulario</h3>
+              <p className="text-slate-300 mb-6">
+                {isInitializingPreselected ? 'Cargando propiedad seleccionada...' : 'No se pudo preparar la propiedad seleccionada.'}
+              </p>
+              {!isInitializingPreselected && (
+                <button
+                  type="button"
+                  onClick={handleCloseForm}
+                  className="px-6 py-3 bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white rounded-xl font-medium transition-all duration-300"
+                >
+                  Cerrar
+                </button>
+              )}
+            </div>
+          </div>
+        ) : (
+          <Listado mode="lease" onSelectProperty={handlePropertySelect} />
+        )
       ) : (
         // Modal overlay con formulario
         formData.propertyId && (
@@ -388,10 +428,7 @@ const CreateLeaseForm = () => {
                 </h2>
               </div>
               <button
-                onClick={() => {
-                  setFormData(prev => ({ ...prev, propertyId: "" }));
-                  setLeaseCreated(null);
-                }}
+                onClick={handleCloseForm}
                 className="text-white/70 hover:text-white transition-colors p-2 hover:bg-white/10 rounded-lg"
               >
                 <IoCloseOutline className="w-6 h-6" />
