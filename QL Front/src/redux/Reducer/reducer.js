@@ -863,7 +863,14 @@ const rootReducer = (state = initialState, action) => {
           success: true,
           error: null,
           payment: action.payload
-        }
+        },
+        // Mantener lista de pagos del contrato sincronizada para evitar cuotas duplicadas en el selector
+        payments: action.payload?.id
+          ? [
+              ...state.payments.filter((payment) => payment.id !== action.payload.id),
+              action.payload,
+            ]
+          : state.payments
       };
 
     case CREATE_PAYMENT_FAILURE:
@@ -882,8 +889,7 @@ const rootReducer = (state = initialState, action) => {
       return { 
         ...state, 
         loading: true, 
-        error: null,
-        payments: []
+        error: null
       };
 
     case GET_PAYMENTS_BY_LEASE_SUCCESS:

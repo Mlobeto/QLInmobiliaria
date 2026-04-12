@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { createPayment, getClientById, getPaymentsByLeaseId } from "../../redux/Actions/actions";
+import { createPayment, getClientById, getPaymentsByLeaseId, getLeaseById } from "../../redux/Actions/actions";
 import EstadoContratos from "../Contratos/EstadoContratos";
 import ReciboPdf from "../PdfTemplates/ReciboPdf";
 import InstallmentSelector from "./InstallmentSelector";
@@ -20,6 +20,7 @@ const PaymentForm = () => {
   const dispatch = useDispatch();
   const paymentCreate = useSelector((state) => state.paymentCreate);
   const leasePayments = useSelector((state) => state.payments) || [];
+  const leaseFromStore = useSelector((state) => state.lease);
 
   // Estados para el modal y flujo
   const [selectedLease, setSelectedLease] = useState(null);
@@ -47,6 +48,27 @@ const PaymentForm = () => {
     }
   }, [paymentCreate]);
 
+  // Sincronizar contrato seleccionado con la última versión del backend
+  useEffect(() => {
+    if (!leaseFromStore || !selectedLease) return;
+
+    const selectedId = Number(selectedLease.id || selectedLease.leaseId);
+    const storeId = Number(leaseFromStore.id || leaseFromStore.leaseId);
+
+    if (selectedId && storeId && selectedId === storeId) {
+      setSelectedLease(leaseFromStore);
+      setFormData((prev) => ({
+        ...prev,
+        amount:
+          prev.type === "installment"
+            ? leaseFromStore.rentAmount || prev.amount
+            : prev.amount,
+        totalInstallments:
+          leaseFromStore.totalMonths || leaseFromStore.duration || prev.totalInstallments,
+      }));
+    }
+  }, [leaseFromStore, selectedLease]);
+
   // Función para seleccionar contrato desde EstadoContratos
   const handleLeaseSelect = (lease) => {
     // El contrato puede venir con 'id' o 'leaseId'
@@ -67,6 +89,9 @@ const PaymentForm = () => {
       totalInstallments: lease.totalMonths || lease.duration || "",
     }));
     setShowPaymentForm(true);
+
+    // Traer el contrato actualizado para asegurar monto vigente en cuotas
+    dispatch(getLeaseById(leaseId));
 
     // Cargar datos del cliente si es necesario
     if (tenantId) {
@@ -90,7 +115,8 @@ const PaymentForm = () => {
         [name]: value,
         period: '', // Limpiar período al cambiar tipo
         installmentNumber: undefined,
-        totalInstallments: value === 'installment' ? selectedLease?.duration || '' : ''
+        amount: value === 'installment' ? selectedLease?.rentAmount || prev.amount : prev.amount,
+        totalInstallments: value === 'installment' ? (selectedLease?.totalMonths || selectedLease?.duration || '') : ''
       }));
     } else {
       setFormData(prev => ({
@@ -136,9 +162,37 @@ const PaymentForm = () => {
     setFormData(prev => ({
       ...prev,
       period: `${installment.fullPeriod} - Cuota ${installment.number}/${installment.totalInstallments}`,
+      amount: selectedLease?.rentAmount || prev.amount,
       installmentNumber: installment.number,
       totalInstallments: installment.totalInstallments
     }));
+  };
+
+  const handleCreateAnotherReceipt = () => {
+    if (!selectedLease) {
+      resetForm();
+      return;
+    }
+
+    const leaseId = selectedLease?.id || selectedLease?.leaseId;
+
+    setPaymentCreated(false);
+    setIsLoading(false);
+    setShowInstallmentSelector(false);
+
+    setFormData((prev) => ({
+      ...prev,
+      paymentDate: "",
+      period: "",
+      type: "installment",
+      amount: selectedLease?.rentAmount || "",
+      totalInstallments: selectedLease?.totalMonths || selectedLease?.duration || "",
+    }));
+
+    if (leaseId) {
+      dispatch(getLeaseById(leaseId));
+      dispatch(getPaymentsByLeaseId(leaseId));
+    }
   };
 
   // Resetear formulario
@@ -372,7 +426,7 @@ const PaymentForm = () => {
                   <div className="flex gap-4 justify-center pt-6">
                     <button
                       type="button"
-                      onClick={resetForm}
+                      onClick={handleCreateAnotherReceipt}
                       className="px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-xl font-medium transition-all duration-300"
                     >
                       Crear Otro Pago

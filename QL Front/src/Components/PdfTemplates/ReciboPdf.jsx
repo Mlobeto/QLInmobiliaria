@@ -199,7 +199,16 @@ const ReciboPdf = ({ payment, lease, autoGenerate = false }) => {
         ? `Honorarios - ${property?.address || ""}`
         : payment.type === "commission"
         ? `Comision - ${property?.address || ""}`
-        : `Cuota ${payment.installmentNumber}/${leaseData.totalMonths} ${payment.period} - ${property?.address || ""}`;
+        : (() => {
+            const periodText = (payment.period || "").trim();
+            const alreadyHasCuota = /cuota\s*\d+\s*\/\s*\d+/i.test(periodText);
+            const cuotaPrefix =
+              !alreadyHasCuota && payment.installmentNumber && leaseData.totalMonths
+                ? `Cuota ${payment.installmentNumber}/${leaseData.totalMonths} `
+                : "";
+
+            return `${cuotaPrefix}${periodText} - ${property?.address || ""}`.trim();
+          })();
     doc.text(concepto, 55, 159);
 
     doc.line(20, 170, 190, 170);
