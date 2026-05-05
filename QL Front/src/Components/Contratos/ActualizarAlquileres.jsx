@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import  { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { 
@@ -367,14 +367,14 @@ const ActualizarAlquileres = () => {
         return newState;
       });
 
-      // Recargar datos
-      await dispatch(getAllLeases());
-
+      // El reducer ya actualiza el estado inmediatamente via UPDATE_LEASE_RENT_SUCCESS
+      // No es necesario recargar todos los contratos
       Swal.fire({
         title: "¡Éxito!",
         text: "El contrato ha sido actualizado y el PDF generado correctamente",
         icon: "success",
-        timer: 3000
+        timer: 2500,
+        showConfirmButton: false
       });
 
     } catch (error) {

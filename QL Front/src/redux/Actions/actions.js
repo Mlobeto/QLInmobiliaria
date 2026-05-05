@@ -836,12 +836,6 @@ export const updateLeaseRentAmount =
         type: UPDATE_LEASE_RENT_SUCCESS,
         payload: response.data, // Datos del contrato actualizado
       });
-
-      Swal.fire(
-        "Éxito",
-        "El monto del alquiler se actualizó correctamente.",
-        "success"
-      );
     } catch (error) {
       dispatch({
         type: UPDATE_LEASE_RENT_FAILURE,
