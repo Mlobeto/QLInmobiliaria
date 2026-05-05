@@ -1066,12 +1066,6 @@ const debugLeaseAlerts = async (req, res) => {
   }
 };
 
-  } catch (error) {
-    console.error('Error en debugLeaseAlerts:', error);
-    res.status(500).json({ message: 'Error al debuggear alertas', error: error.message });
-  }
-};
-
 
 
 exports.getLeasesPendingUpdate = async (req, res) => {
