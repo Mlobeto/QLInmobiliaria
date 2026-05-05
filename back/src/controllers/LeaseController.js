@@ -622,6 +622,22 @@ exports.getAllLeases = async (req, res) => {
       const start = parseSafeDate(lease.startDate);
       const createdAt = parseSafeDate(lease.createdAt);
       const now = new Date();
+
+      // Si el contrato ya venció (startDate + totalMonths < hoy), no necesita actualización
+      const endDate = new Date(start);
+      endDate.setMonth(endDate.getMonth() + (lease.totalMonths || 0));
+      if (endDate < now || lease.status === 'terminated') {
+        return {
+          ...lease.toJSON(),
+          updateInfo: {
+            shouldUpdate: false,
+            hasUpdates: false,
+            isOldContractRecentlyLoaded: false,
+            nextUpdateDate: endDate,
+            lastUpdateDate: null
+          }
+        };
+      }
       
       // Determinar frecuencia en meses
       let freqMonths = 0;
