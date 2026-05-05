@@ -626,7 +626,13 @@ const rootReducer = (state = initialState, action) => {
         ...state,
         loading: false,
         leases: state.leases.map((lease) =>
-          lease.id === action.payload.lease.id ? action.payload.lease : lease
+          lease.id === action.payload.lease.id
+            ? {
+                ...lease,
+                ...action.payload.lease,
+                updateInfo: { ...lease.updateInfo, shouldUpdate: false },
+              }
+            : lease
         ),
       };
 
