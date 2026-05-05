@@ -898,8 +898,8 @@ exports.updateRentAmount = async (req, res) => {
       const { id } = req.params;
       const { newRentAmount, updateDate, pdfData, fileName } = req.body;
 
-      if (!newRentAmount || !updateDate || !pdfData || !fileName) {
-          return res.status(400).json({ error: 'El nuevo monto de alquiler, la fecha de actualización, el PDF y el nombre del archivo son obligatorios.' });
+      if (!newRentAmount || !updateDate) {
+          return res.status(400).json({ error: 'El nuevo monto de alquiler y la fecha de actualización son obligatorios.' });
       }
 
       const lease = await Lease.findByPk(id);
@@ -913,18 +913,17 @@ exports.updateRentAmount = async (req, res) => {
       // Calcula el período de actualización
       const period = calculateUpdatePeriod(lease.startDate, lease.updateFrequency, updateDate);
 
-      // Define the path where the PDF will be saved
-      const pdfDirectory = path.join(__dirname, '../../pdfs');
-      if (!fs.existsSync(pdfDirectory)) {
-          fs.mkdirSync(pdfDirectory, { recursive: true });
+      // Guardar el PDF solo si se envió el contenido
+      let filePath = null;
+      if (pdfData && fileName) {
+          const pdfDirectory = path.join(__dirname, '../../pdfs');
+          if (!fs.existsSync(pdfDirectory)) {
+              fs.mkdirSync(pdfDirectory, { recursive: true });
+          }
+          filePath = path.join(pdfDirectory, fileName);
+          const buffer = decodeBase64(pdfData);
+          fs.writeFileSync(filePath, buffer);
       }
-      const filePath = path.join(pdfDirectory, fileName);
-
-      // Decode base64 string
-      const buffer = decodeBase64(pdfData);
-
-      // Guardar el PDF en el sistema de archivos
-      fs.writeFileSync(filePath, buffer);
 
       // Crear el registro en el modelo RentUpdate
       await RentUpdate.create({
