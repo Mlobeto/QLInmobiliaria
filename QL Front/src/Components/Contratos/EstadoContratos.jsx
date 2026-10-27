@@ -6,7 +6,6 @@ import { getAllLeases, updateLease } from "../../redux/Actions/actions";
 import { formatDateSafe, formatDateForInput } from "../../utils/dateUtils";
 import CreateLeaseForm from "./CreateLeaseForm";
 import CompraVenta from "./CompraVenta";
-import ContratoAlquiler from "../PdfTemplates/ContratoAlquiler";
 import ContratoPreviewEditor from "../PdfTemplates/ContratoPreviewEditor";
 import Swal from 'sweetalert2';
 import {
@@ -42,7 +41,6 @@ import {
   const [editedLease, setEditedLease] = useState({});
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showSaleModal, setShowSaleModal] = useState(false);
-  const [pdfLease, setPdfLease] = useState(null);
   const [previewLease, setPreviewLease] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -151,10 +149,6 @@ import {
   const handleDownloadPdf = (lease) => {
     console.log("Abriendo preview/edición para contrato:", lease);
     setPreviewLease(lease);
-  };
-
-  const handleClosePdf = () => {
-    setPdfLease(null);
   };
 
   const handleClosePreview = () => {
@@ -718,29 +712,6 @@ import {
                   dispatch(getAllLeases()); // Refrescar la lista
                 }}
               />
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Modal para visualizar PDF */}
-      {pdfLease && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-slate-900 rounded-2xl border border-white/10 w-full max-w-5xl max-h-[90vh] overflow-hidden">
-            <div className="p-6 border-b border-white/10 flex items-center justify-between">
-              <h3 className="text-xl font-semibold text-white flex items-center">
-                <IoDocumentTextOutline className="w-6 h-6 mr-2 text-blue-400" />
-                Contrato de Alquiler - #{pdfLease.leaseId || pdfLease.id}
-              </h3>
-              <button
-                onClick={handleClosePdf}
-                className="p-2 hover:bg-white/10 rounded-lg transition-colors"
-              >
-                <IoCloseCircleOutline className="w-6 h-6 text-slate-400" />
-              </button>
-            </div>
-            <div className="max-h-[calc(90vh-120px)] overflow-y-auto p-6">
-              <ContratoAlquiler lease={pdfLease} />
             </div>
           </div>
         </div>

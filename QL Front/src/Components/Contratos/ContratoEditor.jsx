@@ -1,3 +1,4 @@
+// DEPRECADO: usar generarHTMLContrato.js + ContratoPreviewEditor
 import { useState, useRef, useEffect } from 'react';
 import { Editor } from '@tinymce/tinymce-react';
 import PropTypes from 'prop-types';

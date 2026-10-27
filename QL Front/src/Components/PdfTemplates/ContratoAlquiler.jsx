@@ -1,3 +1,4 @@
+// DEPRECADO: usar generarHTMLContrato.js + ContratoPreviewEditor
 import PropTypes from 'prop-types';
 import pdfMake from 'pdfmake/build/pdfmake';
 import * as pdfFonts from 'pdfmake/build/vfs_fonts';

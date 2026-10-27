@@ -12,7 +12,10 @@ const ContratoPreviewEditor = ({ lease, onClose }) => {
   const [loading, setLoading] = useState(false);
 
   const leaseId = lease?.id || lease?.leaseId;
-  const draftStorageKey = `contrato_preview_draft_${leaseId}`;
+  // Subir este número cada vez que se cambia la plantilla (generarHTMLContrato.js),
+  // así no se cargan borradores armados con la plantilla anterior.
+  const TEMPLATE_VERSION = 2;
+  const draftStorageKey = `contrato_preview_draft_v${TEMPLATE_VERSION}_${leaseId}`;
 
   const saveDraftLocally = (content) => {
     if (!leaseId || !content) return;

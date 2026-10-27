@@ -10,7 +10,8 @@ import {
 } from "../../redux/Actions/actions";
 import Listado from "../Propiedades/Listado";
 import Swal from "sweetalert2";
-import ContratoAlquiler from "../PdfTemplates/ContratoAlquiler";
+import axios from "axios";
+import ContratoPreviewEditor from "../PdfTemplates/ContratoPreviewEditor";
 import {
   IoDocumentTextOutline,
   IoBusinessOutline,
@@ -35,6 +36,7 @@ const CreateLeaseForm = ({ preselectedProperty = null, isModal = false, onClose 
   const [isLoading, setIsLoading] = useState(false);
   const clients = useSelector((state) => state.clients);
   const [leaseCreated, setLeaseCreated] = useState(null);
+  const [previewLease, setPreviewLease] = useState(null);
   const [filteredClients, setFilteredClients] = useState([]);
   const [showClientList, setShowClientList] = useState(false);
   const [selectedPropertyOccupancy, setSelectedPropertyOccupancy] = useState(null);
@@ -111,6 +113,65 @@ const CreateLeaseForm = ({ preselectedProperty = null, isModal = false, onClose 
         [name]: value,
       }));
     }
+  };
+
+  const buildGuarantorsFromForm = () => {
+    const guarantors = [];
+
+    if (formData.guarantor1Name) {
+      guarantors.push({
+        name: formData.guarantor1Name,
+        cuil: formData.guarantor1Cuil,
+        address: formData.guarantor1Direccion,
+        email: formData.guarantor1Email,
+        mobilePhone: formData.guarantor1MobilePhone,
+        description: formData.guarantor1Description,
+        certificationEntity: formData.guarantor1CertificationEntity || null,
+        insuranceCompany: formData.guarantor1InsuranceCompany || null,
+        policyNumber: formData.guarantor1PolicyNumber || null,
+        insuredAmount: formData.guarantor1InsuredAmount || null,
+        insuranceStartDate: formData.guarantor1InsuranceStartDate || null,
+      });
+    }
+
+    if (formData.guarantor2Name) {
+      guarantors.push({
+        name: formData.guarantor2Name,
+        cuil: formData.guarantor2Cuil,
+        address: formData.guarantor2Direccion,
+        email: formData.guarantor2Email,
+        mobilePhone: formData.guarantor2MobilePhone,
+        description: formData.guarantor2Description,
+        certificationEntity: formData.guarantor2CertificationEntity || null,
+        insuranceCompany: formData.guarantor2InsuranceCompany || null,
+        policyNumber: formData.guarantor2PolicyNumber || null,
+        insuredAmount: formData.guarantor2InsuredAmount || null,
+        insuranceStartDate: formData.guarantor2InsuranceStartDate || null,
+      });
+    }
+
+    return guarantors;
+  };
+
+  const loadLeaseForPreview = async (leaseId) => {
+    const { data } = await axios.get(`/lease/${leaseId}`);
+    const leaseIdNormalized = data.id ?? data.leaseId ?? leaseId;
+    const formGuarantors = buildGuarantorsFromForm();
+    const apiGuarantors = data.Garantors || [];
+    const garantors =
+      apiGuarantors.length > 0
+        ? apiGuarantors.map((g, index) => ({ ...g, ...(formGuarantors[index] || {}) }))
+        : formGuarantors;
+
+    return {
+      ...data,
+      id: leaseIdNormalized,
+      leaseId: leaseIdNormalized,
+      Property:
+        data.Property ||
+        (property?.propertyId === data.propertyId ? property : undefined),
+      Garantors: garantors,
+    };
   };
 
   const handleClientSelect = (client) => {
@@ -259,8 +320,12 @@ const CreateLeaseForm = ({ preselectedProperty = null, isModal = false, onClose 
           })
         );
 
-        setLeaseCreated(createdLease);
-        setPdfData(createdLease);
+        const leaseIdForPreview = createdLease.leaseId || createdLease.id;
+        const fullLease = await loadLeaseForPreview(leaseIdForPreview);
+
+        setLeaseCreated(fullLease);
+        setPdfData(fullLease);
+        setPreviewLease(fullLease);
 
         Swal.fire({
           icon: "success",
@@ -387,6 +452,7 @@ const CreateLeaseForm = ({ preselectedProperty = null, isModal = false, onClose 
 
     setFormData(prev => ({ ...prev, propertyId: "" }));
     setLeaseCreated(null);
+    setPreviewLease(null);
   };
 
   return (
@@ -887,33 +953,19 @@ const CreateLeaseForm = ({ preselectedProperty = null, isModal = false, onClose 
                     <p className="text-slate-400">El contrato de alquiler ha sido generado correctamente</p>
                   </div>
                   
-                  <ContratoAlquiler
-                    lease={leaseCreated}
-                    propertyData={property}
-                    guarantor1Data={{
-                      name: formData.guarantor1Name,
-                      cuil: formData.guarantor1Cuil,
-                      direccion: formData.guarantor1Direccion,
-                      description: formData.guarantor1Description,
-                      certificationEntity: formData.guarantor1CertificationEntity,
-                      insuranceCompany: formData.guarantor1InsuranceCompany,
-                      policyNumber: formData.guarantor1PolicyNumber,
-                      insuredAmount: formData.guarantor1InsuredAmount,
-                      insuranceStartDate: formData.guarantor1InsuranceStartDate,
-                    }}
-                    guarantor2Data={{
-                      name: formData.guarantor2Name,
-                      cuil: formData.guarantor2Cuil,
-                      direccion: formData.guarantor2Direccion,
-                      description: formData.guarantor2Description,
-                      certificationEntity: formData.guarantor2CertificationEntity,
-                      insuranceCompany: formData.guarantor2InsuranceCompany,
-                      policyNumber: formData.guarantor2PolicyNumber,
-                      insuredAmount: formData.guarantor2InsuredAmount,
-                      insuranceStartDate: formData.guarantor2InsuranceStartDate,
-                    }}
-                  />
-                  
+                  <p className="text-slate-300 text-sm">
+                    Se abrió el editor para revisar el contrato y guardar el PDF.
+                  </p>
+                  {!previewLease && leaseCreated && (
+                    <button
+                      type="button"
+                      onClick={() => setPreviewLease(leaseCreated)}
+                      className="px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-xl font-medium transition-all duration-300"
+                    >
+                      Abrir editor del contrato
+                    </button>
+                  )}
+
                   <div className="flex gap-4 justify-center pt-6">
                     <button
                       type="button"
@@ -949,6 +1001,7 @@ const CreateLeaseForm = ({ preselectedProperty = null, isModal = false, onClose 
                           guarantor2InsuranceStartDate: "",
                         });
                         setLeaseCreated(null);
+                        setPreviewLease(null);
                         setPdfData(null);
                         setFilteredClients([]);
                         setShowClientList(false);
@@ -962,6 +1015,7 @@ const CreateLeaseForm = ({ preselectedProperty = null, isModal = false, onClose 
                       onClick={() => {
                         setFormData(prev => ({ ...prev, propertyId: "" }));
                         setLeaseCreated(null);
+                        setPreviewLease(null);
                       }}
                       className="px-6 py-3 bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white rounded-xl font-medium transition-all duration-300"
                     >
@@ -974,6 +1028,13 @@ const CreateLeaseForm = ({ preselectedProperty = null, isModal = false, onClose 
           </div>
         </div>
         )
+      )}
+
+      {previewLease && (
+        <ContratoPreviewEditor
+          lease={previewLease}
+          onClose={() => setPreviewLease(null)}
+        />
       )}
     </div>
   );
